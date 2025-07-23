@@ -1,27 +1,64 @@
-'use client'
+"use client";
 import { ProfileSection } from "@/components/ProfileSection";
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { FaYoutube } from "react-icons/fa";
+import { FaSquareXTwitter } from "react-icons/fa6";
+import { SiTwitch } from "react-icons/si";
+import YouTubeLivestreamFetcher from "@/components/YTHandler";
+import TwitchStreamFetcher from "@/components/TwitchHandler";
+import TwitterFetcher from "@/components/TwitterHandler";
+import Background from "@/components/UI/Background";
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState("youtube");
 
   async function initSdk() {
-    const { sdk } = await import('@farcaster/miniapp-sdk');
+    const { sdk } = await import("@farcaster/miniapp-sdk");
     await sdk.actions.ready();
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     initSdk();
-  },[])
+  }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black">
       <main>
-        <ProfileSection/>
-      </main>
-      <footer>
+        <Background selected={activeTab} />
+        <div className="relative z-1 min-h-screen">
+<ProfileSection />
 
-      </footer>
+        {/* Conditional Rendering */}
+        <div className="mt-6">
+          {activeTab === "youtube" && <YouTubeLivestreamFetcher />}
+          {activeTab === "twitch" && <TwitchStreamFetcher />}
+        </div>
+
+        <div className="flex w-screen mx-auto justify-center space-x-4 mt-6 absolute bottom-10">
+          <div className="bg-white/20 flex gap-2 p-2 rounded-sm">
+            <button
+              className={`px-3 py-1 rounded-sm duration-200 transition-colors ${
+                activeTab === "youtube" ? "border-red-500 border-2 text-red-500 shadow-md shadow-red-500/40 " : "border-white/30 border-2 "
+              }`}
+              onClick={() => setActiveTab("youtube")}
+            >
+              <FaYoutube size={24} className="" />
+            </button>
+            <button
+              className={`px-3 py-1 rounded-sm duration-200 transition-colors ${
+                activeTab === "twitch" ? "border-purple-500 border-2 text-purple-500 shadow-md shadow-purple-500/40" : "border-white/30 border-2 "
+              }`}
+              onClick={() => setActiveTab("twitch")}
+            >
+              <SiTwitch size={24} className="" />
+            </button>
+            
+          </div>
+        </div>
+        </div>
+        
+      </main>
     </div>
   );
 }
