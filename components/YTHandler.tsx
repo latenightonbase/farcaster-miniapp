@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { RiLoader5Fill } from 'react-icons/ri';
+import moment from 'moment';
 
 interface Livestream {
   id: string;
@@ -236,7 +237,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                       {stream.title}
                     </h3>
                     <p className="text-xs text-gray-300">
-                      {new Date(stream.publishedAt).toLocaleString()}
+                      {moment(stream.publishedAt).fromNow()}
                     </p>
                   </div>
                 </div>
