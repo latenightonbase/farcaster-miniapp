@@ -197,8 +197,8 @@ const YouTubeLivestreamFetcher: React.FC = () => {
       )}
 
       {!loading && pastStreams.length > 0 && (
-        <div className="relative">
-          <h2 className="text-xl font-semibold text-white mb-4">Past Livestreams</h2>
+        <div className="relative mb-30">
+          <h2 className="text-xl font-semibold text-white mb-4 text-center">Past Livestreams</h2>
           <button
             className="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"
             onClick={() => {
@@ -210,36 +210,38 @@ const YouTubeLivestreamFetcher: React.FC = () => {
           </button>
           <div
             id="carousel"
-            className="flex gap-4 overflow-x-auto scrollbar-hide"
+            className="flex gap-4 overflow-scroll bg-black/40 rounded-xl p-3"
           >
-            {pastStreams.map((stream) => (
-              <div
-                key={stream.id}
-                className="min-w-[250px] bg-red-800/20 border border-red-600 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="relative">
-                  <a
-                    href={stream.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img
-                      src={stream.thumbnail}
-                      alt={stream.title}
-                      className="w-full h-32 object-cover"
-                    />
-                  </a>
+            <div className='flex gap-4'>
+              {pastStreams.map((stream) => (
+                <div
+                  key={stream.id}
+                  className="min-w-[250px] bg-red-800/20 border border-red-600 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="relative">
+                    <a
+                      href={stream.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        src={stream.thumbnail}
+                        alt={stream.title}
+                        className="w-full h-32 object-cover"
+                      />
+                    </a>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
+                      {stream.title}
+                    </h3>
+                    <p className="text-xs text-gray-300">
+                      {new Date(stream.publishedAt).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div className="p-3">
-                  <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
-                    {stream.title}
-                  </h3>
-                  <p className="text-xs text-gray-300">
-                    {new Date(stream.publishedAt).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           <button
             className="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"

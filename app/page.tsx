@@ -27,47 +27,44 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black animate-rise ">
       <main className="relative">
-        
+
         <div className="relative z-1 min-h-screen">
-        <ProfileSection />
+          <ProfileSection />
 
-        <DailyUpdate selected={activeTab} />
-        {/* Conditional Rendering */}
-        <div className="mt-6">
-          {activeTab === "youtube" && <YouTubeLivestreamFetcher />}
-          {activeTab === "twitch" && <TwitchStreamFetcher />}
-        </div>
+          <DailyUpdate selected={activeTab} />
+          {/* Conditional Rendering */}
+          <div className="mt-6">
+            {activeTab === "youtube" && <YouTubeLivestreamFetcher />}
+            {activeTab === "twitch" && <TwitchStreamFetcher />}
+          </div>
 
-        
+
         </div>
-        <div className="flex w-screen mx-auto pb-4 justify-center space-x-4 mt-6 sticky z-1 bottom-4 animate-rise-2">
-          <div className="bg-white/20 flex gap-2 p-2 rounded-sm">
+        {/* <div className="flex mx-auto pb-4 justify-center space-x-4 fixed w-[80%] min-w-[300px] z-1 bottom-4 -translate-1/2 left-1/2 animate-rise-2">
+          <div className="bg-white/20 backdrop-blur-sm grid grid-cols-2 gap-2 p-2 rounded-sm w-full">
             <button
-              className={`px-5 py-1 rounded-sm duration-200 transition-colors ${
-                activeTab === "youtube" ? "border-white border-2 text-white bg-red-500 shadow-md shadow-red-500/40 " : "border-white/30 border-2 text-white/30 "
-              }`}
+              className={`px-5 flex items-center justify-center py-3 rounded-sm duration-200 transition-colors ${activeTab === "youtube" ? "border-white border-2 text-white bg-red-500 shadow-md shadow-red-500/40 " : "border-white/30 border-2 text-white/30 "
+                }`}
               onClick={() => setActiveTab("youtube")}
             >
               <FaYoutube size={24} className="" />
             </button>
             <button
-              className={`px-5 py-1 rounded-sm duration-200 transition-colors ${
-                activeTab === "twitch" ? "border-white border-2 text-white bg-purple-500 shadow-md shadow-purple-500/40" : "border-white/30 border-2 text-white/30"
-              }`}
+              className={`px-5 flex items-center justify-center py-3 rounded-sm duration-200 transition-colors ${activeTab === "twitch" ? "border-white border-2 text-white bg-purple-500 shadow-md shadow-purple-500/40" : "border-white/30 border-2 text-white/30"
+                }`}
               onClick={() => setActiveTab("twitch")}
             >
               <SiTwitch size={24} className="" />
             </button>
-            
+
           </div>
-        </div>
+        </div> */}
         <Background selected={activeTab} />
         <div className="relative z-1">
-<Tipping/>
+          <Tipping />
         </div>
-        
       </main>
-      
+
     </div>
   );
 }

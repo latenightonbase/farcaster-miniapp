@@ -43,20 +43,27 @@ export default function DailyUpdate({ selected }: { selected: string }) {
       )}
 
       {!loading && videos.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8">
           {videos.map((videoUrl, index) => (
             <div
               key={index}
-              className={`mt-8 shadow-sm hover:shadow-md transition-shadow rounded-lg  `}
+              className=" w-fit p-3 shadow-sm mx-auto flex flex-col items-center justify-center hover:shadow-md transition-shadow rounded-lg overflow-hidden bg-red-500/20 border border-red-500"
             >
-              <h2 className="text-xl font-semibold text-white mb-5 ">Daily Updates</h2>
-              <video
-                controls
-                className={`w-full h-48 object-cover border-[1px] rounded-lg duration-200 transition-all ${
-                  selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
-                }`}
-                src={videoUrl}
-              />
+                            <h2 className=" text-xl text-white font-bold mb-2">News of the Day</h2>
+
+              
+              {/* Video Container */}
+              <div className="">
+                <video
+                  controls
+                  className={`w-fit h-52 object-cover rounded-lg duration-200 transition-all ${
+                    selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
+                  }`}
+                  src={videoUrl}
+                />
+              </div>
+
+              {/* Video Title Bar */}              
             </div>
           ))}
         </div>

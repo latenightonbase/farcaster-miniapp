@@ -357,14 +357,14 @@ const TwitchStreamFetcher = () => {
 
       {!loading && videos.length > 0 && (
         <div className="relative">
-          <h2 className="text-xl font-semibold text-white mb-4">Past Streams</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <h2 className="text-xl font-semibold text-white mb-4 text-center">Past Streams</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 p-3 bg-black/40 rounded-xl">
             {videos.map((video) => (
               <div
                 key={video.id}
-                className="bg-purple-800/20 border border-purple-600 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="bg-purple-800/20 border p-3 border-purple-600 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="relative">
+                <div className="relative rounded-lg overflow-hidden">
                   <a
                     href={video.url}
                     target="_blank"
@@ -373,15 +373,15 @@ const TwitchStreamFetcher = () => {
                     <img
                       src={video.thumbnailUrl.replace('%{width}', '320').replace('%{height}', '180')}
                       alt={video.title}
-                      className="w-full h-32 object-cover"
+                      className="w-full h-48 object-cover"
                     />
                   </a>
                 </div>
-                <div className="p-3">
-                  <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
+                <div className="p-3 pb-0">
+                  <h3 className="font-semibold text-white text-lg mb-1 line-clamp-2">
                     {video.title}
                   </h3>
-                  <p className="text-xs text-gray-300">
+                  <p className="text-xs text-right text-purple-500">
                     {new Date(video.publishedAt).toLocaleString()}
                   </p>
                 </div>

@@ -3,7 +3,7 @@ import { CustomConnect } from './UI/connectButton';
 import { ethers } from 'ethers';
 import { useAccount } from 'wagmi';
 import { MdDone } from 'react-icons/md';
-import { RiLoader5Fill } from 'react-icons/ri';
+import { RiLoader5Fill, RiMoneyDollarCircleLine } from 'react-icons/ri';
 
 const Tipping = () => {
   const [amount, setAmount] = useState<number>(0);
@@ -82,13 +82,13 @@ const Tipping = () => {
   };
 
   return (
-    <div className={`relative bg-gradient-to-b from-transparent to-black p-4`}>
-      <h2>Liked my content? A coffee is appreciated!</h2>
+    <div className={`fixed bottom-0 left-0 bg-gradient-to-b from-transparent via-black/80 to-black p-4 pt-20 w-full flex justify-between`}>
+      <h3 className='text-md self-center'>Liked my content? A coffee is appreciated!</h3>
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="bg-blue-500 text-center w-40 py-2 rounded text-lg font-bold text-white"
+        className="bg-emerald-600 text-center w-fit py-2 px-4 rounded-full text-md font-bold text-white"
       >
-        Tip
+        <RiMoneyDollarCircleLine color='white' size={20} className='inline-block' /> Tip Me
       </button>
 
       {/* { isDropdownOpen && (
