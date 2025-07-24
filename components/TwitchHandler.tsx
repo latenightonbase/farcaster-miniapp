@@ -382,7 +382,7 @@ const TwitchStreamFetcher = () => {
                     {video.title}
                   </h3>
                   <p className="text-xs text-gray-300">
-                    Published: {new Date(video.publishedAt).toLocaleString()}
+                    {new Date(video.publishedAt).toLocaleString()}
                   </p>
                 </div>
               </div>

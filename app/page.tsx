@@ -25,9 +25,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black animate-rise">
+    <div className="min-h-screen bg-black animate-rise ">
       <main className="relative">
-        <Background selected={activeTab} />
+        
         <div className="relative z-1 min-h-screen">
         <ProfileSection />
 
@@ -40,7 +40,7 @@ export default function Home() {
 
         
         </div>
-        <div className="flex w-screen mx-auto pb-4 justify-center space-x-4 mt-6 sticky z-10 bottom-4 animate-rise-2">
+        <div className="flex w-screen mx-auto pb-4 justify-center space-x-4 mt-6 sticky z-1 bottom-4 animate-rise-2">
           <div className="bg-white/20 flex gap-2 p-2 rounded-sm">
             <button
               className={`px-5 py-1 rounded-sm duration-200 transition-colors ${
@@ -61,7 +61,11 @@ export default function Home() {
             
           </div>
         </div>
-        <Tipping/>
+        <Background selected={activeTab} />
+        <div className="relative z-1">
+<Tipping/>
+        </div>
+        
       </main>
       
     </div>

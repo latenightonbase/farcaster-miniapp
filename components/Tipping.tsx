@@ -82,7 +82,7 @@ const Tipping = () => {
   };
 
   return (
-    <div className={`h-40 relative top-0 z-30 bg-gradient-to-b from-transparent to-black p-4`}>
+    <div className={`relative bg-gradient-to-b from-transparent to-black p-4`}>
       <h2>Liked my content? A coffee is appreciated!</h2>
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -91,8 +91,8 @@ const Tipping = () => {
         Tip
       </button>
 
-      { isDropdownOpen && (
-        <div className={`absolute bottom-0 left-0 animate-tip bg-black w-screen rounded-t-lg  items-start shadow-xl bg-opacity-50 flex justify-center transition-transform duration-500 z-50 ${isDropdownOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+      {/* { isDropdownOpen && (
+        <div className={`absolute bottom-0 left-0 bg-black w-screen rounded-t-lg  items-start shadow-xl bg-opacity-50 flex justify-center transition-transform duration-500 z-50 ${isDropdownOpen ? 'translate-y-0' : 'translate-y-full'}`}>
           <div className="bg-dark-blue p-6 rounded-lg w-11/12 max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
             <button
               onClick={() => setIsDropdownOpen(false)}
@@ -155,7 +155,73 @@ const Tipping = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
+      <div className={`h-screen w-screen fixed top-0 left-0 duration-500 transition-all bg-black/50 ${isDropdownOpen ? "z-45 opacity-100 "  : "-z-1 opacity-0"} `} >
+          <div className={`absolute bottom-0 bg-black w-screen rounded-t-lg  items-start shadow-xl bg-opacity-50 flex justify-center transition-transform duration-500  z-50 ${isDropdownOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+          <div className="bg-dark-blue p-6 rounded-lg w-11/12 max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
+            <button
+              onClick={() => setIsDropdownOpen(false)}
+              className="absolute top-3 right-3 text-white text-2xl font-bold hover:text-red-500 transition-colors"
+            >
+              &times;
+            </button>
+
+            <div className='mt-5 flex flex-col items-center'>
+              {!address ? (
+                <CustomConnect />
+              ) : (
+                <div className="w-full">
+                  <h2 className="text-white text-2xl font-semibold mb-4 text-center">Thank you!</h2>
+                  <p className="text-gray-300 text-sm mb-6 text-center">Choose an amount to tip:</p>
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    {[3, 5, 8, 10, 12].map((value) => (
+                      <button
+                        key={value}
+                        onClick={() => {
+                            console.log(`Selected amount: ${value}`);
+                          setAmount(value);
+                          setCustomAmount(null);
+                        }}
+                        className={` text-white py-2 px-4 rounded-lg font-bold transition ${amount == value ? 'bg-blue-500' : 'bg-gray-800'}`}
+                      >
+                        ${value}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => {
+                        setAmount(0);
+                        setCustomAmount(0);
+                      }}
+                      className="bg-gray-800 text-white py-2 px-4 rounded-lg font-bold hover:bg-gray-700 transition"
+                    >
+                      ...
+                    </button>
+                  </div>
+                  {customAmount !== null && (
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => {
+                        setAmount(Number(e.target.value));
+                      }}
+                      placeholder="Enter custom amount"
+                      className="border border-gray-600 bg-gray-800 text-white p-3 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                    />
+                  )}
+                  <button
+                    onClick={handleSend}
+                    disabled={isLoading}
+                    className={` ${isSuccess ? "bg-green-600" : "bg-blue-500"} text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isLoading ? <RiLoader5Fill className='animate-spin text-2xl mx-auto' /> : isSuccess ? <MdDone className='text-2xl mx-auto' /> : 'Confirm Tip'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      
     </div>
   );
 };

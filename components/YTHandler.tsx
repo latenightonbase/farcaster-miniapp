@@ -235,7 +235,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                     {stream.title}
                   </h3>
                   <p className="text-xs text-gray-300">
-                    Published: {new Date(stream.publishedAt).toLocaleString()}
+                    {new Date(stream.publishedAt).toLocaleString()}
                   </p>
                 </div>
               </div>
