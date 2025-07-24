@@ -65,7 +65,10 @@ const TwitchStreamFetcher = () => {
           client_id: CLIENT_ID,
           client_secret: CLIENT_SECRET,
           grant_type: 'client_credentials'
-        })
+        }),
+        next:{
+          revalidate:3600
+        }
       });
 
       const data = await response.json();
@@ -88,6 +91,9 @@ const TwitchStreamFetcher = () => {
         headers: {
           'Client-ID': CLIENT_ID,
           'Authorization': `Bearer ${token}`
+        },
+        next:{
+          revalidate:3600
         }
       });
 
@@ -114,6 +120,9 @@ const TwitchStreamFetcher = () => {
         headers: {
           'Client-ID': CLIENT_ID,
           'Authorization': `Bearer ${token}`
+        },
+        next:{
+          revalidate:3600
         }
       });
 
@@ -152,6 +161,9 @@ const TwitchStreamFetcher = () => {
         headers: {
           'Client-ID': CLIENT_ID,
           'Authorization': `Bearer ${token}`
+        },
+        next:{
+          revalidate:3600
         }
       });
 
@@ -307,7 +319,7 @@ const TwitchStreamFetcher = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 text-white">
+    <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
       {loading && (
         <div className="text-center py-12">
           <p className="text-gray-400">Loading...</p>
@@ -345,7 +357,7 @@ const TwitchStreamFetcher = () => {
 
       {!loading && videos.length > 0 && (
         <div className="relative">
-          <h2 className="text-xl font-semibold text-purple-800 mb-4">Past Streams</h2>
+          <h2 className="text-xl font-semibold text-white mb-4">Past Streams</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {videos.map((video) => (
               <div

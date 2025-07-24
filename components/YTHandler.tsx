@@ -159,7 +159,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
   const pastStreams = livestreams.filter((stream) => !stream.isLive);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 text-white">
+    <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
       
       {loading && !error && (
         <div className="text-center py-12">

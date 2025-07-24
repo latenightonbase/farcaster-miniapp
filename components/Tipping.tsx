@@ -92,7 +92,7 @@ const Tipping = () => {
       </button>
 
       { isDropdownOpen && (
-        <div className={`absolute bottom-0 left-0 bg-black w-screen rounded-t-lg  items-start shadow-xl bg-opacity-50 flex justify-center transition-transform duration-500 z-50 ${isDropdownOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className={`absolute bottom-0 left-0 animate-tip bg-black w-screen rounded-t-lg  items-start shadow-xl bg-opacity-50 flex justify-center transition-transform duration-500 z-50 ${isDropdownOpen ? 'translate-y-0' : 'translate-y-full'}`}>
           <div className="bg-dark-blue p-6 rounded-lg w-11/12 max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
             <button
               onClick={() => setIsDropdownOpen(false)}
@@ -106,7 +106,7 @@ const Tipping = () => {
                 <CustomConnect />
               ) : (
                 <div className="w-full">
-                  <h2 className="text-white text-2xl font-semibold mb-4 text-center">Support the Creator</h2>
+                  <h2 className="text-white text-2xl font-semibold mb-4 text-center">Thank you!</h2>
                   <p className="text-gray-300 text-sm mb-6 text-center">Choose an amount to tip:</p>
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     {[3, 5, 8, 10, 12].map((value) => (
@@ -140,7 +140,7 @@ const Tipping = () => {
                         setAmount(Number(e.target.value));
                       }}
                       placeholder="Enter custom amount"
-                      className="border border-gray-600 bg-gray-800 text-white p-3 rounded w-full mb-4 focus:outline-none focus:ring-2"
+                      className="border border-gray-600 bg-gray-800 text-white p-3 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                     />
                   )}
                   <button
