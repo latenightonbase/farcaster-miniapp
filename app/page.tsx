@@ -10,6 +10,7 @@ import TwitchStreamFetcher from "@/components/TwitchHandler";
 import TwitterFetcher from "@/components/TwitterHandler";
 import Background from "@/components/UI/Background";
 import DailyUpdate from "@/components/DailyUpdate";
+import Tipping from "@/components/Tipping";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
@@ -24,8 +25,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black">
-      <main>
+    <div className="min-h-screen bg-black ">
+      <main className="relative">
         <Background selected={activeTab} />
         <div className="relative z-1 min-h-screen">
         <ProfileSection />
@@ -39,7 +40,7 @@ export default function Home() {
 
         
         </div>
-        <div className="flex w-screen mx-auto justify-center space-x-4 mt-6 fixed z-50 bottom-10">
+        <div className="flex w-screen mx-auto pb-4 justify-center space-x-4 mt-6 sticky z-10 bottom-4">
           <div className="bg-white/20 flex gap-2 p-2 rounded-sm">
             <button
               className={`px-5 py-1 rounded-sm duration-200 transition-colors ${
@@ -60,7 +61,9 @@ export default function Home() {
             
           </div>
         </div>
+        <Tipping/>
       </main>
+      
     </div>
   );
 }

@@ -102,9 +102,10 @@ const YouTubeLivestreamFetcher: React.FC = () => {
       const videosResponse = await fetch(
         `${BASE_URL}/videos?part=snippet,liveStreamingDetails,statistics&id=${videoIds}&key=${API_KEY}`,
         {
-          headers: {
-            'Cache-Control': 'max-age=3600'
+          next: {
+            revalidate: 3600 // Cache for 1 hour
           }
+          
         }
       );
       const videosData = await videosResponse.json();
