@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Radio, Clock, Users, Eye, Calendar, Video } from 'lucide-react';
+import { Radio, Eye, Calendar, Video } from 'lucide-react';
 
 interface Stream {
   id: string;
@@ -41,7 +41,6 @@ interface Video {
 }
 
 const TwitchStreamFetcher = () => {
-  const [username, setUsername] = useState('');
   const [streams, setStreams] = useState<Stream[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
@@ -187,13 +186,8 @@ const TwitchStreamFetcher = () => {
     }
   };
 
-  // Main search function
-  const handleSearch = async () => {
-    if (!username.trim()) {
-      setError('Please enter a Twitch username');
-      return;
-    }
-
+  // Main function to fetch streams and videos
+  const fetchStreamsAndVideos = async (username: string) => {
     try {
       setLoading(true);
       setError('');
@@ -231,6 +225,46 @@ const TwitchStreamFetcher = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        // Get access token if not available
+        let token = accessToken;
+        if (!token) {
+          token = await getAccessToken();
+        }
+
+        // Get user information for the channel 'latenightonbase'
+        const userInfo = await getUserId('latenightonbase', token);
+
+        // Fetch both live streams and past videos
+        const [liveStreams, pastVideos] = await Promise.all([
+          fetchLiveStreams(userInfo.id, token),
+          fetchPastVideos(userInfo.id, token)
+        ]);
+
+        setStreams(liveStreams);
+        setVideos(pastVideos);
+
+        // Set active tab based on what we found
+        if (liveStreams.length > 0) {
+          setActiveTab('live');
+        } else if (pastVideos.length > 0) {
+          setActiveTab('past');
+        }
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleString();
@@ -273,117 +307,50 @@ const TwitchStreamFetcher = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-purple-900 mb-2">
-          Twitch Stream Fetcher
-        </h1>
-        <p className="text-gray-600">
-          Fetch live and past stream details from any Twitch channel
-        </p>
-      </div>
-
-      {/* Search Controls */}
-      <div className="bg-gray-50 p-6 rounded-lg mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="Enter Twitch username (e.g., ninja, shroud)"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-          
-          <button
-            onClick={handleSearch}
-            disabled={loading}
-            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <Search size={20} />
-            {loading ? 'Searching...' : 'Search Streams'}
-          </button>
-        </div>
-
-        {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600">{error}</p>
-            <p className="text-sm text-red-500 mt-1">
-              Make sure you have valid Twitch API credentials configured
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Tab Navigation */}
-      {(streams.length > 0 || videos.length > 0) && (
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('live')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'live'
-                    ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Radio size={16} />
-                  Live Streams ({streams.length})
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('past')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'past'
-                    ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Video size={16} />
-                  Past Streams ({videos.length})
-                </div>
-              </button>
-            </nav>
-          </div>
+    <div className="max-w-6xl mx-auto p-4 text-white">
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-400">Loading...</p>
         </div>
       )}
 
-      {/* Live Streams */}
-      {activeTab === 'live' && streams.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold mb-4 text-purple-800">
-            Currently Live
-          </h2>
+      {error && (
+        <div className="mt-4 p-4 bg-red-800 border border-red-600 rounded-lg">
+          <p className="text-red-300">{error}</p>
+        </div>
+      )}
+
+      {!loading && streams.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-purple-800 mb-4">Currently Live</h2>
           {streams.map((stream) => (
-            <div key={stream.id} className="mb-6">
+            <div key={stream.id} className="mb-6 bg-purple-800/50 w-full aspect-video p-4 rounded-lg">
               <iframe
-                width="100%"
-                height="360"
+                width={'100%'}
                 src={`https://player.twitch.tv/?channel=${stream.userLogin}&parent=localhost`}
                 title={stream.title}
-                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
-              <h3 className="font-semibold text-gray-900 mt-2">{stream.title}</h3>
+              <h3 className="font-semibold text-white mt-2 text-lg">
+                {stream.title}
+              </h3>
+              <p className="text-sm text-gray-400">
+                {stream.viewerCount} viewers
+              </p>
             </div>
           ))}
         </div>
       )}
 
-      {/* Past Videos */}
-      {activeTab === 'past' && videos.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold mb-4 text-purple-800">
-            Past Streams (VODs)
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {!loading && videos.length > 0 && (
+        <div className="relative">
+          <h2 className="text-xl font-semibold text-purple-800 mb-4">Past Streams</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {videos.map((video) => (
               <div
                 key={video.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="bg-purple-800/20 border border-purple-600 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="relative">
                   <a
@@ -394,33 +361,17 @@ const TwitchStreamFetcher = () => {
                     <img
                       src={video.thumbnailUrl.replace('%{width}', '320').replace('%{height}', '180')}
                       alt={video.title}
-                      className="w-full h-48 object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://via.placeholder.com/320x180/9146ff/white?text=Twitch+VOD';
-                      }}
+                      className="w-full h-32 object-cover"
                     />
                   </a>
-                  <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm">
-                    {formatDuration(video.duration)}
-                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                <div className="p-3">
+                  <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
                     {video.title}
                   </h3>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <strong className="text-purple-600">{video.userName}</strong>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Eye size={14} />
-                      {formatViewCount(video.viewCount)} views
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar size={14} />
-                      {formatDate(video.createdAt)}
-                    </div>
-                  </div>
+                  <p className="text-xs text-gray-300">
+                    Published: {new Date(video.publishedAt).toLocaleString()}
+                  </p>
                 </div>
               </div>
             ))}
@@ -428,10 +379,9 @@ const TwitchStreamFetcher = () => {
         </div>
       )}
 
-      {/* No Results */}
-      {!loading && streams.length === 0 && videos.length === 0 && username && !error && (
+      {!loading && streams.length === 0 && videos.length === 0 && !error && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No streams or videos found for this channel.</p>
+          <p className="text-gray-400">No streams or videos found.</p>
         </div>
       )}
     </div>
