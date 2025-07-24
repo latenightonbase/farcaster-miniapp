@@ -88,7 +88,7 @@ const Tipping = () => {
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         className="bg-emerald-600 text-center w-fit py-2 px-4 rounded-full text-md text-nowrap font-bold text-white"
       >
-        <RiMoneyDollarCircleLine color='white' size={20} className='inline-block' /> Tip Me
+        <RiMoneyDollarCircleLine color='white' size={20} className='inline-block' /> Tip
       </button>
 
       {/* { isDropdownOpen && (
@@ -156,8 +156,8 @@ const Tipping = () => {
           </div>
         </div>
       )} */}
-      <div className={`h-screen w-screen fixed top-0 left-0 duration-500 transition-all bg-black/50 ${isDropdownOpen ? "z-45 opacity-100 "  : "-z-1 opacity-0 hidden"} `} >
-          <div className={`absolute bottom-0 bg-black w-screen rounded-t-lg  items-start shadow-xl bg-opacity-50 flex justify-center transition-transform duration-500  z-50 ${isDropdownOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div className={`h-screen w-screen fixed animate-rise top-0 left-0 duration-200 transition-all bg-black/50 ${isDropdownOpen ? " z-45 opacity-100 "  : "-z-50 opacity-0 translate-y-full"} `} >
+          <div className={`absolute bottom-0 border-t-2 border-white/20 min-h-60 bg-gradient-to-b from-slate-950 to-black w-screen rounded-t-lg  items-start shadow-xl bg-opacity-50 flex justify-center transition-all duration-500  z-50 ${isDropdownOpen ? 'translate-y-0' : 'translate-y-full'}`}>
           <div className="bg-dark-blue p-6 rounded-lg w-11/12 max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
             <button
               onClick={() => setIsDropdownOpen(false)}

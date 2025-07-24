@@ -12,7 +12,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const response = await fetch('https://billcaster.s3.ap-south-1.amazonaws.com/videos/1753354185956-billnight');
+        const response = await fetch('https://billcaster.s3.ap-south-1.amazonaws.com/videos/billnews');
         if (!response.ok) {
           throw new Error('Failed to fetch video');
         }
@@ -56,7 +56,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               <div className="">
                 <video
                   controls
-                  className={`w-fit h-52 object-cover rounded-lg duration-200 transition-all ${
+                  className={`w-full object-cover rounded-lg duration-200 transition-all ${
                     selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
                   }`}
                   src={videoUrl}
