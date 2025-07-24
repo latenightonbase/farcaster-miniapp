@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { RiLoader5Fill } from 'react-icons/ri';
 import moment from 'moment';
+import { IoIosArrowBack } from "react-icons/io";
+
 
 interface Livestream {
   id: string;
@@ -207,7 +209,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
               if (container) container.scrollBy({ left: -300, behavior: 'smooth' });
             }}
           >
-            ◀
+            <IoIosArrowBack className="text-xl" />
           </button>
           <div
             id="carousel"
@@ -251,7 +253,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
               if (container) container.scrollBy({ left: 300, behavior: 'smooth' });
             }}
           >
-            ▶
+            <IoIosArrowBack className="text-xl rotate-180" />
           </button>
         </div>
       )}
