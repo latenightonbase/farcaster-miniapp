@@ -22,6 +22,7 @@ export async function GET() {
       description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
       screenshotUrls: [],
       iconUrl: process.env.NEXT_PUBLIC_APP_ICON,
+      imageUrl: process.env.NEXT_PUBLIC_APP_ICON,
       splashImageUrl: process.env.NEXT_PUBLIC_APP_SPLASH_IMAGE,
       splashBackgroundColor: process.env.NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR,
       homeUrl: URL,
@@ -33,7 +34,6 @@ export async function GET() {
       ogTitle: process.env.NEXT_PUBLIC_APP_OG_TITLE,
       ogDescription: process.env.NEXT_PUBLIC_APP_OG_DESCRIPTION,
       ogImageUrl: process.env.NEXT_PUBLIC_APP_OG_IMAGE,
-      imageUrl: process.env.NEXT_PUBLIC_APP_OG_IMAGE,
     }),
     accountAssociation: {
       header: process.env.FARCASTER_HEADER,
