@@ -72,11 +72,6 @@ const Tipping = () => {
 
         sendTransaction(transactionConfig);
 
-        while(!hash){
-          // Wait for the transaction hash to be available
-          console.log("Waiting for transaction hash...");
-        }
-
         setIsSuccess(true);
       } else {
         console.log(
