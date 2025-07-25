@@ -11,9 +11,20 @@ import TwitterFetcher from "@/components/TwitterHandler";
 import Background from "@/components/UI/Background";
 import DailyUpdate from "@/components/DailyUpdate";
 import Tipping from "@/components/Tipping";
+import { useMiniKit } from "@coinbase/onchainkit/minikit";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
+
+  const { setFrameReady, isFrameReady } = useMiniKit();
+
+  // The setFrameReady() function is called when your mini-app is ready to be shown
+  useEffect(() => {
+    if (!isFrameReady) {
+      setFrameReady();
+    }
+  }, [setFrameReady, isFrameReady]);
+
 
   async function initSdk() {
     const { sdk } = await import("@farcaster/miniapp-sdk");

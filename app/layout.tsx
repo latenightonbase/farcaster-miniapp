@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import  Montserrat from "next/font/local";
 import "./globals.css";
 import Rainbow from "@/utils/rainbow";
+import { MiniKitContextProvider } from "@/utils/MiniKitProvider";
 
 // After your app is fully loaded and ready to display
 
@@ -27,7 +28,7 @@ export default function RootLayout({
       <body
         className={` ${poppins.className} antialiased`}
       >
-        <Rainbow>{children}</Rainbow>
+        <MiniKitContextProvider>{children}</MiniKitContextProvider>
       </body>
     </html>
   );
