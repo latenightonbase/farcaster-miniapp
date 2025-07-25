@@ -4,6 +4,9 @@ import { ethers } from "ethers";
 import { useAccount, useSendTransaction } from "wagmi";
 import { MdDone } from "react-icons/md";
 import { RiLoader5Fill, RiMoneyDollarCircleLine } from "react-icons/ri";
+import { writeContract } from "@wagmi/core";
+import { config } from "@/utils/rainbow";
+import { resourceLimits } from "worker_threads";
 
 const Tipping = () => {
   const [amount, setAmount] = useState<number>(0);
@@ -14,7 +17,7 @@ const Tipping = () => {
   const [currency, setCurrency] = useState<"ETH" | "USDC">("ETH");
 
   const { address } = useAccount();
-  const { sendTransaction,  data: hash } = useSendTransaction();
+  const { sendTransaction, data: hash } = useSendTransaction();
 
   const getEthPrice = async () => {
     try {
@@ -43,7 +46,16 @@ const Tipping = () => {
 
   const USDC_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Mainnet USDC address
   const ERC20_ABI = [
-    "function transfer(address to, uint256 amount) public returns (bool)"
+    {
+      inputs: [
+        { internalType: "address", name: "to", type: "address" },
+        { internalType: "uint256", name: "amount", type: "uint256" },
+      ],
+      name: "transfer",
+      outputs: [{ internalType: "bool", name: "", type: "bool" }],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
   ];
 
   const handleSend = async () => {
@@ -67,35 +79,24 @@ const Tipping = () => {
 
         const transactionConfig = {
           to: "0xC07f465Cb788De0088E33C03814E2c550dBe33db" as `0x${string}`,
-          value: BigInt(ethers.utils.parseEther(cryptoAmount.toFixed(6)).toString()),
+          value: BigInt(
+            ethers.utils.parseEther(cryptoAmount.toFixed(6)).toString()
+          ),
         };
 
         sendTransaction(transactionConfig);
 
-        setIsSuccess(true);
+        setIsSuccess(true)
       } else {
-        console.log(
-          `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
-        );
-        if (typeof window !== "undefined") {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const signer = provider.getSigner();
-
-        const usdcContract = new ethers.Contract(
-          USDC_CONTRACT_ADDRESS,
-          ERC20_ABI,
-          signer
-        );
-
-        const tx = await usdcContract.transfer(
-          "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
-          ethers.utils.parseUnits(cryptoAmount.toFixed(6), 6) // USDC has 6 decimals
-        );
-
-        await tx.wait();
-        console.log("Transaction sent:", tx);
-        }
-        
+        await writeContract(config, {
+          abi: ERC20_ABI,
+          address: USDC_CONTRACT_ADDRESS,
+          functionName: "transfer",
+          args: [
+            "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
+            ethers.utils.parseUnits(cryptoAmount.toFixed(6), 6), // USDC has 6 decimals
+          ],
+        });
       }
 
       setIsSuccess(true);
@@ -191,27 +192,34 @@ const Tipping = () => {
                       ...
                     </button>
                   </div>
-                  {customAmount !== null && (<div className="flex items-center gap-1">
-                  <span className="h-full text-orange-500 mb-4 text-xl" >$</span>
-                  <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => {
-                        setAmount(Number(e.target.value));
-                      }}
-                      onKeyDown={(e) => {
-                        if (amount === 0 && ((e.key >= '0' && e.key <= '9') || e.key === '.')) {
-                          setAmount(e.key === '.' ? 0 : Number(e.key));
-                          e.preventDefault();
-                        }
-                      }}
-                      placeholder="Enter custom amount"
-                      className=" bg-orange-950/50 text-white p-3 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
-                    />
-                  </div>
-                    
+                  {customAmount !== null && (
+                    <div className="flex items-center gap-1">
+                      <span className="h-full text-orange-500 mb-4 text-xl">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => {
+                          setAmount(Number(e.target.value));
+                        }}
+                        onKeyDown={(e) => {
+                          if (
+                            amount === 0 &&
+                            ((e.key >= "0" && e.key <= "9") || e.key === ".")
+                          ) {
+                            setAmount(e.key === "." ? 0 : Number(e.key));
+                            e.preventDefault();
+                          }
+                        }}
+                        placeholder="Enter custom amount"
+                        className=" bg-orange-950/50 text-white p-3 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                      />
+                    </div>
                   )}
-                  <span className="text-sm text-gray-300">Choose Currency:</span>
+                  <span className="text-sm text-gray-300">
+                    Choose Currency:
+                  </span>
                   <div className="flex mt-2 gap-2 mb-4 text-sm">
                     <button
                       onClick={() => setCurrency("ETH")}
