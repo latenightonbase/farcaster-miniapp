@@ -14,7 +14,7 @@ const Tipping = () => {
   const [currency, setCurrency] = useState<"ETH" | "USDC">("ETH");
 
   const { address } = useAccount();
-  const { sendTransaction } = useSendTransaction();
+  const { sendTransaction,  data: hash } = useSendTransaction();
 
   const getEthPrice = async () => {
     try {
@@ -70,14 +70,14 @@ const Tipping = () => {
           value: BigInt(ethers.utils.parseEther(cryptoAmount.toFixed(6)).toString()),
         };
 
-        const transaction = await sendTransaction(transactionConfig);
+        sendTransaction(transactionConfig);
 
-        console.log("Transaction sent:", transaction);
+        while(!hash){
+          // Wait for the transaction hash to be available
+          console.log("Waiting for transaction hash...");
+        }
 
-        // Simulate waiting for the transaction to be mined (if needed, use a provider to check status)
-        setTimeout(() => {
-          setIsSuccess(true);
-        }, 5000); // Adjust the timeout as needed
+        setIsSuccess(true);
       } else {
         console.log(
           `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
