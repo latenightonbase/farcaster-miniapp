@@ -25,8 +25,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black animate-rise ">
-      <main className="relative">
+    <div className="min-h-screen bg-black animate-rise font-[var(--font-geist-mono)] ">
+      <main className="relative h-full">
 
         <div className="relative z-1 min-h-screen">
           <ProfileSection />
@@ -60,11 +60,13 @@ export default function Home() {
           </div>
         </div> */}
         <Background selected={activeTab} />
-        <div className="relative z-1">
+        <div className="relative h-full z-1">
           <Tipping />
         </div>
       </main>
-
+      <footer className="text-center bg-black -translate-y-2 py-4  rounded-t-lg border-t-[2px] border-red-500/50 text-white/50 h-36 text-sm">
+        An Onchain Media Production
+      </footer>
     </div>
   );
 }

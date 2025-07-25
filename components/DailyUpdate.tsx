@@ -30,11 +30,6 @@ export default function DailyUpdate({ selected }: { selected: string }) {
 
   return (
     <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
-      {loading && (
-        <div className="text-center py-12">
-          <p className="text-gray-400">Loading videos...</p>
-        </div>
-      )}
 
       {error && (
         <div className="mt-4 p-4 bg-red-800 border border-red-600 rounded-lg">
@@ -47,15 +42,16 @@ export default function DailyUpdate({ selected }: { selected: string }) {
           {videos.map((videoUrl, index) => (
             <div
               key={index}
-              className=" w-fit p-3 shadow-sm mx-auto flex flex-col items-center justify-center hover:shadow-md transition-shadow rounded-lg overflow-hidden bg-red-500/20 border border-red-500"
+              className=" w-fit p-3 shadow-xl mx-auto flex flex-col items-center justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-red-800/10 border-x-[2px]  border-red-500/30"
             >
-                            <h2 className=" text-xl text-white font-bold mb-2">News of the Day</h2>
+                            <h2 className=" text-xl text-white font-poppins font-bold mb-2">Daily Base Report</h2>
 
               
               {/* Video Container */}
               <div className="">
                 <video
                   controls
+                  poster={process.env.NEXT_PUBLIC_HOST_NAME + "/pfp.jpg"} // Add a fallback thumbnail
                   className={`w-full object-cover rounded-lg duration-200 transition-all ${
                     selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
                   }`}
