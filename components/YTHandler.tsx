@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Clock } from 'lucide-react';
 import { RiLoader5Fill } from 'react-icons/ri';
 import moment from 'moment';
@@ -25,6 +25,10 @@ const YouTubeLivestreamFetcher: React.FC = () => {
   const [livestreams, setLivestreams] = useState<Livestream[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false); // Set both to false initially
+  const carouselRef = useRef<HTMLDivElement | null>(null);
 
   // Replace with your YouTube Data API key
   const API_KEY = process.env.NEXT_PUBLIC_YT_API_KEY;
@@ -161,6 +165,23 @@ const YouTubeLivestreamFetcher: React.FC = () => {
   const liveStreams = livestreams.filter((stream) => stream.isLive);
   const pastStreams = livestreams.filter((stream) => !stream.isLive);
 
+  const updateScrollButtons = () => {
+    const container = carouselRef.current;
+    if (container) {
+      setCanScrollLeft(container.scrollLeft > 0);
+      setCanScrollRight(container.scrollLeft + container.clientWidth < container.scrollWidth);
+    }
+  };
+
+  useEffect(() => {
+    const container = carouselRef.current;
+    if (container) {
+      container.addEventListener('scroll', updateScrollButtons);
+      updateScrollButtons(); // Ensure buttons are updated on mount
+      return () => container.removeEventListener('scroll', updateScrollButtons);
+    }
+  }, [livestreams]); // Re-run when livestreams change
+
   return (
     <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
       
@@ -178,9 +199,9 @@ const YouTubeLivestreamFetcher: React.FC = () => {
 
       {!loading && liveStreams.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Currently Live</h2>
+          <h2 className="text-xl text-center font-semibold text-white mb-4">Currently Live</h2>
           {liveStreams.map((stream) => (
-            <div key={stream.id} className="mb-6 bg-red-800/50 w-full aspect-video p-4 rounded-lg">
+            <div key={stream.id} className="mb-6 bg-red-800/40 w-full aspect-video p-4 rounded-lg">
               <iframe
               width={'100%'}
                 src={`https://www.youtube.com/embed/${stream.id}`}
@@ -188,10 +209,10 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
-              <h3 className="font-semibold text-white mt-2 text-lg">
+              <h3 className="font-semibold text-white mt-2 text-lg font-montserrat">
                 {stream.title}
               </h3>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-400 font-montserrat">
                 {stream.description.slice(0, 100)}
               </p>
             </div>
@@ -200,45 +221,56 @@ const YouTubeLivestreamFetcher: React.FC = () => {
       )}
 
       {!loading && pastStreams.length > 0 && (
-        <div className="relative mb-30">
+        <div className="relative mb-10">
           <h2 className="text-xl font-semibold text-white mb-4 text-center">Past Livestreams</h2>
-          <button
-            className="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"
-            onClick={() => {
-              const container = document.getElementById('carousel');
-              if (container) container.scrollBy({ left: -300, behavior: 'smooth' });
-            }}
-          >
-            <IoIosArrowBack className="text-xl" />
-          </button>
+          {canScrollLeft && (
+            <button
+              className="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"
+              onClick={() => {
+                const container = carouselRef.current;
+                if (container) {
+                  container.scrollBy({ left: -300, behavior: 'smooth' });
+                }
+              }}
+            >
+              <IoIosArrowBack className="text-xl" />
+            </button>
+          )}
           <div
             id="carousel"
-            className="flex gap-4 overflow-scroll bg-black/40 rounded-xl p-3"
+            ref={carouselRef}
+            className="flex gap-4 overflow-scroll bg-black/50 rounded-xl p-3"
           >
             <div className='flex gap-4'>
               {pastStreams.map((stream) => (
                 <div
                   key={stream.id}
-                  className="min-w-[250px] bg-red-800/20 border border-red-600 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  className="min-w-[250px] bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="relative">
-                    <a
-                      href={stream.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    {playingVideoId === stream.id ? (
+                      <iframe
+                        width="100%"
+                        height="180"
+                        src={`https://www.youtube.com/embed/${stream.id}`}
+                        title={stream.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    ) : (
                       <img
                         src={stream.thumbnail}
                         alt={stream.title}
-                        className="w-full h-32 object-cover"
+                        className="w-full h-[180px] object-cover cursor-pointer"
+                        onClick={() => setPlayingVideoId(stream.id)}
                       />
-                    </a>
+                    )}
                   </div>
-                  <div className="p-3">
-                    <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
+                  <div className="p-3 ">
+                    <h3 className="font-semibold text-white  text-sm mb-1 line-clamp-2">
                       {stream.title}
                     </h3>
-                    <p className="text-xs text-gray-300">
+                    <p className="text-xs text-gray-300 ">
                       {moment(stream.publishedAt).fromNow()}
                     </p>
                   </div>
@@ -246,15 +278,19 @@ const YouTubeLivestreamFetcher: React.FC = () => {
               ))}
             </div>
           </div>
-          <button
-            className="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"
-            onClick={() => {
-              const container = document.getElementById('carousel');
-              if (container) container.scrollBy({ left: 300, behavior: 'smooth' });
-            }}
-          >
-            <IoIosArrowBack className="text-xl rotate-180" />
-          </button>
+          {canScrollRight && (
+            <button
+              className="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"
+              onClick={() => {
+                const container = carouselRef.current;
+                if (container) {
+                  container.scrollBy({ left: 300, behavior: 'smooth' });
+                }
+              }}
+            >
+              <IoIosArrowBack className="text-xl rotate-180" />
+            </button>
+          )}
         </div>
       )}
 

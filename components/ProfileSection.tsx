@@ -8,7 +8,7 @@ import { FaYoutube } from "react-icons/fa";
 
 export function ProfileSection() {
   return (
-    <div className="flex flex-col items-center shadow-md overflow-hidden">
+    <div className="flex flex-col items-center shadow-md overflow-hidden font-[var(--font-geist-mono)] ">
       {/* Banner */}
       <div className="w-full h-48 bg-gray-700 relative">
         <div className="h-full absolute z-10 w-full bg-gradient-to-b from-transparent to-black"></div>
@@ -71,10 +71,10 @@ export function ProfileSection() {
       </div>
 
       {/* Name */}
-      {/* <div className="mt-4 text-center mb-5 animate-rise-2">
-        <h1 className="text-lg font-bold text-white">John Doe</h1>
-        <p className="text-sm text-gray-400">I am a developer who makes shit.</p>
-      </div> */}
+      <div className="mt-2 text-center mb-5 animate-rise-2 px-4">
+        <h1 className="text-xl font-bold text-white mb-4 ">Late Night On Base</h1>
+        <p className="text-sm text-gray-400 ">Daily Base ecosystem updates in 60 seconds, plus replays of top streams featuring the builders shaping the future. Hosted by Bill the Bull.</p>
+      </div>
 
       {/* Social Links */}
       <div className="mt-4 flex space-x-4">
