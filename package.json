@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
+    "@coinbase/onchainkit": "^0.38.17",
     "@farcaster/miniapp-sdk": "^0.1.7",
     "@rainbow-me/rainbowkit": "^2.2.8",
     "axios": "^1.11.0",

@@ -51,8 +51,8 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               <div className="">
                 <video
                   controls
-                  poster={process.env.NEXT_PUBLIC_HOST_NAME + "/pfp.jpg"} // Add a fallback thumbnail
-                  className={`w-full object-cover rounded-lg duration-200 transition-all ${
+                  poster={process.env.NEXT_PUBLIC_URL + "/pfp.jpg"} // Add a fallback thumbnail
+                  className={`w-full object-cover rounded-lg bg-black duration-200 transition-all ${
                     selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
                   }`}
                   src={videoUrl}
