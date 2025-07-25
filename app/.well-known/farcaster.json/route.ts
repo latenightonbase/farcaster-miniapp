@@ -15,11 +15,6 @@ export async function GET() {
   const URL = process.env.NEXT_PUBLIC_URL;
 
   return Response.json({
-    accountAssociation: {
-      header: process.env.FARCASTER_HEADER,
-      payload: process.env.FARCASTER_PAYLOAD,
-      signature: process.env.FARCASTER_SIGNATURE,
-    },
     frame: withValidProperties({
       version: "1",
       name: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME,
@@ -39,5 +34,10 @@ export async function GET() {
       ogDescription: process.env.NEXT_PUBLIC_APP_OG_DESCRIPTION,
       ogImageUrl: process.env.NEXT_PUBLIC_APP_OG_IMAGE,
     }),
+    accountAssociation: {
+      header: process.env.FARCASTER_HEADER,
+      payload: process.env.FARCASTER_PAYLOAD,
+      signature: process.env.FARCASTER_SIGNATURE,
+    }
   });
 }
