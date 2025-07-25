@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { CustomConnect } from "./UI/connectButton";
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
+import { useAccount, useSendTransaction } from "wagmi";
 import { MdDone } from "react-icons/md";
 import { RiLoader5Fill, RiMoneyDollarCircleLine } from "react-icons/ri";
 
@@ -14,6 +14,7 @@ const Tipping = () => {
   const [currency, setCurrency] = useState<"ETH" | "USDC">("ETH");
 
   const { address } = useAccount();
+  const { sendTransaction } = useSendTransaction();
 
   const getEthPrice = async () => {
     try {
@@ -40,29 +41,6 @@ const Tipping = () => {
     }
   };
 
-  const getUsdcPrice = async () => {
-    try {
-      const url =
-        "https://api.g.alchemy.com/v2/demo/eth/usd/price?token=USDC";
-      const headers = {
-        Accept: "application/json",
-      };
-
-      const priceFetch = await fetch(url, {
-        method: "GET",
-        headers: headers,
-      });
-
-      const priceBody = await priceFetch.json();
-      console.log(priceBody);
-
-      return priceBody.data.price;
-    } catch (error) {
-      console.error("Error", error);
-      throw error;
-    }
-  };
-
   const USDC_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Mainnet USDC address
   const ERC20_ABI = [
     "function transfer(address to, uint256 amount) public returns (bool)"
@@ -78,59 +56,62 @@ const Tipping = () => {
         const ethPrice = await getEthPrice();
         cryptoAmount = Number(amount.toFixed(2)) / ethPrice;
       } else {
-        const usdcPrice = await getUsdcPrice();
+        const usdcPrice = 1;
         cryptoAmount = Number(amount.toFixed(2)) / usdcPrice;
       }
 
-      if (window.ethereum) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
+      if (currency === "ETH") {
+        console.log(
+          `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
+        );
 
-        if (currency === "ETH") {
-          console.log(
-            `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
-          );
+        const transactionConfig = {
+          to: "0xC07f465Cb788De0088E33C03814E2c550dBe33db" as `0x${string}`,
+          value: BigInt(ethers.utils.parseEther(cryptoAmount.toFixed(6)).toString()),
+        };
 
-          const tx = await signer.sendTransaction({
-            to: "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
-            value: ethers.utils.parseEther(cryptoAmount.toFixed(6)),
-          });
+        const transaction = await sendTransaction(transactionConfig);
 
-          await tx.wait();
-          console.log("Transaction sent:", tx);
-        } else {
-          console.log(
-            `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
-          );
+        console.log("Transaction sent:", transaction);
 
-          const usdcContract = new ethers.Contract(
-            USDC_CONTRACT_ADDRESS,
-            ERC20_ABI,
-            signer
-          );
-
-          const tx = await usdcContract.transfer(
-            "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
-            ethers.utils.parseUnits(cryptoAmount.toFixed(6), 6) // USDC has 6 decimals
-          );
-
-          await tx.wait();
-          console.log("Transaction sent:", tx);
-        }
-
-        setIsSuccess(true);
-
+        // Simulate waiting for the transaction to be mined (if needed, use a provider to check status)
         setTimeout(() => {
-          setIsDropdownOpen(false);
-          setIsLoading(false);
-          setAmount(0);
-          setCustomAmount(null);
-          setIsSuccess(false);
-        }, 2000);
+          setIsSuccess(true);
+        }, 5000); // Adjust the timeout as needed
       } else {
-        console.error("Ethereum wallet not found");
-        setIsDropdownOpen(false);
+        console.log(
+          `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
+        );
+        if (typeof window !== "undefined") {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+
+        const usdcContract = new ethers.Contract(
+          USDC_CONTRACT_ADDRESS,
+          ERC20_ABI,
+          signer
+        );
+
+        const tx = await usdcContract.transfer(
+          "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
+          ethers.utils.parseUnits(cryptoAmount.toFixed(6), 6) // USDC has 6 decimals
+        );
+
+        await tx.wait();
+        console.log("Transaction sent:", tx);
+        }
+        
       }
+
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        setIsDropdownOpen(false);
+        setIsLoading(false);
+        setAmount(0);
+        setCustomAmount(null);
+        setIsSuccess(false);
+      }, 2000);
     } catch (error) {
       console.error("Error sending transaction:", error);
       setIsDropdownOpen(false);
