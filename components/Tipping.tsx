@@ -11,10 +11,11 @@ const Tipping = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [currency, setCurrency] = useState<"ETH" | "USDC">("ETH");
 
   const { address } = useAccount();
 
-  const getTickerPrice = async () => {
+  const getEthPrice = async () => {
     try {
       const url =
         "https://api.g.alchemy.com/prices/v1/CA4eh0FjTxMenSW3QxTpJ7D-vWMSHVjq/tokens/by-symbol?symbols=ETH";
@@ -39,29 +40,84 @@ const Tipping = () => {
     }
   };
 
+  const getUsdcPrice = async () => {
+    try {
+      const url =
+        "https://api.g.alchemy.com/v2/demo/eth/usd/price?token=USDC";
+      const headers = {
+        Accept: "application/json",
+      };
+
+      const priceFetch = await fetch(url, {
+        method: "GET",
+        headers: headers,
+      });
+
+      const priceBody = await priceFetch.json();
+      console.log(priceBody);
+
+      return priceBody.data.price;
+    } catch (error) {
+      console.error("Error", error);
+      throw error;
+    }
+  };
+
+  const USDC_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Mainnet USDC address
+  const ERC20_ABI = [
+    "function transfer(address to, uint256 amount) public returns (bool)"
+  ];
+
   const handleSend = async () => {
     try {
       setIsLoading(true);
       setIsSuccess(false);
 
-      const ethPrice = await getTickerPrice();
-      const ethAmount = Number(amount.toFixed(2)) / ethPrice;
+      let cryptoAmount;
+      if (currency === "ETH") {
+        const ethPrice = await getEthPrice();
+        cryptoAmount = Number(amount.toFixed(2)) / ethPrice;
+      } else {
+        const usdcPrice = await getUsdcPrice();
+        cryptoAmount = Number(amount.toFixed(2)) / usdcPrice;
+      }
 
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
 
-        console.log(
-          `Sending ${ethAmount} ETH to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
-        );
+        if (currency === "ETH") {
+          console.log(
+            `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
+          );
 
-        const tx = await signer.sendTransaction({
-          to: "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
-          value: ethers.utils.parseEther(ethAmount.toFixed(6)),
-        });
+          const tx = await signer.sendTransaction({
+            to: "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
+            value: ethers.utils.parseEther(cryptoAmount.toFixed(6)),
+          });
 
-        await tx.wait();
-        console.log("Transaction sent:", tx);
+          await tx.wait();
+          console.log("Transaction sent:", tx);
+        } else {
+          console.log(
+            `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
+          );
+
+          const usdcContract = new ethers.Contract(
+            USDC_CONTRACT_ADDRESS,
+            ERC20_ABI,
+            signer
+          );
+
+          const tx = await usdcContract.transfer(
+            "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
+            ethers.utils.parseUnits(cryptoAmount.toFixed(6), 6) // USDC has 6 decimals
+          );
+
+          await tx.wait();
+          console.log("Transaction sent:", tx);
+        }
+
         setIsSuccess(true);
 
         setTimeout(() => {
@@ -143,7 +199,7 @@ const Tipping = () => {
                           setCustomAmount(null);
                         }}
                         className={` text-white py-2 px-4 rounded-lg font-bold transition ${
-                          amount == value ? "bg-orange-500" : "bg-gray-800"
+                          amount == value ? "bg-orange-500" : "bg-orange-950/50"
                         } hover:bg-orange-600`}
                       >
                         ${value}
@@ -154,13 +210,14 @@ const Tipping = () => {
                         setAmount(0);
                         setCustomAmount(0);
                       }}
-                      className="bg-gray-800 text-white py-2 px-4 rounded-lg font-bold hover:bg-orange-600 transition"
+                      className="bg-orange-950/50 text-white py-2 px-4 rounded-lg font-bold hover:bg-orange-600 transition"
                     >
                       ...
                     </button>
                   </div>
-                  {customAmount !== null && (
-                    <input
+                  {customAmount !== null && (<div className="flex items-center gap-1">
+                  <span className="h-full text-orange-500 mb-4 text-xl" >$</span>
+                  <input
                       type="number"
                       value={amount}
                       onChange={(e) => {
@@ -173,9 +230,34 @@ const Tipping = () => {
                         }
                       }}
                       placeholder="Enter custom amount"
-                      className="border border-gray-600 bg-gray-800 text-white p-3 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                      className=" bg-orange-950/50 text-white p-3 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
                     />
+                  </div>
+                    
                   )}
+                  <span className="text-sm text-gray-300">Choose Currency:</span>
+                  <div className="flex mt-2 gap-2 mb-4 text-sm">
+                    <button
+                      onClick={() => setCurrency("ETH")}
+                      className={`flex-1 py-2 rounded-full font-bold transition ${
+                        currency === "ETH"
+                          ? "bg-orange-500 text-white"
+                          : "bg-orange-950/50 text-gray-300"
+                      } hover:bg-orange-600`}
+                    >
+                      ETH
+                    </button>
+                    <button
+                      onClick={() => setCurrency("USDC")}
+                      className={`flex-1 py-2 rounded-full font-bold transition ${
+                        currency === "USDC"
+                          ? "bg-orange-500 text-white"
+                          : "bg-orange-950/50 text-gray-300"
+                      } hover:bg-orange-600`}
+                    >
+                      USDC
+                    </button>
+                  </div>
                   <button
                     onClick={handleSend}
                     disabled={isLoading}

@@ -5,7 +5,7 @@ import {
   getDefaultConfig,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
+import { createConfig, http, WagmiProvider } from 'wagmi';
 import {
   mainnet,
   polygon,
@@ -19,14 +19,19 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { ReactNode } from 'react';
+import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 
 
-const config = getDefaultConfig({
-  appName: 'My RainbowKit App',
-  projectId: '5d10af3027c340310f3a3da64cbcedac',
+
+const config = createConfig({
   chains: [base],
-  ssr: true,
-});
+  transports: {
+    [base.id]: http(),
+  },
+  connectors: [
+    miniAppConnector()
+  ]
+})
 
 const queryClient = new QueryClient();
 
