@@ -97,12 +97,12 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen overflow-x-hidden w-screen bg-black animate-rise font-[var(--font-geist-mono)] ">
+    <div className="min-h-screen overflow-x-hidden bg-black animate-rise font-[var(--font-geist-mono)] ">
       <main className="relative h-full">
         <div className="relative z-50">
 
               <div
-                className={`h-screen w-screen fixed top-0 left-0 duration-200 transition-all z-[10000]  ${
+                className={`h-screen w-screen fixed top-0 left-0 duration-200 transition-all ${
                   isPopupOpen ? " translate-y-0 bg-black/50 " : " translate-y-full bg-transparent"
                 } `}
               >
