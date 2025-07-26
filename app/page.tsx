@@ -61,22 +61,39 @@ export default function Home() {
     }
   }, [address]);
 
-  const handleAddFrame = useCallback(async () => {
-    const frameAdded = await addFrame();
-    setError(frameAdded as any);
-    await axios.post(`/api/notification-details`, {
+   const handleAddFrame = async () => {
+    const result = await addFrame();
+    console.error("Add Frame Result:", result);
+    if (result) {
+      console.log("Frame added:", result.url, result.token);
+      
+      try {
+        await axios.post(`/api/notification-details`, {
           wallet: address,
-          url: frameAdded?.url,
-          token: frameAdded?.token,
+          url: result.url,
+          token: result.token,
         });
 
         await sendNotification({
       title: 'Notification Enabled',
       body: 'You chose the best channel to receive Base news!',
     });
-    setIsPopupOpen(false);
-  }, [addFrame]);
 
+
+        setTimeout(() => {
+          setIsPopupOpen(false);
+          
+        }, 2000);
+
+        window.location.reload();
+
+
+      } catch (error) {
+        console.error("Error saving notification details:", error);
+        setError("Mew"+ error)
+      }
+    }
+  };
   async function initSdk() {
     const { sdk } = await import("@farcaster/miniapp-sdk");
     await sdk.actions.ready();
@@ -105,7 +122,7 @@ export default function Home() {
                     
 
                     <div className="mt-5 flex flex-col items-center">
-                      {error}
+                      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                       <h2 className="text-white text-2xl font-semibold mb-4 text-center">
                         Welcome to the App
                       </h2>
@@ -114,7 +131,7 @@ export default function Home() {
                       </p>
                       <button
                         onClick={handleAddFrame}
-                        className="bg-orange-500 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
+                        className="bg-orange-500 active:bg-red-500 focus:bg-red-900 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
                       >
                         Allow
                       </button>
