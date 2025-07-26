@@ -9,6 +9,11 @@ const notificationDetailsSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  fid: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 });
 
 const NotificationDetails = mongoose.model('NotificationDetails', notificationDetailsSchema);

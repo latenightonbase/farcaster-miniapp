@@ -27,10 +27,14 @@ export async function sendFrameNotification({
   body: string;
   notificationDetails?: FrameNotificationDetails | null;
 }): Promise<SendFrameNotificationResult> {
+
+  console.log("sendFrameNotification called with:", { fid, title, body, notificationDetails });
   if (!notificationDetails) {
     notificationDetails = await getUserNotificationDetails(fid);
+    console.log("Fetched notification details:", notificationDetails);
   }
   if (!notificationDetails) {
+    console.log(`No notification details found for fid ${fid}`);
     return { state: "no_token" };
   }
 
@@ -49,6 +53,8 @@ export async function sendFrameNotification({
   });
 
   const responseJson = await response.json();
+
+  console.log("sendFrameNotification response:", responseJson);
 
   if (response.status === 200) {
     const responseBody = sendNotificationResponseSchema.safeParse(responseJson);
