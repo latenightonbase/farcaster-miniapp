@@ -31,11 +31,10 @@ export default function Home() {
   const addFrame = useAddFrame();
 
   const { address } = useAccount();
-  // The setFrameReady() function is called when your mini-app is ready to be shown
+
   useEffect(() => {
     if (!isFrameReady) {
       setFrameReady();
-      console.log("Notification Proxy URL:", notificationProxyUrl);
     }
   }, [setFrameReady, isFrameReady]);
 
@@ -94,14 +93,7 @@ export default function Home() {
       }
     }
   };
-  async function initSdk() {
-    const { sdk } = await import("@farcaster/miniapp-sdk");
-    await sdk.actions.ready();
-  }
 
-  useEffect(() => {
-    initSdk();
-  }, []);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black animate-rise font-[var(--font-geist-mono)] ">
