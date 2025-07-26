@@ -151,8 +151,8 @@ const Tipping = () => {
       </div>
 
       <div
-        className={`h-screen w-screen fixed animate-rise top-0 left-0 duration-200 transition-all bg-black/50 ${
-          isDropdownOpen ? " translate-y-0 " : " translate-y-full"
+        className={`h-screen w-screen fixed animate-rise top-0 left-0 duration-200 transition-all ${
+          isDropdownOpen ? " translate-y-0 bg-black/50 " : " translate-y-full bg-transparent"
         } `}
       >
         <div

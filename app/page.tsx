@@ -95,8 +95,8 @@ export default function Home() {
         <div className="relative z-50">
 
               <div
-                className={`h-screen w-screen fixed top-0 left-0 duration-200 transition-all z-[10000] bg-black/50 ${
-                  isPopupOpen ? " translate-y-0 " : " translate-y-full"
+                className={`h-screen w-screen fixed top-0 left-0 duration-200 transition-all z-[10000]  ${
+                  isPopupOpen ? " translate-y-0 bg-black/50 " : " translate-y-full bg-transparent"
                 } `}
               >
                 <div
