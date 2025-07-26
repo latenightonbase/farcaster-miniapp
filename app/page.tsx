@@ -11,12 +11,13 @@ import TwitterFetcher from "@/components/TwitterHandler";
 import Background from "@/components/UI/Background";
 import DailyUpdate from "@/components/DailyUpdate";
 import Tipping from "@/components/Tipping";
-import { useAddFrame, useMiniKit } from "@coinbase/onchainkit/minikit";
+import { useAddFrame, useMiniKit, useNotification } from "@coinbase/onchainkit/minikit";
 import { useAccount } from "wagmi";
 import axios from "axios";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
+    const sendNotification = useNotification();
 
   const {
     setFrameReady,
@@ -70,10 +71,17 @@ export default function Home() {
           token: result.token,
         });
 
+        await sendNotification({
+      title: 'Notification Enabled',
+      body: 'You chose the best channel to receive Base news!',
+    });
+
         setTimeout(() => {
           setIsPopupOpen(false);
           window.location.reload();
         }, 2000);
+
+
       } catch (error) {
         console.error("Error saving notification details:", error);
       }
