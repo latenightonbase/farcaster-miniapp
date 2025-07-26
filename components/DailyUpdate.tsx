@@ -7,17 +7,6 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [info, setInfo] = useState<string>('');
-  const sendNotification = useNotification();
-
-// Usage
-const handleSendNotification = async () => {
-  const res = await sendNotification({
-    title: 'New High Score!',
-    body: 'Congratulations on your new high score!'
-  });
-
-  setInfo('Notification sent: ' + res);
-};
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -63,13 +52,6 @@ const handleSendNotification = async () => {
           <p className="text-red-300">{error}</p>
         </div>
       )}
-    
-      {info && (
-        <div className="mt-4 p-4 bg-green-800 border border-green-600 rounded-lg">
-          <p className="text-green-300">{info}</p>
-        </div>
-      )}
-      <button className='bg-purple-600 w-40 h-20' onClick={handleSendNotification}>TIDING!</button>
 
       {!loading && videos.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8">

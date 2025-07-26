@@ -7,6 +7,7 @@ import { RiLoader5Fill, RiMoneyDollarCircleLine } from "react-icons/ri";
 import { writeContract } from "@wagmi/core";
 import { config } from "@/utils/rainbow";
 import { resourceLimits } from "worker_threads";
+import { useNotification } from "@coinbase/onchainkit/minikit";
 
 const Tipping = () => {
   const [amount, setAmount] = useState<number>(0);
@@ -18,6 +19,17 @@ const Tipping = () => {
 
   const { address } = useAccount();
   const { sendTransaction, data: hash } = useSendTransaction();
+
+    const sendNotification = useNotification();
+  
+  // Usage
+  const handleSendNotification = async () => {
+    await sendNotification({
+      title: 'Thank you for the tip!',
+      body: 'Appreciate your support!',
+    });
+
+  };
 
   const getEthPrice = async () => {
     try {
@@ -107,6 +119,7 @@ const Tipping = () => {
         setAmount(0);
         setCustomAmount(null);
         setIsSuccess(false);
+        handleSendNotification()
       }, 2000);
     } catch (error) {
       console.error("Error sending transaction:", error);
