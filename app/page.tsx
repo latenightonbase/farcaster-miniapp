@@ -1,7 +1,7 @@
 "use client";
 import { ProfileSection } from "@/components/ProfileSection";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FaYoutube } from "react-icons/fa";
 import { FaSquareXTwitter } from "react-icons/fa6";
 import { SiTwitch } from "react-icons/si";
@@ -59,38 +59,20 @@ export default function Home() {
     }
   }, [address]);
 
-  const handleAddFrame = async () => {
-    const result = await addFrame();
-    console.error("Add Frame Result:", result);
-    if (result) {
-      console.log("Frame added:", result.url, result.token);
-      
-      try {
-        await axios.post(`/api/notification-details`, {
+  const handleAddFrame = useCallback(async () => {
+    const frameAdded = await addFrame();
+    await axios.post(`/api/notification-details`, {
           wallet: address,
-          url: result.url,
-          token: result.token,
+          url: frameAdded?.url,
+          token: frameAdded?.token,
         });
 
         await sendNotification({
       title: 'Notification Enabled',
       body: 'You chose the best channel to receive Base news!',
     });
-
-
-        setTimeout(() => {
-          setIsPopupOpen(false);
-          
-        }, 2000);
-
-        window.location.reload();
-
-
-      } catch (error) {
-        console.error("Error saving notification details:", error);
-      }
-    }
-  };
+    setIsPopupOpen(false);
+  }, [addFrame]);
 
   async function initSdk() {
     const { sdk } = await import("@farcaster/miniapp-sdk");
