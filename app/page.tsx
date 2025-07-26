@@ -37,8 +37,7 @@ export default function Home() {
     }
   }, [setFrameReady, isFrameReady]);
 
-  const [frameExists, setFrameExists] = useState<boolean>(true);
-  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(true);
+  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const checkNotificationDetails = async () => {
@@ -48,7 +47,7 @@ export default function Home() {
             `/api/notification-details?wallet=${address}`
           );
           if (!response.data.exists) {
-            setFrameExists(false);
+            setIsPopupOpen(true);
           }
         } catch (error) {
           console.error("Error checking notification details:", error);
@@ -108,7 +107,7 @@ export default function Home() {
                 } `}
               >
                 <div
-                  className={`absolute bottom-0 border-t-2 border-orange-700 min-h-60 bg-gradient-to-b from-orange-950 to-black w-screen rounded-t-lg items-start shadow-xl bg-opacity-50 flex justify-center transition-all duration-500 z-50 ${
+                  className={`absolute bottom-0 pb-5 border-t-2 border-orange-700 min-h-60 bg-gradient-to-b from-orange-950 to-black w-screen rounded-t-lg items-start shadow-xl bg-opacity-50 flex justify-center transition-all duration-500 z-50 ${
                     isPopupOpen ? "translate-y-0" : "translate-y-full"
                   }`}
                 >
