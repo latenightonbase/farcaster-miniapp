@@ -8,16 +8,6 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   const [error, setError] = useState<string>('');
   const [info, setInfo] = useState<string>('');
   const sendNotification = useNotification();
-  const addFrame = useAddFrame();
-
-// Usage
-const handleAddFrame = async () => {
-  const result = await addFrame();
-  if (result) {
-    console.log('Frame added:', result.url, result.token);
-    setInfo('Frame added: ' + result.url + ', ' + result.token);
-  }
-};
 
 // Usage
 const handleSendNotification = async () => {
@@ -73,7 +63,7 @@ const handleSendNotification = async () => {
           <p className="text-red-300">{error}</p>
         </div>
       )}
-      <button className='bg-blue-600 w-40 h-20' onClick={handleAddFrame}>ADD FRAME</button>
+    
       {info && (
         <div className="mt-4 p-4 bg-green-800 border border-green-600 rounded-lg">
           <p className="text-green-300">{info}</p>
@@ -93,7 +83,6 @@ const handleSendNotification = async () => {
               <div className="">
                 <video
                   controls
-                  // poster={posters[index]} // Set poster dynamically
                   className={`w-full object-cover rounded-lg duration-200 transition-all ${
                     selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
                   }`}

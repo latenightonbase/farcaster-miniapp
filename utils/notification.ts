@@ -33,16 +33,16 @@ export async function setUserNotificationDetails(
   const key = getUserNotificationDetailsKey(fid);
   const url = JSON.stringify(notificationDetails);
 
-  const existingEntry = await NotificationDetails.findOne({ fid });
+  const existingEntry = await NotificationDetails.findOne({ token: key });
 
   if (existingEntry) {
     await NotificationDetails.findOneAndUpdate(
-      { fid },
-      { url, token: key },
+      { token: key },
+      { url },
       { new: true },
     );
   } else {
-    await NotificationDetails.create({ fid, url, token: key });
+    await NotificationDetails.create({ token: key, url });
   }
 }
 
