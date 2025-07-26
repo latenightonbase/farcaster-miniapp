@@ -20,11 +20,13 @@ const handleAddFrame = async () => {
 };
 
 // Usage
-const handleSendNotification = () => {
-  sendNotification({
+const handleSendNotification = async () => {
+  const res = await sendNotification({
     title: 'New High Score!',
     body: 'Congratulations on your new high score!'
   });
+
+  setInfo('Notification sent: ' + res);
 };
 
   useEffect(() => {

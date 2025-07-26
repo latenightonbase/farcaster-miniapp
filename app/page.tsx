@@ -16,12 +16,13 @@ import { useMiniKit } from "@coinbase/onchainkit/minikit";
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
 
-  const { setFrameReady, isFrameReady } = useMiniKit();
+  const { setFrameReady, isFrameReady, context, updateClientContext, notificationProxyUrl } = useMiniKit();
 
   // The setFrameReady() function is called when your mini-app is ready to be shown
   useEffect(() => {
     if (!isFrameReady) {
       setFrameReady();
+      console.log("Notification Proxy URL:", notificationProxyUrl);
     }
   }, [setFrameReady, isFrameReady]);
 
