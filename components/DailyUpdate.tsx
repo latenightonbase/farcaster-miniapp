@@ -1,10 +1,11 @@
 import { useAddFrame, useNotification } from '@coinbase/onchainkit/minikit';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function DailyUpdate({ selected }: { selected: string }) {
   const [videos, setVideos] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const videoRef = useRef<HTMLVideoElement | null>(null); // Ref for the video element
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -15,23 +16,6 @@ export default function DailyUpdate({ selected }: { selected: string }) {
         }
         const videoUrl = response.url;
         setVideos(videoUrl);
-
-        // Generate posters for videos
-        // const videoElement = document.createElement('video');
-        // videoElement.src = videoUrl;
-        // videoElement.crossOrigin = 'anonymous';
-
-        // videoElement.addEventListener('loadeddata', () => {
-        //   const canvas = document.createElement('canvas');
-        //   canvas.width = videoElement.videoWidth;
-        //   canvas.height = videoElement.videoHeight;
-        //   const context = canvas.getContext('2d');
-        //   if (context) {
-        //     context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        //     const posterUrl = canvas.toDataURL('image/jpeg');
-        //     setPosters((prev) => [...prev, posterUrl]);
-        //   }
-        // });
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -41,6 +25,19 @@ export default function DailyUpdate({ selected }: { selected: string }) {
 
     fetchVideos();
   }, []);
+
+  useEffect(() => {
+    if (videoRef.current && videos) {
+      const videoElement = videoRef.current;
+      videoElement.src = videos;
+      videoElement.addEventListener('loadeddata', () => {
+        videoElement.currentTime = 0.3; // Seek to 300ms
+        videoElement.play().catch((err) => {
+          console.error('Autoplay failed:', err);
+        });
+      });
+    }
+  }, [videos]);
 
   return (
     <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
@@ -60,15 +57,16 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               <h2 className=" text-xl text-white font-poppins font-bold mb-2">Daily Base Report</h2>
 
               {/* Video Container */}
-              <div className="">
+              {videos && <div className="">
                 <video
-                  controls preload='metadata'
+                  ref={videoRef}
+                  controls
+                  autoPlay
                   className={`w-full object-cover rounded-lg duration-200 transition-all ${
                     selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
                   }`}
-                  src={videos}
                 />
-              </div>
+              </div>}
 
               {/* Video Title Bar */}              
             </div>
