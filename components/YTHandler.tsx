@@ -30,44 +30,19 @@ const YouTubeLivestreamFetcher: React.FC = () => {
   const [canScrollRight, setCanScrollRight] = useState(false); // Set both to false initially
   const carouselRef = useRef<HTMLDivElement | null>(null);
 
-  // Replace with your YouTube Data API key
   const API_KEY = process.env.NEXT_PUBLIC_YT_API_KEY;
   const BASE_URL = 'https://www.googleapis.com/youtube/v3';
-
-  // Get channel ID from handle/username
-  const getChannelIdFromHandle = async (handle: string): Promise<string> => {
-    try {
-      const cleanHandle = handle.startsWith('@') ? handle.slice(1) : handle;
-      const response = await fetch(
-        `${BASE_URL}/search?part=snippet&q=${cleanHandle}&type=channel&key=${API_KEY}`,
-        {
-          headers: {
-            'Cache-Control': 'max-age=3600'
-          }
-        }
-      );
-      const data = await response.json();
-
-      console.log('Search Data:', data);
-
-      if (data.items && data.items.length > 0) {
-        return data.items[0].id.channelId;
-      }
-      throw new Error('Channel not found');
-    } catch (error: any) {
-      throw new Error(`Error fetching channel: ${error.message}`);
-    }
-  };
+  const CHANNEL_ID = 'UCyZC0QYwHNgnWBakBSUU3vQ';
 
   // Fetch livestreams for a channel
-  const fetchLivestreams = async (targetChannelId: string): Promise<void> => {
+  const fetchLivestreams = async (): Promise<void> => {
     try {
       setLoading(true);
       setError('');
 
-      // Search for livestreams (both live and completed)
+      // Search for the last 5 videos
       const searchResponse = await fetch(
-        `${BASE_URL}/search?part=snippet&channelId=${targetChannelId}&eventType=completed&type=video&order=date&maxResults=50&key=${API_KEY}`,
+        `${BASE_URL}/search?part=snippet&channelId=${CHANNEL_ID}&type=video&order=date&maxResults=5&key=${API_KEY}`,
         {
           headers: {
             'Cache-Control': 'max-age=3600'
@@ -80,30 +55,13 @@ const YouTubeLivestreamFetcher: React.FC = () => {
         throw new Error(searchData.error.message);
       }
 
-      // Also search for currently live streams
-      const liveResponse = await fetch(
-        `${BASE_URL}/search?part=snippet&channelId=${targetChannelId}&eventType=live&type=video&key=${API_KEY}`,
-        {
-          headers: {
-            'Cache-Control': 'max-age=3600'
-          }
-        }
-      );
-      const liveData = await liveResponse.json();
-
-      // Combine results
-      const allVideos = [
-        ...(liveData.items || []),
-        ...(searchData.items || [])
-      ];
-
-      if (allVideos.length === 0) {
+      if (!searchData.items || searchData.items.length === 0) {
         setLivestreams([]);
         return;
       }
 
       // Get video IDs for detailed information
-      const videoIds = allVideos.map((video: any) => video.id.videoId).join(',');
+      const videoIds = searchData.items.map((video: any) => video.id.videoId).join(',');
 
       // Fetch detailed video information
       const videosResponse = await fetch(
@@ -112,7 +70,6 @@ const YouTubeLivestreamFetcher: React.FC = () => {
           next: {
             revalidate: 3600 // Cache for 1 hour
           }
-          
         }
       );
       const videosData = await videosResponse.json();
@@ -121,25 +78,23 @@ const YouTubeLivestreamFetcher: React.FC = () => {
         throw new Error(videosData.error.message);
       }
 
-      // Filter only livestreams and format data
+      // Format data
       const livestreamData: Livestream[] = videosData.items
-        .filter((video: any) => video.liveStreamingDetails)
         .map((video: any) => ({
           id: video.id,
           title: video.snippet.title,
           description: video.snippet.description,
           thumbnail: video.snippet.thumbnails.medium.url,
           publishedAt: video.snippet.publishedAt,
-          isLive: !video.liveStreamingDetails.actualEndTime,
-          scheduledStartTime: video.liveStreamingDetails.scheduledStartTime,
-          actualStartTime: video.liveStreamingDetails.actualStartTime,
-          actualEndTime: video.liveStreamingDetails.actualEndTime,
-          concurrentViewers: video.liveStreamingDetails.concurrentViewers,
+          isLive: video.liveStreamingDetails ? !video.liveStreamingDetails.actualEndTime : false,
+          scheduledStartTime: video.liveStreamingDetails?.scheduledStartTime,
+          actualStartTime: video.liveStreamingDetails?.actualStartTime,
+          actualEndTime: video.liveStreamingDetails?.actualEndTime,
+          concurrentViewers: video.liveStreamingDetails?.concurrentViewers,
           viewCount: video.statistics.viewCount,
           likeCount: video.statistics.likeCount,
           url: `https://www.youtube.com/watch?v=${video.id}`
-        }))
-        .sort((a: Livestream, b: Livestream) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()).slice(0, 5); // Limit to 50 results
+        }));
 
       setLivestreams(livestreamData);
     } catch (error: any) {
@@ -150,20 +105,8 @@ const YouTubeLivestreamFetcher: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const channelId = await getChannelIdFromHandle('@LateNightOnBase');
-        await fetchLivestreams(channelId);
-      } catch (error: any) {
-        setError(error.message);
-      }
-    };
-
-    fetchData();
+    fetchLivestreams();
   }, []);
-
-  const liveStreams = livestreams.filter((stream) => stream.isLive);
-  const pastStreams = livestreams.filter((stream) => !stream.isLive);
 
   const updateScrollButtons = () => {
     const container = carouselRef.current;
@@ -184,7 +127,6 @@ const YouTubeLivestreamFetcher: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
-      
       {loading && !error && (
         <div className="text-center py-12">
           <p className="text-gray-400"><RiLoader5Fill className='animate-spin text-white mx-auto text-[40px]' /></p>
@@ -197,32 +139,9 @@ const YouTubeLivestreamFetcher: React.FC = () => {
         </div>
       )}
 
-      {!loading && liveStreams.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl text-center font-semibold text-white mb-4">Currently Live</h2>
-          {liveStreams.map((stream) => (
-            <div key={stream.id} className="mb-6 bg-red-800/40 w-full aspect-video p-4 rounded-lg">
-              <iframe
-              width={'100%'}
-                src={`https://www.youtube.com/embed/${stream.id}`}
-                title={stream.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-              <h3 className="font-semibold text-white mt-2 text-lg font-montserrat">
-                {stream.title}
-              </h3>
-              <p className="text-sm text-gray-400 font-montserrat">
-                {stream.description.slice(0, 100)}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!loading && pastStreams.length > 0 && (
+      {!loading && livestreams.length > 0 && (
         <div className="relative mb-10">
-          <h2 className="text-xl font-semibold text-white mb-4 text-center">Past Livestreams</h2>
+          <h2 className="text-xl font-semibold text-white mb-4 text-center">Latest Videos</h2>
           {canScrollLeft && (
             <button
               className="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"
@@ -242,7 +161,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
             className="flex gap-4 overflow-x-scroll bg-black/50 rounded-xl p-3"
           >
             <div className='flex gap-4'>
-              {pastStreams.map((stream) => (
+              {livestreams.map((stream) => (
                 <div
                   key={stream.id}
                   className="min-w-[250px] bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
@@ -265,12 +184,17 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                         onClick={() => setPlayingVideoId(stream.id)}
                       />
                     )}
+                    {stream.isLive && (
+                      <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                        LIVE
+                      </div>
+                    )}
                   </div>
-                  <div className="p-3 ">
-                    <h3 className="font-semibold text-white  text-sm mb-1 line-clamp-2">
+                  <div className="p-3">
+                    <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
                       {stream.title}
                     </h3>
-                    <p className="text-xs text-gray-300 ">
+                    <p className="text-xs text-gray-300">
                       {moment(stream.publishedAt).fromNow()}
                     </p>
                   </div>
@@ -296,7 +220,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
 
       {!loading && livestreams.length === 0 && !error && (
         <div className="text-center py-12">
-          <p className="text-gray-400">No livestreams found.</p>
+          <p className="text-gray-400">No videos found.</p>
         </div>
       )}
     </div>
