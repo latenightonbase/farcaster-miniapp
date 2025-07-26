@@ -239,7 +239,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
           <div
             id="carousel"
             ref={carouselRef}
-            className="flex gap-4 overflow-scroll bg-black/50 rounded-xl p-3"
+            className="flex gap-4 overflow-x-scroll bg-black/50 rounded-xl p-3"
           >
             <div className='flex gap-4'>
               {pastStreams.map((stream) => (

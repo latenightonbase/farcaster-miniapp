@@ -3,10 +3,8 @@ import React, { useState, useEffect } from 'react';
 
 export default function DailyUpdate({ selected }: { selected: string }) {
   const [videos, setVideos] = useState<string>("");
-  const [posters, setPosters] = useState<string[]>([]); // State for posters
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const [info, setInfo] = useState<string>('');
 
   useEffect(() => {
     const fetchVideos = async () => {
