@@ -19,6 +19,8 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
     const sendNotification = useNotification();
 
+    const [error, setError] = useState<string | null>(null);
+
   const {
     setFrameReady,
     isFrameReady,
@@ -61,6 +63,7 @@ export default function Home() {
 
   const handleAddFrame = useCallback(async () => {
     const frameAdded = await addFrame();
+    setError(frameAdded as any);
     await axios.post(`/api/notification-details`, {
           wallet: address,
           url: frameAdded?.url,
@@ -102,6 +105,7 @@ export default function Home() {
                     
 
                     <div className="mt-5 flex flex-col items-center">
+                      {error}
                       <h2 className="text-white text-2xl font-semibold mb-4 text-center">
                         Welcome to the App
                       </h2>
