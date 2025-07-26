@@ -61,8 +61,10 @@ export default function Home() {
 
   const handleAddFrame = async () => {
     const result = await addFrame();
+    console.error("Add Frame Result:", result);
     if (result) {
       console.log("Frame added:", result.url, result.token);
+      
       try {
         await axios.post(`/api/notification-details`, {
           wallet: address,
@@ -75,10 +77,7 @@ export default function Home() {
       body: 'You chose the best channel to receive Base news!',
     });
 
-    await sendNotification({
-      title: 'Notification Enabled',
-      body: 'You chose the best channel to receive Base news!',
-    });
+
         setTimeout(() => {
           setIsPopupOpen(false);
           

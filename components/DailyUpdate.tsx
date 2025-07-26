@@ -62,7 +62,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               {/* Video Container */}
               <div className="">
                 <video
-                  controls
+                  controls preload='metadata'
                   className={`w-full object-cover rounded-lg duration-200 transition-all ${
                     selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
                   }`}

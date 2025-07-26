@@ -36,10 +36,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    await NotificationDetails.findOneAndUpdate(
-      { wallet },
-      { url, token },
-      { upsert: true, new: true }
+    await NotificationDetails.create(
+      { wallet, url, token },
     );
     return NextResponse.json({ message: "Notification details saved successfully" });
   } catch (error) {
