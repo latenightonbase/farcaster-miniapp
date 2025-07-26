@@ -13,52 +13,11 @@ import { useAccount } from "wagmi";
 
 export function ProfileSection() {
   const [success, setSuccess] = useState<boolean>(false);
-  const [frameExists, setFrameExists] = useState<boolean>(true);
-
-  const addFrame = useAddFrame();
-
-  const { address } = useAccount();
-
-  useEffect(() => {
-    const checkNotificationDetails = async () => {
-      if (address && address.trim() !== "") {
-        try {
-          const response = await axios.get(
-            `/api/notification-details?wallet=${address}`
-          );
-          if (!response.data.exists) {
-            setFrameExists(false);
-          }
-        } catch (error) {
-          console.error("Error checking notification details:", error);
-        }
-      }
-    };
-
-    checkNotificationDetails();
-  }, [address]);
-
-  const handleAddFrame = async () => {
-    const result = await addFrame();
-    // const result = {url: "https://example.com/frame", token: "example-token"}; // Mock result for testing
-    if (result) {
-      console.log("Frame added:", result.url, result.token);
-      try {
-        await axios.post(`/api/notification-details`, {
-          wallet: address,
-          url: result.url,
-          token: result.token,
-        });
-        setSuccess(true);
-        window.location.reload();
-      } catch (error) {
-        console.error("Error saving notification details:", error);
-      }
-    }
-  };
+  
 
   return (
     <div className="flex flex-col items-center shadow-md overflow-hidden font-[var(--font-geist-mono)] ">
+
       {/* Banner */}
       <div className="w-full h-48 bg-gray-700 relative">
         <div className="h-full absolute z-10 w-full bg-gradient-to-b from-transparent to-black"></div>
@@ -168,20 +127,7 @@ export function ProfileSection() {
         </Link>
       </div>
 
-      {/* Add Button */}
-      {!frameExists && (
-        <div className="mt-6 text-center bg-white/10 rounded-lg border border-white/30 p-4">
-          <button
-            onClick={handleAddFrame}
-            className="px-6 py-2 bg-red-700 text-white font-bold rounded-md hover:bg-blue-600 active:bg-blue-700"
-          >
-            + Add
-          </button>
-          <p className="text-sm text-gray-400 mt-2">
-            Like what you see? Tap to stay connected!
-          </p>
-        </div>
-      )}
+     
     </div>
   );
 }

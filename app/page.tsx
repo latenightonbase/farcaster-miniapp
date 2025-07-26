@@ -11,13 +11,23 @@ import TwitterFetcher from "@/components/TwitterHandler";
 import Background from "@/components/UI/Background";
 import DailyUpdate from "@/components/DailyUpdate";
 import Tipping from "@/components/Tipping";
-import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import { useAddFrame, useMiniKit } from "@coinbase/onchainkit/minikit";
+import { useAccount } from "wagmi";
+import axios from "axios";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
 
-  const { setFrameReady, isFrameReady, context, updateClientContext, notificationProxyUrl } = useMiniKit();
+  const {
+    setFrameReady,
+    isFrameReady,
+    context,
+    updateClientContext,
+    notificationProxyUrl,
+  } = useMiniKit();
+  const addFrame = useAddFrame();
 
+  const { address } = useAccount();
   // The setFrameReady() function is called when your mini-app is ready to be shown
   useEffect(() => {
     if (!isFrameReady) {
@@ -26,6 +36,49 @@ export default function Home() {
     }
   }, [setFrameReady, isFrameReady]);
 
+  const [frameExists, setFrameExists] = useState<boolean>(true);
+  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(true);
+
+  useEffect(() => {
+    const checkNotificationDetails = async () => {
+      if (address && address.trim() !== "") {
+        try {
+          const response = await axios.get(
+            `/api/notification-details?wallet=${address}`
+          );
+          if (!response.data.exists) {
+            setFrameExists(false);
+          }
+        } catch (error) {
+          console.error("Error checking notification details:", error);
+        }
+      }
+    };
+    if (isFrameReady) {
+      checkNotificationDetails();
+    }
+  }, [address]);
+
+  const handleAddFrame = async () => {
+    const result = await addFrame();
+    if (result) {
+      console.log("Frame added:", result.url, result.token);
+      try {
+        await axios.post(`/api/notification-details`, {
+          wallet: address,
+          url: result.url,
+          token: result.token,
+        });
+
+        setTimeout(() => {
+          setIsPopupOpen(false);
+          window.location.reload();
+        }, 2000);
+      } catch (error) {
+        console.error("Error saving notification details:", error);
+      }
+    }
+  };
 
   async function initSdk() {
     const { sdk } = await import("@farcaster/miniapp-sdk");
@@ -37,10 +90,51 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black animate-rise font-[var(--font-geist-mono)] ">
+    <div className="min-h-screen overflow-x-hidden w-screen bg-black animate-rise font-[var(--font-geist-mono)] ">
       <main className="relative h-full">
+        <div className="relative z-50">
+
+              <div
+                className={`h-screen w-screen fixed top-0 left-0 duration-200 transition-all z-[10000] bg-black/50 ${
+                  isPopupOpen ? " translate-y-0 " : " translate-y-full"
+                } `}
+              >
+                <div
+                  className={`absolute bottom-0 border-t-2 border-orange-700 min-h-60 bg-gradient-to-b from-orange-950 to-black w-screen rounded-t-lg items-start shadow-xl bg-opacity-50 flex justify-center transition-all duration-500 z-50 ${
+                    isPopupOpen ? "translate-y-0" : "translate-y-full"
+                  }`}
+                >
+                  <div className="p-6 rounded-lg w-11/12 max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
+                    
+
+                    <div className="mt-5 flex flex-col items-center">
+                      <h2 className="text-white text-2xl font-semibold mb-4 text-center">
+                        Welcome to the App
+                      </h2>
+                      <p className="text-gray-300 text-sm mb-6 text-center">
+                        Would you like to receive notifications?
+                      </p>
+                      <button
+                        onClick={handleAddFrame}
+                        className="bg-orange-500 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
+                      >
+                        Allow
+                      </button>
+                      <button
+                        onClick={() => setIsPopupOpen(false)}
+                        className="mt-4 bg-gray-500 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+          </div>
 
         <div className="relative z-1 min-h-screen">
+        
           <ProfileSection />
 
           <DailyUpdate selected={activeTab} />
@@ -49,8 +143,6 @@ export default function Home() {
             {activeTab === "youtube" && <YouTubeLivestreamFetcher />}
             {activeTab === "twitch" && <TwitchStreamFetcher />}
           </div>
-
-
         </div>
         {/* <div className="flex mx-auto pb-4 justify-center space-x-4 fixed w-[80%] min-w-[300px] z-1 bottom-4 -translate-1/2 left-1/2 animate-rise-2">
           <div className="bg-white/20 backdrop-blur-sm grid grid-cols-2 gap-2 p-2 rounded-sm w-full">
