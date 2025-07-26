@@ -46,8 +46,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <meta name="fc:frame:post_url" content="https://frame.example.com/start" />
-<meta name="fc:frame:button:1" content="Start" />
       <body
         className={` ${poppins.className} antialiased`}
       >

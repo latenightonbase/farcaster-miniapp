@@ -75,10 +75,16 @@ export default function Home() {
       body: 'You chose the best channel to receive Base news!',
     });
 
+    await sendNotification({
+      title: 'Notification Enabled',
+      body: 'You chose the best channel to receive Base news!',
+    });
         setTimeout(() => {
           setIsPopupOpen(false);
-          window.location.reload();
+          
         }, 2000);
+
+        window.location.reload();
 
 
       } catch (error) {
