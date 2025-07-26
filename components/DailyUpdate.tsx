@@ -1,11 +1,11 @@
 import { useAddFrame, useNotification } from '@coinbase/onchainkit/minikit';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactPlayer from 'react-player';
 
 export default function DailyUpdate({ selected }: { selected: string }) {
   const [videos, setVideos] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const videoRef = useRef<HTMLVideoElement | null>(null); // Ref for the video element
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -27,13 +27,8 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   }, []);
 
   useEffect(() => {
-    if (videoRef.current && videos) {
-      const videoElement = videoRef.current;
-      videoElement.src = videos;
-      videoElement.addEventListener('loadeddata', () => {
-        videoElement.currentTime = 0.2; // Seek to 1 second
-        videoElement.pause(); // Pause the video
-      });
+    if (videos) {
+      // No need for manual video element handling with ReactPlayer
     }
   }, [videos]);
 
@@ -56,8 +51,8 @@ export default function DailyUpdate({ selected }: { selected: string }) {
 
               {/* Video Container */}
               {videos && <div className="">
-                <video
-                  ref={videoRef}
+                <ReactPlayer
+                  src={videos}
                   controls
                   className={`w-full object-cover rounded-lg duration-200 transition-all ${
                     selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
