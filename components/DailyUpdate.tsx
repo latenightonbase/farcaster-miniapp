@@ -31,10 +31,8 @@ export default function DailyUpdate({ selected }: { selected: string }) {
       const videoElement = videoRef.current;
       videoElement.src = videos;
       videoElement.addEventListener('loadeddata', () => {
-        videoElement.currentTime = 0.3; // Seek to 300ms
-        videoElement.play().catch((err) => {
-          console.error('Autoplay failed:', err);
-        });
+        videoElement.currentTime = 0.2; // Seek to 1 second
+        videoElement.pause(); // Pause the video
       });
     }
   }, [videos]);
