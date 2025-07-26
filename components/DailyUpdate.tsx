@@ -1,3 +1,4 @@
+import { useAddFrame, useNotification } from '@coinbase/onchainkit/minikit';
 import React, { useState, useEffect } from 'react';
 
 export default function DailyUpdate({ selected }: { selected: string }) {
@@ -5,6 +6,26 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   const [posters, setPosters] = useState<string[]>([]); // State for posters
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [info, setInfo] = useState<string>('');
+  const sendNotification = useNotification();
+  const addFrame = useAddFrame();
+
+// Usage
+const handleAddFrame = async () => {
+  const result = await addFrame();
+  if (result) {
+    console.log('Frame added:', result.url, result.token);
+    setInfo('Frame added: ' + result.url + ', ' + result.token);
+  }
+};
+
+// Usage
+const handleSendNotification = () => {
+  sendNotification({
+    title: 'New High Score!',
+    body: 'Congratulations on your new high score!'
+  });
+};
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -50,6 +71,13 @@ export default function DailyUpdate({ selected }: { selected: string }) {
           <p className="text-red-300">{error}</p>
         </div>
       )}
+      <button className='bg-blue-600 w-40 h-20' onClick={handleAddFrame}>ADD FRAME</button>
+      {info && (
+        <div className="mt-4 p-4 bg-green-800 border border-green-600 rounded-lg">
+          <p className="text-green-300">{info}</p>
+        </div>
+      )}
+      <button className='bg-purple-600 w-40 h-20' onClick={handleSendNotification}>TIDING!</button>
 
       {!loading && videos.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8">
