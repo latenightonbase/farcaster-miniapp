@@ -39,8 +39,8 @@ export function ProfileSection() {
   }, [address]);
 
   const handleAddFrame = async () => {
-    // const result = await addFrame();
-    const result = {url: "https://example.com/frame", token: "example-token"}; // Mock result for testing
+    const result = await addFrame();
+    // const result = {url: "https://example.com/frame", token: "example-token"}; // Mock result for testing
     if (result) {
       console.log("Frame added:", result.url, result.token);
       try {
@@ -169,7 +169,7 @@ export function ProfileSection() {
       </div>
 
       {/* Add Button */}
-      {frameExists && (
+      {!frameExists && (
         <div className="mt-6 text-center bg-white/10 rounded-lg border border-white/30 p-4">
           <button
             onClick={handleAddFrame}
