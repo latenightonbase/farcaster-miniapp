@@ -34,7 +34,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
 
   const API_KEY = process.env.NEXT_PUBLIC_YT_API_KEY;
   const BASE_URL = 'https://www.googleapis.com/youtube/v3';
-  const CHANNEL_ID = 'UCyZC0QYwHNgnWBakBSUU3vQ';
+  const CHANNEL_ID = 'UCR0I2Gom-W6BG_a5MYz8p2g';
 
   const fetchLivestreamsFromDB = async () => {
     try {
