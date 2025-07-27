@@ -5,7 +5,7 @@ import {
   getDefaultConfig,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
+import { createConfig, http, WagmiProvider } from 'wagmi';
 import {
   mainnet,
   polygon,
@@ -19,15 +19,16 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { ReactNode } from 'react';
+import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 
 
-const config = getDefaultConfig({
+
+export const config = getDefaultConfig({
   appName: 'My RainbowKit App',
   projectId: '5d10af3027c340310f3a3da64cbcedac',
   chains: [base],
-  ssr: true,
+  ssr: true, // If your dApp uses server side rendering (SSR)
 });
-
 const queryClient = new QueryClient();
 
 

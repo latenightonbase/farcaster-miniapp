@@ -15,11 +15,6 @@ export async function GET() {
   const URL = process.env.NEXT_PUBLIC_URL;
 
   return Response.json({
-    accountAssociation: {
-      header: process.env.FARCASTER_HEADER,
-      payload: process.env.FARCASTER_PAYLOAD,
-      signature: process.env.FARCASTER_SIGNATURE,
-    },
     frame: withValidProperties({
       version: "1",
       name: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME,
@@ -27,6 +22,7 @@ export async function GET() {
       description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
       screenshotUrls: [],
       iconUrl: process.env.NEXT_PUBLIC_APP_ICON,
+      imageUrl: process.env.NEXT_PUBLIC_APP_ICON,
       splashImageUrl: process.env.NEXT_PUBLIC_APP_SPLASH_IMAGE,
       splashBackgroundColor: process.env.NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR,
       homeUrl: URL,
@@ -39,5 +35,10 @@ export async function GET() {
       ogDescription: process.env.NEXT_PUBLIC_APP_OG_DESCRIPTION,
       ogImageUrl: process.env.NEXT_PUBLIC_APP_OG_IMAGE,
     }),
+    accountAssociation: {
+      header: process.env.FARCASTER_HEADER,
+      payload: process.env.FARCASTER_PAYLOAD,
+      signature: process.env.FARCASTER_SIGNATURE,
+    }
   });
 }

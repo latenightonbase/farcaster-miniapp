@@ -3,6 +3,8 @@ import { Clock } from 'lucide-react';
 import { RiLoader5Fill } from 'react-icons/ri';
 import moment from 'moment';
 import { IoIosArrowBack } from "react-icons/io";
+import YoutubeLivestream from '@/utils/schemas/youtubeLivestream';
+import { connectToDB } from '@/utils/db';
 
 
 interface Livestream {
@@ -34,11 +36,57 @@ const YouTubeLivestreamFetcher: React.FC = () => {
   const BASE_URL = 'https://www.googleapis.com/youtube/v3';
   const CHANNEL_ID = 'UCyZC0QYwHNgnWBakBSUU3vQ';
 
+  const fetchLivestreamsFromDB = async () => {
+    try {
+      const response = await fetch('/api/youtube-livestreams');
+      if (!response.ok) {
+        throw new Error('Failed to fetch livestreams from API');
+      }
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Unknown error occurred');
+      }
+      return data.data;
+    } catch (error) {
+      console.error('Error fetching livestreams:', error);
+      return [];
+    }
+  };
+
+  const saveLivestreamsToDB = async (livestreams: Livestream[]) => {
+    try {
+      const response = await fetch('/api/save-youtube-livestreams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(livestreams),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save livestreams to API');
+      }
+    } catch (error) {
+      console.error('Error saving livestreams:', error);
+    }
+  };
+
   // Fetch livestreams for a channel
   const fetchLivestreams = async (): Promise<void> => {
     try {
       setLoading(true);
-      setError('');
+      const dbLivestreams = await fetchLivestreamsFromDB();
+
+      if (dbLivestreams.length > 0) {
+        const formattedLivestreams = dbLivestreams.map((stream: any) => ({
+          ...stream,
+          publishedAt: stream.publishedAt instanceof Date ? stream.publishedAt.toISOString() : stream.publishedAt,
+          scheduledStartTime: stream.scheduledStartTime instanceof Date ? stream.scheduledStartTime.toISOString() : stream.scheduledStartTime,
+          actualStartTime: stream.actualStartTime instanceof Date ? stream.actualStartTime.toISOString() : stream.actualStartTime,
+          actualEndTime: stream.actualEndTime instanceof Date ? stream.actualEndTime.toISOString() : stream.actualEndTime,
+        }));
+        setLivestreams(formattedLivestreams);
+        return;
+      }
 
       // Search for the last 5 videos
       const searchResponse = await fetch(
@@ -97,6 +145,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
         }));
 
       setLivestreams(livestreamData);
+      await saveLivestreamsToDB(livestreamData);
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -158,7 +207,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
           <div
             id="carousel"
             ref={carouselRef}
-            className="flex gap-4 overflow-scroll bg-black/50 rounded-xl p-3"
+            className="flex gap-4 overflow-x-scroll bg-black/50 rounded-xl p-3"
           >
             <div className='flex gap-4'>
               {livestreams.map((stream) => (
