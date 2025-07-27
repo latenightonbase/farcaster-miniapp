@@ -1,0 +1,32 @@
+{
+  "frame": {
+    "name": "Late Night On Base",
+    "version": "1",
+    "iconUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
+    "homeUrl": "https://farcaster-miniapp-chi.vercel.app",
+    "imageUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
+    "buttonTitle": "Tune in",
+    "splashImageUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
+    "splashBackgroundColor": "#3B0404",
+    "webhookUrl": "https://farcaster-miniapp-chi.vercel.app/api/webhook",
+    "subtitle": "Daily Base news + top builder interviews",
+    "description": "Daily Base news + top builder interviews",
+    "primaryCategory": "news-media",
+    "heroImageUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
+    "tags": [
+      "social",
+      "news",
+      "interviews",
+      "base"
+    ],
+    "tagline": "Daily Base news",
+    "ogTitle": "Late Night On Base",
+    "ogDescription": "Daily Base news and top builder interviews",
+    "ogImageUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjExMjk4NDIsInR5cGUiOiJhdXRoIiwia2V5IjoiMHgwNGI5MDE2NTA5MGM3ZTZGNDc5OGUxRDdFNzZkMjE0RmQzMUQzMjYyIn0",
+    "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItbWluaWFwcC1jaGkudmVyY2VsLmFwcCJ9",
+    "signature": "dVU9qpv6NEZtLYF60yumHb54Ti7RrAt4+tD2PtwUnXs9uuMAHRqRehbW8wpKeWX0ig+2Q0c6G0UgbGzdyo9Vzxs="
+  }
+}

@@ -14,36 +14,31 @@ function withValidProperties(
 export async function GET() {
   const URL = process.env.NEXT_PUBLIC_URL;
 
-  return {
-  "frame": {
-    "name": "Late Night On Base",
-    "version": "1",
-    "iconUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
-    "homeUrl": "https://farcaster-miniapp-chi.vercel.app",
-    "imageUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
-    "buttonTitle": "Tune in",
-    "splashImageUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
-    "splashBackgroundColor": "#3B0404",
-    "webhookUrl": "https://farcaster-miniapp-chi.vercel.app/api/webhook",
-    "subtitle": "Daily Base news + top builder interviews",
-    "description": "Daily Base news + top builder interviews",
-    "primaryCategory": "news-media",
-    "heroImageUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
-    "tags": [
-      "social",
-      "news",
-      "interviews",
-      "base"
-    ],
-    "tagline": "Daily Base news",
-    "ogTitle": "Late Night On Base",
-    "ogDescription": "Daily Base news and top builder interviews",
-    "ogImageUrl": "https://farcaster-miniapp-chi.vercel.app/pfp.jpg"
-  },
-  "accountAssociation": {
-    "header": "eyJmaWQiOjExMjk4NDIsInR5cGUiOiJhdXRoIiwia2V5IjoiMHgwNGI5MDE2NTA5MGM3ZTZGNDc5OGUxRDdFNzZkMjE0RmQzMUQzMjYyIn0",
-    "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItbWluaWFwcC1jaGkudmVyY2VsLmFwcCJ9",
-    "signature": "dVU9qpv6NEZtLYF60yumHb54Ti7RrAt4+tD2PtwUnXs9uuMAHRqRehbW8wpKeWX0ig+2Q0c6G0UgbGzdyo9Vzxs="
-  }
-}
+  return Response.json({
+    frame: withValidProperties({
+      version: "1",
+      name: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME,
+      subtitle: process.env.NEXT_PUBLIC_APP_SUBTITLE,
+      description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+      screenshotUrls: [],
+      iconUrl: process.env.NEXT_PUBLIC_APP_ICON,
+      imageUrl: process.env.NEXT_PUBLIC_APP_ICON,
+      splashImageUrl: process.env.NEXT_PUBLIC_APP_SPLASH_IMAGE,
+      splashBackgroundColor: process.env.NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR,
+      homeUrl: URL,
+      webhookUrl: `${URL}/api/webhook`,
+      primaryCategory: process.env.NEXT_PUBLIC_APP_PRIMARY_CATEGORY,
+      tags: [],
+      heroImageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE,
+      tagline: process.env.NEXT_PUBLIC_APP_TAGLINE,
+      ogTitle: process.env.NEXT_PUBLIC_APP_OG_TITLE,
+      ogDescription: process.env.NEXT_PUBLIC_APP_OG_DESCRIPTION,
+      ogImageUrl: process.env.NEXT_PUBLIC_APP_OG_IMAGE,
+    }),
+    accountAssociation: {
+      header: process.env.FARCASTER_HEADER,
+      payload: process.env.FARCASTER_PAYLOAD,
+      signature: process.env.FARCASTER_SIGNATURE,
+    }
+  });
 }
