@@ -1,10 +1,6 @@
 "use client";
 import { ProfileSection } from "@/components/ProfileSection";
-import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
-import { FaYoutube } from "react-icons/fa";
-import { FaSquareXTwitter } from "react-icons/fa6";
-import { SiTwitch } from "react-icons/si";
+import { useEffect, useState } from "react";
 import YouTubeLivestreamFetcher from "@/components/YTHandler";
 import TwitchStreamFetcher from "@/components/TwitchHandler";
 import TwitterFetcher from "@/components/TwitterHandler";
@@ -123,7 +119,7 @@ export default function Home() {
                       </p>
                       <button
                         onClick={handleAddFrame}
-                        className="bg-orange-500 active:bg-red-500 focus:bg-red-900 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
+                        className="bg-orange-500 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
                       >
                         Allow
                       </button>
