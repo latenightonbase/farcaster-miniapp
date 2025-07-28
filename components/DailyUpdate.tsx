@@ -52,7 +52,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               {/* Enhanced Video Container */}
               {videos && <div className="relative w-full h-48 rounded-lg overflow-hidden">
                 <ReactPlayer
-                  src={videos}
+                  src={videos+"?v="+Date.now()}
                   controls
                   width="100%"
                   height="100%"
