@@ -5,6 +5,7 @@ import moment from 'moment';
 import { IoIosArrowBack } from "react-icons/io";
 import YoutubeLivestream from '@/utils/schemas/youtubeLivestream';
 import { connectToDB } from '@/utils/db';
+import { GoDotFill } from 'react-icons/go';
 
 
 interface Livestream {
@@ -12,11 +13,11 @@ interface Livestream {
   title: string;
   description: string;
   thumbnail: string;
-  publishedAt: string;
+  publishedAt: string | Date;
   isLive: boolean;
-  scheduledStartTime?: string;
-  actualStartTime?: string;
-  actualEndTime?: string;
+  scheduledStartTime?: string | Date;
+  actualStartTime?: string | Date;
+  actualEndTime?: string | Date;
   concurrentViewers?: number;
   viewCount: string;
   likeCount: string;
@@ -30,6 +31,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false); // Set both to false initially
+  const [liveVideo, setLiveVideo] = useState<Livestream | null>(null);
   const carouselRef = useRef<HTMLDivElement | null>(null);
 
   const API_KEY = process.env.NEXT_PUBLIC_YT_API_KEY;
@@ -77,14 +79,16 @@ const YouTubeLivestreamFetcher: React.FC = () => {
       const dbLivestreams = await fetchLivestreamsFromDB();
 
       if (dbLivestreams.length > 0) {
-        const formattedLivestreams = dbLivestreams.map((stream: any) => ({
+        const formattedLivestreams = dbLivestreams.map((stream: Livestream) => ({
           ...stream,
-          publishedAt: stream.publishedAt instanceof Date ? stream.publishedAt.toISOString() : stream.publishedAt,
-          scheduledStartTime: stream.scheduledStartTime instanceof Date ? stream.scheduledStartTime.toISOString() : stream.scheduledStartTime,
-          actualStartTime: stream.actualStartTime instanceof Date ? stream.actualStartTime.toISOString() : stream.actualStartTime,
-          actualEndTime: stream.actualEndTime instanceof Date ? stream.actualEndTime.toISOString() : stream.actualEndTime,
+          publishedAt: typeof stream.publishedAt === 'string' ? stream.publishedAt : stream.publishedAt instanceof Date ? stream.publishedAt.toISOString() : '',
+          scheduledStartTime: typeof stream.scheduledStartTime === 'string' ? stream.scheduledStartTime : stream.scheduledStartTime instanceof Date ? stream.scheduledStartTime.toISOString() : '',
+          actualStartTime: typeof stream.actualStartTime === 'string' ? stream.actualStartTime : stream.actualStartTime instanceof Date ? stream.actualStartTime.toISOString() : '',
+          actualEndTime: typeof stream.actualEndTime === 'string' ? stream.actualEndTime : stream.actualEndTime instanceof Date ? stream.actualEndTime.toISOString() : '',
         }));
-        setLivestreams(formattedLivestreams);
+        const liveStream = formattedLivestreams.find((stream: Livestream) => stream.isLive);
+        setLiveVideo(liveStream || null);
+        setLivestreams(formattedLivestreams.filter((stream: Livestream) => !stream.isLive));
         return;
       }
 
@@ -144,7 +148,9 @@ const YouTubeLivestreamFetcher: React.FC = () => {
           url: `https://www.youtube.com/watch?v=${video.id}`
         }));
 
-      setLivestreams(livestreamData);
+      const liveStream = livestreamData.find((stream: Livestream) => stream.isLive);
+      setLiveVideo(liveStream || null);
+      setLivestreams(livestreamData.filter((stream: Livestream) => !stream.isLive));
       await saveLivestreamsToDB(livestreamData);
     } catch (error: any) {
       setError(error.message);
@@ -176,6 +182,31 @@ const YouTubeLivestreamFetcher: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
+      {liveVideo && (
+        <div className="mb-8">
+          <h2 className="bg-red-500 px-4 py-1 flex items-center justify-center rounded-lg text-xl font-semibold text-white mb-4 text-center">
+          <GoDotFill className='text-2xl animate-pulse'/> Live Now</h2>
+          <div className="relative bg-black rounded-lg overflow-hidden shadow-xl ">
+            <iframe
+              width="100%"
+              height="200"
+              src={`https://www.youtube.com/embed/${liveVideo.id}`}
+              title={liveVideo.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+            <div className="p-3 bg-red-900">
+              <h3 className="font-semibold text-white text-sm mb-1">
+                {liveVideo.title}
+              </h3>
+              <p className="text-xs text-gray-300">
+                {moment(liveVideo.publishedAt).fromNow()}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading && !error && (
         <div className="text-center py-12">
           <p className="text-gray-400"><RiLoader5Fill className='animate-spin text-white mx-auto text-[40px]' /></p>

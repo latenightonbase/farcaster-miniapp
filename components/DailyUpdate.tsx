@@ -42,19 +42,21 @@ export default function DailyUpdate({ selected }: { selected: string }) {
       )}
 
       {!loading && videos.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8 -mx-4">
 
             <div
-              className=" w-fit p-3 shadow-xl mx-auto flex flex-col items-center justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-red-800/10 border-x-[2px]  border-red-500/30"
+              className=" p-4 shadow-xl mx-auto flex w-screen flex-col items-center justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-red-800/10 border-x-[2px]  border-red-500/30"
             >
               <h2 className=" text-xl text-white font-poppins font-bold mb-2">Daily Base Report</h2>
 
-              {/* Video Container */}
-              {videos && <div className="">
+              {/* Enhanced Video Container */}
+              {videos && <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
                 <ReactPlayer
-                  src={videos}
+                  src={videos+"?v="+Date.now()}
                   controls
-                  className={`w-full object-cover rounded-lg duration-200 transition-all ${
+                  width="100%"
+                  height="100%"
+                  className={`absolute top-0 left-0 rounded-lg duration-200 object-cover transition-all ${
                     selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
                   }`}
                 />
