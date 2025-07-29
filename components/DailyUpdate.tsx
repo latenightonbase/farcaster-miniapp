@@ -50,7 +50,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               <h2 className=" text-xl text-white font-poppins font-bold mb-2">Daily Base Report</h2>
 
               {/* Enhanced Video Container */}
-              {videos && <div className="relative w-full h-48 rounded-lg overflow-hidden">
+              {videos && <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
                 <ReactPlayer
                   src={videos+"?v="+Date.now()}
                   controls

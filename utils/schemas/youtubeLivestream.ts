@@ -53,7 +53,7 @@ const youtubeLivestreamSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 14400, // TTL of 4 hours in seconds
+    expires: 7200, // TTL of 4 hours in seconds
   },
 });
 
