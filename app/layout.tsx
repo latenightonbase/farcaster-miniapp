@@ -16,14 +16,14 @@ export async function generateMetadata(): Promise<Metadata> {
     other: {
       "fc:frame": JSON.stringify({
         version: "next",
-        imageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE,
+        imageUrl: "https://farcaster-miniapp-liart.vercel.app/pfp.jpg",
         button: {
           title: `Tune in!`,
           action: {
             type: "launch_frame",
             name: "Late Night on Base",
             url: URL,
-            splashImageUrl: process.env.NEXT_PUBLIC_SPLASH_IMAGE,
+            splashImageUrl: "https://farcaster-miniapp-liart.vercel.app/pfp.jpg",
             splashBackgroundColor:
               "#3b0404",
           },
