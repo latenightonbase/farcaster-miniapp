@@ -111,20 +111,6 @@ export function ProfileSection() {
         >
           <FaSquareXTwitter size={20} />
         </Link>
-        <Link
-          href={LINKS.website}
-          target="_blank"
-          className="text-sm font-bold duration-200 hover:text-blue-400 active:text-blue-500"
-        >
-          <FaGlobe size={20} />
-        </Link>
-        <Link
-          href={LINKS.youtube}
-          target="_blank"
-          className="text-sm font-bold duration-200 hover:text-blue-400 active:text-blue-500"
-        >
-          <FaYoutube size={20} />
-        </Link>
       </div>
 
      
