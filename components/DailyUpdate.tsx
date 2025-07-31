@@ -33,10 +33,10 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   }, [videos]);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
+    <div className="max-w-6xl mx-auto text-white animate-rise ">
 
       {error && (
-        <div className="mt-4 p-4 bg-red-800 border border-red-600 rounded-lg">
+        <div className="mt-4 px-3 bg-red-800 border border-red-600 rounded-lg">
           <p className="text-red-300">{error}</p>
         </div>
       )}
@@ -45,9 +45,9 @@ export default function DailyUpdate({ selected }: { selected: string }) {
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8 -mx-4">
 
             <div
-              className=" p-4 shadow-xl mx-auto flex w-screen flex-col items-center justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-red-800/10 border-x-[2px]  border-red-500/30"
+              className=" px-3 pb-3 shadow-xl mx-auto flex w-screen flex-col items-start justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-gradient-to-b from-transparent to-red-800/10 border-b-[2px]  border-red-500/30"
             >
-              <h2 className=" text-xl text-white font-poppins font-bold mb-2">Daily Base Report</h2>
+              <h2 className="text-lg text-white font-poppins font-bold mb-2">Daily Base Report</h2>
 
               {/* Enhanced Video Container */}
               {videos && <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
