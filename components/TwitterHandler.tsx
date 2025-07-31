@@ -241,7 +241,7 @@ const TwitterFetcher = () => {
       entities.urls.forEach((url: { url: string; expanded_url: string; display_url: string }) => {
         processedText = processedText.replace(
           url.url,
-          `<a href="${url.expanded_url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">${url.display_url}</a>`
+          `<a href="${url.expanded_url}" target="_blank" rel="noopener noreferrer" class="text-red-500 hover:underline">${url.display_url}</a>`
         );
       });
     }
@@ -251,7 +251,7 @@ const TwitterFetcher = () => {
       entities.mentions.forEach((mention: { username: string }) => {
         processedText = processedText.replace(
           `@${mention.username}`,
-          `<a href="https://twitter.com/${mention.username}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">@${mention.username}</a>`
+          `<a href="https://twitter.com/${mention.username}" target="_blank" rel="noopener noreferrer" class="text-red-500 hover:underline">@${mention.username}</a>`
         );
       });
     }
@@ -261,7 +261,7 @@ const TwitterFetcher = () => {
       entities.hashtags.forEach((hashtag: { tag: string }) => {
         processedText = processedText.replace(
           `#${hashtag.tag}`,
-          `<a href="https://twitter.com/hashtag/${hashtag.tag}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">#${hashtag.tag}</a>`
+          `<a href="https://twitter.com/hashtag/${hashtag.tag}" target="_blank" rel="noopener noreferrer" class="text-red-500 hover:underline">#${hashtag.tag}</a>`
         );
       });
     }
@@ -315,7 +315,7 @@ const TwitterFetcher = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           ) : (
             <input
@@ -324,14 +324,14 @@ const TwitterFetcher = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           )}
           
           <button
             onClick={handleSearch}
             disabled={loading}
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <Search size={20} />
             {loading ? 'Searching...' : 'Search'}
@@ -361,7 +361,7 @@ const TwitterFetcher = () => {
               <div className="flex items-center gap-2 mb-2">
                 <h2 className="text-xl font-bold text-gray-900">{userInfo.name}</h2>
                 {userInfo.verified && (
-                  <Verified className="w-5 h-5 text-blue-500" fill="currentColor" />
+                  <Verified className="w-5 h-5 text-red-500" fill="currentColor" />
                 )}
               </div>
               <p className="text-gray-600 mb-2">@{userInfo.username}</p>
@@ -381,7 +381,7 @@ const TwitterFetcher = () => {
                 {userInfo.url && (
                   <div className="flex items-center gap-1">
                     <Link size={14} />
-                    <a href={userInfo.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                    <a href={userInfo.url} target="_blank" rel="noopener noreferrer" className="text-red-500 hover:underline">
                       Website
                     </a>
                   </div>
@@ -436,7 +436,7 @@ const TwitterFetcher = () => {
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-gray-900">{tweet.author.name}</span>
                         {tweet.author.verified && (
-                          <Verified className="w-4 h-4 text-blue-500" fill="currentColor" />
+                          <Verified className="w-4 h-4 text-red-500" fill="currentColor" />
                         )}
                       </div>
                       <span className="text-gray-600 text-sm">@{tweet.author.username}</span>
@@ -506,7 +506,7 @@ const TwitterFetcher = () => {
                     href={`https://twitter.com/${tweet.author?.username}/status/${tweet.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline flex items-center gap-1"
+                    className="text-red-500 hover:underline flex items-center gap-1"
                   >
                     <Share size={14} />
                     View on X
