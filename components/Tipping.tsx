@@ -133,13 +133,11 @@ const Tipping = () => {
     <div
       className={`fixed bottom-0 left-0 bg-gradient-to-b from-transparent via-black/80 to-black p-4 pt-20 w-full flex justify-between`}
     >
-      <div className="flex items-center gap-2 text-white">
-        <h3 className="text-xs self-center mr-2 text-gray-400">
-          This stream was free. My gambling problem isn&apos;t. Want to Tip me?
-        </h3>
+      <div className="flex items-center gap-2 text-white w-full">
+        
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="bg-orange-600 text-center w-fit py-2 px-4 rounded-full text-sm text-nowrap font-bold text-white flex items-center justify-center gap-1 hover:bg-orange-700"
+          className="bg-orange-600 text-center w-full py-2 px-4 rounded-full text-sm text-nowrap font-bold text-white flex items-center justify-center gap-1 hover:bg-orange-700"
         >
           <RiMoneyDollarCircleLine
             color="white"

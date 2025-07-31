@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 import { RiLoader5Fill } from 'react-icons/ri';
 import moment from 'moment';
 import { IoIosArrowBack } from "react-icons/io";
@@ -181,11 +181,11 @@ const YouTubeLivestreamFetcher: React.FC = () => {
   }, [livestreams]); // Re-run when livestreams change
 
   return (
-    <div className="max-w-6xl mx-auto p-4 text-white animate-rise">
+    <div className="max-w-6xl mx-auto p-3 text-white animate-rise">
       {liveVideo && (
         <div className="mb-8">
           <h2 className="bg-red-500 px-4 py-1 flex items-center justify-center rounded-lg text-xl font-semibold text-white mb-4 text-center">
-          <GoDotFill className='text-2xl animate-pulse'/> Live Now</h2>
+          <GoDotFill className='text-xl animate-pulse'/> Live Now</h2>
           <div className="relative bg-black rounded-lg overflow-hidden shadow-xl ">
             <iframe
               width="100%"
@@ -221,80 +221,33 @@ const YouTubeLivestreamFetcher: React.FC = () => {
 
       {!loading && livestreams.length > 0 && (
         <div className="relative mb-10">
-          <h2 className="text-xl font-semibold text-white mb-4 text-center">Latest Videos</h2>
-          {canScrollLeft && (
-            <button
-              className="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"
-              onClick={() => {
-                const container = carouselRef.current;
-                if (container) {
-                  container.scrollBy({ left: -300, behavior: 'smooth' });
-                }
-              }}
-            >
-              <IoIosArrowBack className="text-xl" />
-            </button>
-          )}
-          <div
-            id="carousel"
-            ref={carouselRef}
-            className="flex gap-4 overflow-x-scroll bg-black/50 rounded-xl p-3"
-          >
-            <div className='flex gap-4'>
-              {livestreams.map((stream) => (
-                <div
-                  key={stream.id}
-                  className="min-w-[250px] bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="relative">
-                    {playingVideoId === stream.id ? (
-                      <iframe
-                        width="100%"
-                        height="180"
-                        src={`https://www.youtube.com/embed/${stream.id}`}
-                        title={stream.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    ) : (
-                      <img
-                        src={stream.thumbnail}
-                        alt={stream.title}
-                        className="w-full h-[180px] object-cover cursor-pointer"
-                        onClick={() => setPlayingVideoId(stream.id)}
-                      />
-                    )}
-                    {stream.isLive && (
-                      <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-                        LIVE
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
-                      {stream.title}
-                    </h3>
-                    <p className="text-xs text-gray-300">
-                      {moment(stream.publishedAt).fromNow()}
-                    </p>
-                  </div>
+          <h2 className="text-md font-semibold text-white mb-2">Latest Videos</h2>
+          <div className="flex flex-col gap-4">
+            {livestreams.map((stream) => (
+              <div
+                key={stream.id}
+                className="flex items-center gap-2 bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow p-1 cursor-pointer"
+                onClick={() => setPlayingVideoId(stream.id)}
+              >
+                <img
+                  src={stream.thumbnail}
+                  alt={stream.title}
+                  className="w-[100px] h-[80px] object-cover rounded-sm"
+                />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-white text-[11px] mb-1 line-clamp-2">
+                    {stream.title}
+                  </h3>
+                  <p className="text-[10px] text-red-100 mb-1">
+                    {moment(stream.publishedAt).fromNow()}
+                  </p>
+                  <p className="text-[10px] text-red-300 line-clamp-3">
+                    {stream.description.slice(0, 60)}...
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-          {canScrollRight && (
-            <button
-              className="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full z-10"
-              onClick={() => {
-                const container = carouselRef.current;
-                if (container) {
-                  container.scrollBy({ left: 300, behavior: 'smooth' });
-                }
-              }}
-            >
-              <IoIosArrowBack className="text-xl rotate-180" />
-            </button>
-          )}
         </div>
       )}
 
@@ -303,6 +256,27 @@ const YouTubeLivestreamFetcher: React.FC = () => {
           <p className="text-gray-400">No videos found.</p>
         </div>
       )}
+
+      {/* {playingVideoId && ( */}
+        <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 transition-opacity duration-200 ${playingVideoId ? "opacity-100" : "opacity-0 pointer-events-none"} `}>
+          <div className="bg-black rounded-lg shadow-lg overflow-hidden">
+            <iframe
+              width="300"
+              height="200"
+              src={`https://www.youtube.com/embed/${playingVideoId}`}
+              title="Floating Video Player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+            <button
+              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+              onClick={() => setPlayingVideoId(null)}
+            >
+             <X className="text-sm" />
+            </button>
+          </div>
+        </div>
+      {/* )} */}
     </div>
   );
 };

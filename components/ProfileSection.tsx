@@ -16,7 +16,7 @@ export function ProfileSection() {
   
 
   return (
-    <div className="flex flex-col items-center shadow-md overflow-hidden font-[var(--font-geist-mono)] ">
+    <div className="flex flex-col items-center shadow-md pb-5 overflow-hidden font-[var(--font-geist-mono)] ">
 
       {/* Banner */}
       <div className="w-full h-48 bg-gray-700 relative">
@@ -85,34 +85,12 @@ export function ProfileSection() {
       </div>
 
       {/* Name */}
-      <div className="mt-2 text-center mb-5 animate-rise-2 px-4">
-        <h1 className="text-xl font-bold text-white mb-4 ">
+      <div className="mt-2 text-center animate-rise-2 px-4">
+        <h1 className="text-xl font-bold text-white">
           Late Night On Base
         </h1>
-        <p className="text-sm text-gray-400 ">
-          Daily Base ecosystem updates in 60 seconds, plus replays of top streams
-          featuring the builders shaping the future. Hosted by Bill the Bull.
-        </p>
+       
       </div>
-
-      {/* Social Links */}
-      <div className="mt-4 flex space-x-4">
-        <Link
-          href={LINKS.farcaster}
-          target="_blank"
-          className="text-sm font-bold duration-200 hover:text-blue-400 active:text-blue-500"
-        >
-          <SiFarcaster size={20} />
-        </Link>
-        <Link
-          href={LINKS.twitter}
-          target="_blank"
-          className="text-sm font-bold duration-200 hover:text-blue-400 active:text-blue-500"
-        >
-          <FaSquareXTwitter size={20} />
-        </Link>
-      </div>
-
      
     </div>
   );
