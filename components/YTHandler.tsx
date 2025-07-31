@@ -221,29 +221,29 @@ const YouTubeLivestreamFetcher: React.FC = () => {
 
       {!loading && livestreams.length > 0 && (
         <div className="relative mb-10">
-          <h2 className="text-md font-semibold text-white mb-2">Latest Videos</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">Latest Videos</h2>
           <div className="flex flex-col gap-4">
             {livestreams.map((stream) => (
               <div
                 key={stream.id}
-                className="flex items-center gap-2 bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow p-1 cursor-pointer"
+                className="flex items-center gap-2 bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow p-2 cursor-pointer"
                 onClick={() => setPlayingVideoId(stream.id)}
               >
                 <img
                   src={stream.thumbnail}
                   alt={stream.title}
-                  className="w-[100px] h-[80px] object-cover rounded-sm"
+                  className="w-[120px] h-[80px] object-cover rounded-sm"
                 />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-white text-[11px] mb-1 line-clamp-2">
+                  <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
                     {stream.title}
                   </h3>
                   <p className="text-[10px] text-red-100 mb-1">
                     {moment(stream.publishedAt).fromNow()}
                   </p>
-                  <p className="text-[10px] text-red-300 line-clamp-3">
+                  {/* <p className="text-[10px] text-red-300 line-clamp-3">
                     {stream.description.slice(0, 60)}...
-                  </p>
+                  </p> */}
                 </div>
               </div>
             ))}

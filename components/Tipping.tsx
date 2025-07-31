@@ -137,7 +137,7 @@ const Tipping = () => {
         
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="bg-orange-600 text-center w-full mb-2 py-2 px-4 rounded-full text-sm text-nowrap font-bold text-white flex items-center justify-center gap-1 hover:bg-orange-700"
+          className="bg-orange-600 text-center w-full mb-2 py-2 px-4 rounded-full text-lg text-nowrap font-bold text-white flex items-center justify-center gap-1 hover:bg-orange-700"
         >
           <RiMoneyDollarCircleLine
             color="white"

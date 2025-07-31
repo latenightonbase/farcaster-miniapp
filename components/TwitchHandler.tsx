@@ -334,9 +334,9 @@ const TwitchStreamFetcher = () => {
 
       {!loading && streams.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-purple-800 mb-4">Currently Live</h2>
+          <h2 className="text-xl font-semibold text-red-800 mb-4">Currently Live</h2>
           {streams.map((stream) => (
-            <div key={stream.id} className="mb-6 bg-purple-800/50 w-full aspect-video p-4 rounded-lg">
+            <div key={stream.id} className="mb-6 bg-red-800/50 w-full aspect-video p-4 rounded-lg">
               <iframe
                 width={'100%'}
                 src={`https://player.twitch.tv/?channel=${stream.userLogin}&parent=localhost`}
@@ -362,7 +362,7 @@ const TwitchStreamFetcher = () => {
             {videos.map((video) => (
               <div
                 key={video.id}
-                className="bg-purple-800/20 border p-3 border-purple-600 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="bg-red-800/20 border p-3 border-red-600 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="relative rounded-lg overflow-hidden">
                   <a
@@ -381,7 +381,7 @@ const TwitchStreamFetcher = () => {
                   <h3 className="font-semibold text-white text-lg mb-1 line-clamp-2">
                     {video.title}
                   </h3>
-                  <p className="text-xs text-right text-purple-500">
+                  <p className="text-xs text-right text-red-500">
                     {new Date(video.publishedAt).toLocaleString()}
                   </p>
                 </div>
