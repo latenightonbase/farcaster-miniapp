@@ -258,18 +258,18 @@ const YouTubeLivestreamFetcher: React.FC = () => {
       )}
 
       {/* {playingVideoId && ( */}
-        <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 transition-opacity duration-200 ${playingVideoId ? "opacity-100" : "opacity-0 pointer-events-none"} `}>
+        <div className={`fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] transition-opacity duration-200 ${playingVideoId ? "opacity-100" : "opacity-0 pointer-events-none"} `}>
           <div className="bg-black rounded-lg shadow-lg overflow-hidden">
             <iframe
-              width="300"
-              height="200"
+              width="350"
+              height="210"
               src={`https://www.youtube.com/embed/${playingVideoId}`}
               title="Floating Video Player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
             <button
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+              className="absolute top-2 right-2  text-white rounded-full p-1"
               onClick={() => setPlayingVideoId(null)}
             >
              <X className="text-sm" />
