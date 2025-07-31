@@ -165,7 +165,7 @@ export default function Home() {
               <FaYoutube size={24} className="" />
             </button>
             <button
-              className={`px-5 flex items-center justify-center py-3 rounded-sm duration-200 transition-colors ${activeTab === "twitch" ? "border-white border-2 text-white bg-purple-500 shadow-md shadow-purple-500/40" : "border-white/30 border-2 text-white/30"
+              className={`px-5 flex items-center justify-center py-3 rounded-sm duration-200 transition-colors ${activeTab === "twitch" ? "border-white border-2 text-white bg-red-500 shadow-md shadow-red-500/40" : "border-white/30 border-2 text-white/30"
                 }`}
               onClick={() => setActiveTab("twitch")}
             >

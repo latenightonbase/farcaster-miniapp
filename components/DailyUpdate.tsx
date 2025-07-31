@@ -57,7 +57,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
                   width="100%"
                   height="100%"
                   className={`absolute top-0 left-0 rounded-lg duration-200 object-cover transition-all ${
-                    selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-purple-500' : ''
+                    selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-red-500' : ''
                   }`}
                 />
               </div>}
