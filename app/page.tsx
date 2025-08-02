@@ -14,6 +14,7 @@ import {
 } from "@coinbase/onchainkit/minikit";
 import { useAccount } from "wagmi";
 import axios from "axios";
+import SponsorList from "@/components/SponsorList";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
@@ -147,7 +148,7 @@ export default function Home() {
 
         <div className="relative z-1 min-h-screen">
           <ProfileSection />
-
+          <SponsorList />       
           <DailyUpdate selected={activeTab} />
           {/* Conditional Rendering */}
           <div className="mt-6">
