@@ -28,7 +28,7 @@ export default function AddBanner() {
     const fetchSponsorImage = async () => {
       try {
         console.log("Fetching sponsor image...");
-        const response = await axios.get("/api/sponsor/getImage");
+        const response = await axios.get("/api/getImage");
         
         if (response.status === 200 && response.data.imageUrl) {
           setUploadedImage(response.data.imageUrl);
@@ -111,6 +111,8 @@ export default function AddBanner() {
           },
         });
 
+        console.log("Response from API:", response);
+
         if (response.status === 200) {
           const data = await response.data;
           console.log("Image uploaded successfully:", data);
@@ -163,15 +165,15 @@ export default function AddBanner() {
         />
       ) : (
         <div
-          className="flex items-center justify-start border border-white/30 rounded-lg bg-white/10 p-4 mx-3 cursor-pointer"
+          className="flex items-center justify-start border border-white/30 rounded-lg bg-gradient-to-br from-emerald-600 to-green-500 p-3 mx-3 cursor-pointer"
           onClick={() => setIsModalOpen(true)}
         >
           <HiSpeakerphone className="text-white mr-2 -rotate-12" size={24} />
           <div>
-          <h2 className="text-white/80 text-xl font-bold">
+          <h2 className="text-white text-xl font-bold">
             SPONSORED SLOT
           </h2>
-          <h3 className="text-sm">
+          <h3 className="text-sm text-white">
             Sponsor this spot
           </h3>
           </div>
@@ -231,7 +233,7 @@ export default function AddBanner() {
                   Image must be in .jpg, .jpeg, or .png format and under 5MB in
                   size
                 </li>
-                <li>Image will be visible on the miniapp for 1 minute</li>
+                <li>Image will be visible on the miniapp for 24 hours</li>
                 <li>Image must be 1500x500 dimensions for best visibility</li>
                 <li>This action will cost {metaValue !== null ? metaValue : "..."} USDC</li>
               </ul>

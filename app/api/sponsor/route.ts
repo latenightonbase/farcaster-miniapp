@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     },
   });
 
-  console.log(s3Client)
+  console.log("Initialized S3 client with region:", process.env.AWS_REGION);
 
   const formData = await req.formData();
   const file = formData.get('image');
@@ -20,11 +20,14 @@ export async function POST(req: Request) {
   console.log('Received file:', file);
 
   if (!file || !(file instanceof Blob)) {
+    console.error("Invalid file received:", file);
     return NextResponse.json({ error: 'Invalid file' }, { status: 400 });
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const key = 'videos/banner';
+
+  console.log("Uploading file to S3 with key:", key);
 
   try {
     const command = new PutObjectCommand({
@@ -38,7 +41,8 @@ export async function POST(req: Request) {
     await s3Client.send(command);
 
     const imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    console.log('Image uploaded successfully:', imageUrl);
+
+    console.log("File uploaded successfully. Image URL:", imageUrl);
 
     // Connect to database and create sponsorFields object
     await connectToDB();
@@ -52,7 +56,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ imageUrl, sponsorFieldId: sponsorField._id });
   } catch (error) {
-    console.error('Error uploading image:', error);
-    return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
+    console.error("Error uploading file to S3:", error);
+    return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
   }
 }
