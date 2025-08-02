@@ -35,7 +35,9 @@ export async function middleware(request: NextRequest) {
           },
         },
       },
-      facilitator
+      {
+        url: "https://facilitator.x402.rs"
+      }
     )(request);
   }
   // Example: Add custom headers

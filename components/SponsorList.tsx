@@ -28,7 +28,7 @@ export default function AddBanner() {
     const fetchSponsorImage = async () => {
       try {
         console.log("Fetching sponsor image...");
-        const response = await axios.get("/api/sponsor/getImage");
+        const response = await axios.get("/api/getImage");
         
         if (response.status === 200 && response.data.imageUrl) {
           setUploadedImage(response.data.imageUrl);
@@ -233,7 +233,7 @@ export default function AddBanner() {
                   Image must be in .jpg, .jpeg, or .png format and under 5MB in
                   size
                 </li>
-                <li>Image will be visible on the miniapp for 1 minute</li>
+                <li>Image will be visible on the miniapp for 24 hours</li>
                 <li>Image must be 1500x500 dimensions for best visibility</li>
                 <li>This action will cost {metaValue !== null ? metaValue : "..."} USDC</li>
               </ul>
