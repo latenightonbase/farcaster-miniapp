@@ -143,7 +143,7 @@ export default function AddBanner() {
           className="flex items-center justify-start border border-white/30 rounded-lg bg-white/10 p-4 mx-3 cursor-pointer"
           onClick={() => setIsModalOpen(true)}
         >
-          <HiSpeakerphone className="text-white mr-2" size={24} />
+          <HiSpeakerphone className="text-white mr-2 -rotate-12" size={24} />
           <div>
           <h2 className="text-white/80 text-xl font-bold">
             SPONSORED SLOT
