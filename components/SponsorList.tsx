@@ -111,6 +111,8 @@ export default function AddBanner() {
           },
         });
 
+        console.log("Response from API:", response);
+
         if (response.status === 200) {
           const data = await response.data;
           console.log("Image uploaded successfully:", data);

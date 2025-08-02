@@ -18,7 +18,11 @@ export async function middleware(request: NextRequest) {
 
     const res:any = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/getPrice`);
 
+    console.log("Fetching price from API:", `${process.env.NEXT_PUBLIC_URL}/api/getPrice`);
+
     const data = await res.json();
+
+    console.log("Fetched price data:", data);
 
     return await paymentMiddleware(
       "0xC07f465Cb788De0088E33C03814E2c550dBe33db",

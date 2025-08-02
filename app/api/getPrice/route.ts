@@ -4,13 +4,16 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
+    console.log("Connecting to database...");
     await connectToDB();
-    // Fetch the MetaSchema document where meta_key is 'sponsor_charge'
+
+    console.log("Fetching meta data for key: sponsor_charge");
     const meta = await Meta.findOne({ meta_key: 'sponsor_charge' });
 
     console.log("Fetched meta:", meta);
 
     if (!meta) {
+      console.error("Meta not found for key: sponsor_charge");
       return NextResponse.json({ error: 'Meta not found' }, { status: 404 });
     }
 
