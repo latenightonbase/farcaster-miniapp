@@ -13,6 +13,7 @@ import {
   arbitrum,
   base,
   sei,
+  baseSepolia,
 } from 'wagmi/chains';
 import {
   QueryClientProvider,
@@ -26,7 +27,7 @@ import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-c
 export const config = getDefaultConfig({
   appName: 'My RainbowKit App',
   projectId: '5d10af3027c340310f3a3da64cbcedac',
-  chains: [base],
+  chains: [base, baseSepolia],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 const queryClient = new QueryClient();

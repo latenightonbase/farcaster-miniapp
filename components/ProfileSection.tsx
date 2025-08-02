@@ -86,7 +86,7 @@ export function ProfileSection() {
 
       {/* Name */}
       <div className="mt-2 text-center animate-rise-2 px-4">
-        <h1 className="text-xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-white">
           Late Night On Base
         </h1>
        
