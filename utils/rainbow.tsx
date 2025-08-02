@@ -13,6 +13,7 @@ import {
   arbitrum,
   base,
   sei,
+  baseSepolia,
 } from 'wagmi/chains';
 import {
   QueryClientProvider,
