@@ -14,11 +14,13 @@ import { RiLoader5Fill } from "react-icons/ri";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>("hi");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [metaValue, setMetaValue] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true); // Added loading state
 
   const { address } = useAccount();
 
@@ -36,10 +38,31 @@ export default function AddBanner() {
       } catch (error) {
         console.error("Error fetching sponsor image:", error);
         setUploadedImage(null);
+      } finally {
+        setLoading(false); // Set loading to false after API call
+      }
+    };
+
+    const fetchMetaValue = async () => {
+      try {
+        console.log("Fetching meta value...");
+        const response = await axios.get("/api/getPrice");
+
+        console.log(response)
+
+        if (response.status === 200 && response.data.meta) {
+          setMetaValue(response.data.meta.meta_value);
+        } else {
+          setMetaValue(null);
+        }
+      } catch (error) {
+        console.error("Error fetching meta value:", error);
+        setMetaValue(null);
       }
     };
 
     fetchSponsorImage();
+    fetchMetaValue();
   }, []);
 
   const handleImageSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +155,7 @@ export default function AddBanner() {
 
   return (
     <div>
-      {uploadedImage ? (
+      {loading ? null : uploadedImage ? (
         <img
           src={uploadedImage}
           alt="Sponsor Banner"
@@ -210,7 +233,7 @@ export default function AddBanner() {
                 </li>
                 <li>Image will be visible on the miniapp for 1 minute</li>
                 <li>Image must be 1500x500 dimensions for best visibility</li>
-                <li>This action will cost 0.1 USDC</li>
+                <li>This action will cost {metaValue !== null ? metaValue : "..."} USDC</li>
               </ul>
 
               <button

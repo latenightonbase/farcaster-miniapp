@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { Network, paymentMiddleware } from "x402-next";
+import { connectToDB } from "./utils/db";
+import Meta from '@/utils/schemas/metaschema';
+import axios from "axios";
+import { facilitator } from "@coinbase/x402";
 
 export async function middleware(request: NextRequest) {
   const isProtectedPaymentRoute =
@@ -12,20 +16,22 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname
     );
 
+    const res:any = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/getPrice`);
+
+    const data = await res.json();
+
     return await paymentMiddleware(
       "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
       {
         "/api/sponsor": {
-          price: `$20`,
+          price: `$${data.meta.meta_value}`,
           network: "base" as Network,
           config: {
             description: `Adding your banner on display for 24 hours.`,
           },
         },
       },
-      {
-        url: "https://x402.org/facilitator",
-      }
+      facilitator
     )(request);
   }
   // Example: Add custom headers
