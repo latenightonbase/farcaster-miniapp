@@ -1,15 +1,8 @@
 'use client'
 import Image from "next/image";
-import Link from "next/link";
-import { LINKS } from "../utils/constants";
-import { FaGlobe } from "react-icons/fa";
-import { SiFarcaster } from "react-icons/si";
-import { FaSquareXTwitter } from "react-icons/fa6";
-import { FaYoutube } from "react-icons/fa";
-import { useAddFrame } from "@coinbase/onchainkit/minikit";
+
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { useAccount } from "wagmi";
+
 
 export function ProfileSection() {
   const [success, setSuccess] = useState<boolean>(false);

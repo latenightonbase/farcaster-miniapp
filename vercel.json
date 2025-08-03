@@ -2,7 +2,7 @@
   "redirects": [
     {
       "source": "/.well-known/farcaster.json",
-      "destination": "https://api.farcaster.xyz/miniapps/hosted-manifest/0198425a-b2f7-9661-fe96-6363f9ef78a4",
+      "destination": "https://api.farcaster.xyz/miniapps/hosted-manifest/0198709e-56c4-e059-668e-fa5ed3aeb6bd",
       "permanent": false
     }
   ]
