@@ -283,7 +283,7 @@ export default function AddBanner() {
         </div>
 
         {clientInfo && (
-          <div className="mt-4 p-4 bg-gray-800 text-white rounded-lg">
+          <div className="mt-4 p-4 bg-red-800 text-yellow-500 rounded-lg">
             <h3 className="text-lg font-bold">Client Info:</h3>
             <pre className="text-sm overflow-auto">
               {JSON.stringify(clientInfo, null, 2)}
