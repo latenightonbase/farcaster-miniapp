@@ -90,11 +90,7 @@ export default function AddBanner() {
     const formData = new FormData();
     formData.append("image", selectedImage);
     formData.append("currency", currency); // Pass selected currency
-
-    //make a signer using ethers
-    if (typeof window.ethereum !== "undefined") {
       //@ts-ignore
-      await window.ethereum.request({ method: "eth_requestAccounts" });
 
       const client = createWalletClient({
         account: address as `0x${string}`,
@@ -138,7 +134,7 @@ export default function AddBanner() {
       } finally {
         setUploading(false);
       }
-    }
+    
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
