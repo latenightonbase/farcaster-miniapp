@@ -9,7 +9,7 @@ import { useAccount } from "wagmi";
 import { withPaymentInterceptor } from "x402-axios";
 import { ethers, Signer, Wallet } from "ethers";
 import { createWalletClient, custom, http } from "viem";
-import { baseSepolia } from "viem/chains";
+import { base, baseSepolia } from "viem/chains";
 import { RiLoader5Fill } from "react-icons/ri";
 
 
@@ -98,7 +98,7 @@ export default function AddBanner() {
 
       const client = createWalletClient({
         account: address as `0x${string}`,
-        chain: baseSepolia,
+        chain: base,
         transport: http()
       });
 
