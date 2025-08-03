@@ -21,15 +21,16 @@ import {
 } from "@tanstack/react-query";
 import { ReactNode } from 'react';
 import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
-
-
-
-export const config = getDefaultConfig({
-  appName: 'My RainbowKit App',
-  projectId: '5d10af3027c340310f3a3da64cbcedac',
+ 
+export const config = createConfig({
   chains: [base],
-  ssr: true, // If your dApp uses server side rendering (SSR)
-});
+  transports: {
+    [base.id]: http(),
+  },
+  connectors: [
+    miniAppConnector()
+  ]
+})
 const queryClient = new QueryClient();
 
 
