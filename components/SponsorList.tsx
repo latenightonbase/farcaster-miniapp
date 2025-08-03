@@ -22,7 +22,7 @@ export default function AddBanner() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [metaValue, setMetaValue] = useState<number | null>(null);
+  const [metaValue, setMetaValue] = useState<number>(0);
   const [loading, setLoading] = useState(true); // Added loading state
   const [currency, setCurrency] = useState<"ETH" | "USDC">("USDC"); // Added state for currency
   const [isLoading, setIsLoading] = useState(false);
@@ -69,35 +69,23 @@ export default function AddBanner() {
 
     const fetchMetaValue = async () => {
       try {
-        console.log("Fetching meta value...");
         const response = await axios.get("/api/getPrice");
 
-        console.log(response);
 
         if (response.status === 200 && response.data.meta) {
           setMetaValue(response.data.meta.meta_value);
         } else {
-          setMetaValue(null);
+          setMetaValue(0);
         }
       } catch (error) {
         console.error("Error fetching meta value:", error);
-        setMetaValue(null);
+        setMetaValue(0);
       }
     };
 
     fetchSponsorImage();
     fetchMetaValue();
   }, []);
-
-  const handleImageSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null;
-    setSelectedImage(file);
-    if (file) {
-      setPreviewImage(URL.createObjectURL(file));
-    } else {
-      setPreviewImage(null);
-    }
-  };
 
   const getEthPrice = async () => {
     try {
@@ -124,41 +112,19 @@ export default function AddBanner() {
     }
   };
 
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragging(false);
-  };
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragging(false);
-    const file = event.dataTransfer.files[0];
-    setSelectedImage(file);
-    if (file) {
-      setPreviewImage(URL.createObjectURL(file));
-    }
-  };
-
-  const handleSendNotification = () => {
-    console.log("Notification sent");
-  };
 
   const handleSend = async () => {
     try {
       setIsLoading(true);
       setIsSuccess(false);
 
-      let cryptoAmount = metaValue;
+      let cryptoAmount;
       if (currency === "ETH") {
         const ethPrice = await getEthPrice();
-        cryptoAmount = Number(amount.toFixed(2)) / ethPrice;
+        cryptoAmount = Number(metaValue) / ethPrice;
       } else {
         const usdcPrice = 1;
-        cryptoAmount = Number(amount.toFixed(2)) / usdcPrice;
+        cryptoAmount = Number(metaValue) / usdcPrice;
       }
 
       if (currency === "ETH") {
