@@ -12,6 +12,7 @@ import { base, baseSepolia } from "viem/chains";
 import { RiLoader5Fill } from "react-icons/ri";
 
 import { createWalletClient, viemConnector } from "@farcaster/auth-client";
+import { config } from "@/utils/rainbow";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -105,7 +106,7 @@ export default function AddBanner() {
         baseURL: process.env.NEXT_PUBLIC_HOST_NAME,
         withCredentials: true,
       }),
-      client as any
+      config as any
     );
 
     try {
@@ -283,7 +284,7 @@ export default function AddBanner() {
         </div>
 
         {clientInfo && (
-          <div className="mt-4 p-4 bg-red-800 text-yellow-500 rounded-lg">
+          <div className="mt-4 p-4 bg-black text-white rounded-lg">
             <h3 className="text-lg font-bold">Client Info:</h3>
             <pre className="text-sm overflow-auto">
               {JSON.stringify(clientInfo, null, 2)}
