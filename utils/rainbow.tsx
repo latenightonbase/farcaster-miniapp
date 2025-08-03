@@ -20,9 +20,6 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { ReactNode } from 'react';
-import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
-
-
 
 export const config = getDefaultConfig({
   appName: 'My RainbowKit App',
