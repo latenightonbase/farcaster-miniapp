@@ -8,9 +8,10 @@ import { HiSpeakerphone } from "react-icons/hi";
 import { useAccount } from "wagmi";
 import { withPaymentInterceptor } from "x402-axios";
 import { ethers, Signer, Wallet } from "ethers";
-import { createWalletClient, custom } from "viem";
+import { custom } from "viem";
 import { baseSepolia } from "viem/chains";
 import { RiLoader5Fill } from "react-icons/ri";
+import { createWalletClient, viemConnector } from '@farcaster/auth-client';
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -95,9 +96,7 @@ export default function AddBanner() {
       await window.ethereum.request({ method: "eth_requestAccounts" });
 
       const client = createWalletClient({
-        account: address as `0x${string}`,
-        chain: baseSepolia,
-        transport: custom(window.ethereum)
+        ethereum: viemConnector(),
       });
 
       console.log("Client created:", client);
