@@ -22,6 +22,7 @@ export default function AddBanner() {
   const [metaValue, setMetaValue] = useState<number | null>(null);
   const [loading, setLoading] = useState(true); // Added loading state
   const [currency, setCurrency] = useState<"ETH" | "USDC">("USDC"); // Added state for currency
+  const [clientInfo, setClientInfo] = useState<ReturnType<typeof createWalletClient> | null>(null); // Updated state type
 
   const { address } = useAccount();
 
@@ -99,7 +100,9 @@ export default function AddBanner() {
         transport: custom(window.ethereum)
       });
 
-      
+      console.log("Client created:", client);
+      setClientInfo(client); // Store client info in state
+
       const api = withPaymentInterceptor(
         axios.create({
           baseURL: process.env.NEXT_PUBLIC_HOST_NAME,
@@ -108,7 +111,7 @@ export default function AddBanner() {
         client as any
       );
 
-      try{
+      try {
         const response: any = await api.post(`/api/sponsor?currency=${currency}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -127,17 +130,13 @@ export default function AddBanner() {
         } else {
           alert("Failed to upload image");
         }
-      }
-      catch (error) {
+      } catch (error) {
         console.error("Error uploading image:", error);
         alert("Failed to upload image");
-      }
-      finally{
+      } finally {
         setUploading(false);
       }
-      
     }
-
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -281,6 +280,13 @@ export default function AddBanner() {
           )}
         </div>
       </div>
+
+      {clientInfo && (
+        <div className="mt-4 p-4 bg-gray-800 text-white rounded-lg">
+          <h3 className="text-lg font-bold">Client Info:</h3>
+          <pre className="text-sm overflow-auto">{JSON.stringify(clientInfo, null, 2)}</pre>
+        </div>
+      )}
     </div>
   );
 }
