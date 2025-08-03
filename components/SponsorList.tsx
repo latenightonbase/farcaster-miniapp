@@ -21,6 +21,7 @@ export default function AddBanner() {
   const [uploading, setUploading] = useState(false);
   const [metaValue, setMetaValue] = useState<number | null>(null);
   const [loading, setLoading] = useState(true); // Added loading state
+  const [currency, setCurrency] = useState<"ETH" | "USDC">("USDC"); // Added state for currency
 
   const { address } = useAccount();
 
@@ -29,6 +30,8 @@ export default function AddBanner() {
       try {
         console.log("Fetching sponsor image...");
         const response = await axios.get("/api/getImage");
+
+        console.log("Response from getImage API:", response);
         
         if (response.status === 200 && response.data.imageUrl) {
           setUploadedImage(response.data.imageUrl);
@@ -83,6 +86,7 @@ export default function AddBanner() {
 
     const formData = new FormData();
     formData.append("image", selectedImage);
+    formData.append("currency", currency); // Pass selected currency
 
     //make a signer using ethers
     if (typeof window.ethereum !== "undefined") {
@@ -105,7 +109,7 @@ export default function AddBanner() {
       );
 
       try{
-        const response: any = await api.post(`/api/sponsor`, formData, {
+        const response: any = await api.post(`/api/sponsor?currency=${currency}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -155,6 +159,7 @@ export default function AddBanner() {
     }
   };
 
+  if(address)
   return (
     <div>
       {loading ? null : uploadedImage ? (
@@ -226,6 +231,28 @@ export default function AddBanner() {
               </>
             )}
           </div>
+          {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
+            <button
+              onClick={() => setCurrency("ETH")}
+              className={`flex-1 py-2 rounded-full font-bold transition ${
+                currency === "ETH"
+                  ? "bg-orange-500 text-white"
+                  : "bg-orange-950/50 text-gray-300"
+              } hover:bg-orange-600`}
+            >
+              ETH
+            </button>
+            <button
+              onClick={() => setCurrency("USDC")}
+              className={`flex-1 py-2 rounded-full font-bold transition ${
+                currency === "USDC"
+                  ? "bg-orange-500 text-white"
+                  : "bg-orange-950/50 text-gray-300"
+              } hover:bg-orange-600`}
+            >
+              USDC
+            </button>
+          </div> */}
           {!uploadedImage && (
             <form onSubmit={handleImageUpload}>
               <ul className="text-gray-400 text-sm list-disc ml-5 mb-5">
