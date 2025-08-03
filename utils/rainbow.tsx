@@ -31,6 +31,8 @@ export const config = createConfig({
     miniAppConnector()
   ]
 })
+
+
 const queryClient = new QueryClient();
 
 
