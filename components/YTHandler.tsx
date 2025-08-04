@@ -6,6 +6,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import YoutubeLivestream from '@/utils/schemas/youtubeLivestream';
 import { connectToDB } from '@/utils/db';
 import { GoDotFill } from 'react-icons/go';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 
 interface Livestream {
@@ -241,9 +242,18 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                   <p className="text-[10px] text-red-100 mb-1">
                     {moment(stream.publishedAt).fromNow()}
                   </p>
-                  {/* <p className="text-[10px] text-red-300 line-clamp-3">
-                    {stream.description.slice(0, 60)}...
-                  </p> */}
+                  <button
+                    className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      sdk.actions.composeCast({
+                        text: `Check out this livestream: ${stream.title}`,
+                        embeds: [stream.url],
+                      });
+                    }}
+                  >
+                    Cast
+                  </button>
                 </div>
               </div>
             ))}
