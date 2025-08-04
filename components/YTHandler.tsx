@@ -6,6 +6,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import YoutubeLivestream from '@/utils/schemas/youtubeLivestream';
 import { connectToDB } from '@/utils/db';
 import { GoDotFill } from 'react-icons/go';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 
 interface Livestream {
@@ -202,6 +203,19 @@ const YouTubeLivestreamFetcher: React.FC = () => {
               <p className="text-xs text-gray-300">
                 {moment(liveVideo.publishedAt).fromNow()}
               </p>
+              <button
+                type='button'
+                className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  sdk.actions.composeCast({
+                    text: `Bill is live now! Tune in ${liveVideo.title}`,
+                    embeds: [liveVideo.url],
+                  });
+                }}
+              >
+                Cast
+              </button>
             </div>
           </div>
         </div>
@@ -226,9 +240,10 @@ const YouTubeLivestreamFetcher: React.FC = () => {
             {livestreams.map((stream) => (
               <div
                 key={stream.id}
-                className="flex items-center gap-2 bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow p-2 cursor-pointer"
+                className="flex-col items-center gap-2 bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow p-2 cursor-pointer"
                 onClick={() => setPlayingVideoId(stream.id)}
               >
+                <div className='flex gap-2'>
                 <img
                   src={stream.thumbnail}
                   alt={stream.title}
@@ -241,10 +256,22 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                   <p className="text-[10px] text-red-100 mb-1">
                     {moment(stream.publishedAt).fromNow()}
                   </p>
-                  {/* <p className="text-[10px] text-red-300 line-clamp-3">
-                    {stream.description.slice(0, 60)}...
-                  </p> */}
+                  
                 </div>
+                </div>
+                <button
+                  type='button'
+                    className="px-3 py-1 w-full text-md mt-2 bg-white/20 font-bold text-white rounded"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      sdk.actions.composeCast({
+                        text: `Check out this livestream by Bill: ${stream.title}`,
+                        embeds: [stream.url],
+                      });
+                    }}
+                  >
+                    Cast
+                  </button>
               </div>
             ))}
           </div>
