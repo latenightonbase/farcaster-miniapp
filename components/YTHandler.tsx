@@ -209,8 +209,8 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                 onClick={(e) => {
                   e.stopPropagation();
                   sdk.actions.composeCast({
-                    text: `Bill is live now! Tune in ${liveVideo.title}`,
-                    embeds: [liveVideo.url],
+                    text: `Bill is live now! Tune in - ${liveVideo.title}`,
+                    embeds: [`https://farcaster.xyz/miniapps/0BBmAKPRs9wP/late-night-on-base`],
                   });
                 }}
               >
@@ -265,8 +265,8 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       sdk.actions.composeCast({
-                        text: `Check out this livestream by Bill: ${stream.title}`,
-                        embeds: [stream.url],
+                        text: `This livestream was a banger. Def recommend checking it out - ${stream.title}`,
+                        embeds: [`https://farcaster.xyz/miniapps/0BBmAKPRs9wP/late-night-on-base`],
                       });
                     }}
                   >
