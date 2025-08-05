@@ -214,7 +214,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                   });
                 }}
               >
-                Cast
+                Share the Stream
               </button>
             </div>
           </div>
@@ -270,7 +270,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                       });
                     }}
                   >
-                    Cast
+                    Share the Stream
                   </button>
               </div>
             ))}
