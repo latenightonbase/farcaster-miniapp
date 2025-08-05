@@ -205,7 +205,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
               </p>
               <button
                 type='button'
-                className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                className="mt-2 px-3 py-1 bg-white/20 text-white text-base font-semibold rounded  w-full "
                 onClick={(e) => {
                   e.stopPropagation();
                   sdk.actions.composeCast({
@@ -261,7 +261,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                 </div>
                 <button
                   type='button'
-                    className="px-3 py-1 w-full text-md mt-2 bg-white/20 font-bold text-white rounded"
+                    className="mt-2 px-3 py-1 bg-white/20 text-white text-base font-semibold rounded  w-full "
                     onClick={(e) => {
                       e.stopPropagation();
                       sdk.actions.composeCast({
