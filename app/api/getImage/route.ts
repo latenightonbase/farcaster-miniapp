@@ -22,6 +22,8 @@ export async function GET() {
     
     return NextResponse.json({ 
       imageUrl: sponsorField[0].image,
+      name: sponsorField[0].name,
+      url: sponsorField[0].url || "#", // Default to "#" if no URL
       sponsorFieldId: sponsorField[0]._id,
       createdAt: sponsorField[0].createdAt
     });
