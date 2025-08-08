@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400"]
+  weight: ["200", "300", "400", "500", "600", "700"],
 });
 
 export default function RootLayout({
