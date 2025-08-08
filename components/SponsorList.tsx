@@ -170,7 +170,7 @@ export default function AddBanner() {
         {loading ? null : uploadedImage ? (
           <a href={url || "#"} target="_blank" rel="noopener noreferrer">
           <img
-            src={`${uploadedImage}+v=${Date.now()}`}
+            src={`${uploadedImage}?v=${Date.now()}`}
             alt="Sponsor Banner"
             className="mx-auto mt-4 object-cover overflow-hidden rounded-lg"
           />
