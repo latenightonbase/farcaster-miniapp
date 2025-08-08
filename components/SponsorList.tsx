@@ -172,9 +172,12 @@ export default function AddBanner() {
           <img
             src={`${uploadedImage}?v=${Date.now()}`}
             alt="Sponsor Banner"
-            className="mx-auto mt-4 object-cover overflow-hidden rounded-lg"
+            className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg"
           />
-          <span className="text-xl font-bold mt-2 bg-gradient-to-br from-red-600 via-red-400 to-red-800 text-transparent bg-clip-text">{name}</span>
+          <div className="flex flex-col mt-2">
+            <span className="text-white/80 text-sm">Today&apos;s Highlighted Project:</span>
+            <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">{name}</span>
+          </div>
           </a>
         ) : (
           <div
