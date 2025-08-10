@@ -18,17 +18,15 @@ import { sponsorPrice } from "@/utils/constants";
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [name, setName] = useState("");
+  const [url, setUrl] = useState("");
+
   const [metaValue, setMetaValue] = useState<number>(0);
   const [loading, setLoading] = useState(true); // Added loading state
   const [currency, setCurrency] = useState<"ETH" | "USDC">("USDC"); // Added state for currency
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [amount, setAmount] = useState(0);
-  const [customAmount, setCustomAmount] = useState<number | null>(null);
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { sendTransaction, data: hash } = useSendTransaction();
@@ -56,6 +54,8 @@ export default function AddBanner() {
 
         if (response.status === 200 && response.data.imageUrl) {
           setUploadedImage(response.data.imageUrl);
+          setName(response.data.name || "");
+          setUrl(response.data.url || "#"); // Default to "#" if no URL is provided
         } else {
           setUploadedImage(null);
         }
@@ -166,16 +166,22 @@ export default function AddBanner() {
 
   if (address)
     return (
-      <div>
+      <div className="mx-3">
         {loading ? null : uploadedImage ? (
+          <a href={url || "#"} target="_blank" rel="noopener noreferrer">
           <img
-            src={uploadedImage}
+            src={`${uploadedImage}?v=${Date.now()}`}
             alt="Sponsor Banner"
-            className="w-[300px] h-[100px] mx-auto mt-4 object-cover overflow-hidden rounded-lg"
+            className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg"
           />
+          <div className="flex flex-col mt-2">
+            <span className="text-white/80 text-sm">Today&apos;s Highlighted Project:</span>
+            <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">{name}</span>
+          </div>
+          </a>
         ) : (
           <div
-            className="flex items-center justify-start border border-white/30 rounded-lg bg-gradient-to-br from-emerald-600 to-green-500 p-3 mx-3 cursor-pointer"
+            className="flex items-center justify-start border border-white/30 rounded-lg bg-gradient-to-br from-emerald-600 to-green-500 p-3 cursor-pointer"
             onClick={() => setIsModalOpen(true)}
           >
             <HiSpeakerphone className="text-white mr-2 -rotate-12" size={24} />
