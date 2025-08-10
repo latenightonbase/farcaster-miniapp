@@ -9,6 +9,7 @@ import { HiSpeakerphone } from "react-icons/hi";
 import { useAccount, useSendTransaction } from "wagmi";
 import { withPaymentInterceptor } from "x402-axios";
 import { RiLoader5Fill } from "react-icons/ri";
+import { PiCursorClickFill } from "react-icons/pi";
 
 import { createWalletClient, viemConnector } from "@farcaster/auth-client";
 import { config } from "@/utils/rainbow";
@@ -71,7 +72,6 @@ export default function AddBanner() {
       try {
         const response = await axios.get("/api/getPrice");
 
-
         if (response.status === 200 && response.data.meta) {
           setMetaValue(response.data.meta.meta_value);
         } else {
@@ -112,7 +112,6 @@ export default function AddBanner() {
     }
   };
 
-
   const handleSend = async () => {
     try {
       setIsLoading(true);
@@ -151,7 +150,7 @@ export default function AddBanner() {
             ethers.utils.parseUnits(cryptoAmount.toFixed(6), 6), // USDC has 6 decimals
           ],
         });
-        
+
         setIsSuccess(true);
       }
     } catch (error) {
@@ -169,15 +168,25 @@ export default function AddBanner() {
       <div className="mx-3">
         {loading ? null : uploadedImage ? (
           <a href={url || "#"} target="_blank" rel="noopener noreferrer">
-          <img
-            src={`${uploadedImage}?v=${Date.now()}`}
-            alt="Sponsor Banner"
-            className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg"
-          />
-          <div className="flex flex-col mt-2">
-            <span className="text-white/80 text-sm">Today&apos;s Highlighted Project:</span>
-            <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">{name}</span>
-          </div>
+            <div className="relative">
+              <img
+                src={`${uploadedImage}?v=${Date.now()}`}
+                alt="Sponsor Banner"
+                className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
+              />
+              <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
+               <PiCursorClickFill/> Click for more info
+              </span>
+            </div>
+
+            <div className="flex flex-col mt-2">
+              <span className="text-white/80 text-sm">
+                Today&apos;s Highlighted Project:
+              </span>
+              <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">
+                {name}
+              </span>
+            </div>
           </a>
         ) : (
           <div
@@ -205,19 +214,25 @@ export default function AddBanner() {
               <X size={24} />
             </button>
             <h2 className="text-lg font-bold mb-4">Upload Banner</h2>
-       
-           
+
             {!uploadedImage && (
               <>
                 <ul className="text-gray-400 text-sm list-disc ml-5 mb-5">
                   <li>
-                    DM the image to <a className="text-orange-500 underline" href="https://farcaster.xyz/latenightonbase" >Bill the Bull</a>
+                    DM the image to{" "}
+                    <a
+                      className="text-orange-500 underline"
+                      href="https://farcaster.xyz/latenightonbase"
+                    >
+                      Bill the Bull
+                    </a>
                   </li>
-                  <li>Once set, the image will be visible on the miniapp for 24 hours</li>
-                  <li>Image must be 1500x500 dimensions for best visibility</li>
                   <li>
-                    This action will cost ${metaValue}
+                    Once set, the image will be visible on the miniapp for 24
+                    hours
                   </li>
+                  <li>Image must be 1500x500 dimensions for best visibility</li>
+                  <li>This action will cost ${metaValue}</li>
                 </ul>
 
                 <div className="flex mt-2 gap-2 mb-4 text-sm">
