@@ -174,9 +174,9 @@ export default function AddBanner() {
                 alt="Sponsor Banner"
                 className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
               />
-              <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
+              {url !== "#" && <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
                <PiCursorClickFill/> Click for more info
-              </span>
+              </span>}
             </div>
 
             <div className="flex flex-col mt-2">
