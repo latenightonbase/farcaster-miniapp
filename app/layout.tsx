@@ -8,7 +8,7 @@ import { MiniKitContextProvider } from "@/utils/MiniKitProvider";
 import { Metadata } from 'next';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const URL = process.env.NEXT_PUBLIC_URL;
+  const URL = "https://farcaster-miniapp-liart.vercel.app";
   return {
     title: "Late Night on Base",
     description:
