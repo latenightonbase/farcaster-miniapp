@@ -265,8 +265,8 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       sdk.actions.composeCast({
-                        text: `This livestream was a banger. Def recommend checking it out - ${stream.title} - https://farcaster.xyz/miniapps/0BBmAKPRs9wP/late-night-on-base`,
-                        embeds: [`https://farcaster.xyz/miniapps/0BBmAKPRs9wP/late-night-on-base`],
+                        text: `This livestream was a banger. Def recommend checking it out - ${stream.title} - https://farcaster-miniapp-liart.vercel.app`,
+                        embeds: [`https://farcaster-miniapp-liart.vercel.app`],
                       });
                     }}
                   >
