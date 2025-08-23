@@ -5,16 +5,22 @@ import axios from "axios";
 import { ethers } from "ethers";
 
 import { HiSpeakerphone } from "react-icons/hi";
-
+import { useSignTypedData } from 'wagmi'
+import { splitSignature } from "ethers/lib/utils";
 import { useAccount, useSendTransaction } from "wagmi";
 import { withPaymentInterceptor } from "x402-axios";
-import { RiLoader5Fill } from "react-icons/ri";
+import { RiAuctionFill, RiLoader5Fill } from "react-icons/ri";
 import { PiCursorClickFill } from "react-icons/pi";
 
 import { createWalletClient, viemConnector } from "@farcaster/auth-client";
 import { config } from "@/utils/rainbow";
 import { writeContract } from "@wagmi/core";
 import { sponsorPrice } from "@/utils/constants";
+import { usdcAbi } from "@/utils/contract/abis/usdcabi";
+import { contractAdds } from "@/utils/contract/contractAdds";
+import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
+import { useGlobalContext } from "@/utils/globalContext";
+import { parseUnits } from "viem";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,29 +30,23 @@ export default function AddBanner() {
 
   const [metaValue, setMetaValue] = useState<number>(0);
   const [loading, setLoading] = useState(true); // Added loading state
-  const [currency, setCurrency] = useState<"ETH" | "USDC">("USDC"); // Added state for currency
   const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { signTypedDataAsync } = useSignTypedData()
 
-  const { sendTransaction, data: hash } = useSendTransaction();
+  const [usdcAmount, setUsdcAmount] = useState<number>(0);
 
   const { address } = useAccount();
+  const globalContext = useGlobalContext();
+  const user = globalContext?.user;
 
-  const USDC_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Mainnet USDC address
-  const ERC20_ABI = [
-    {
-      inputs: [
-        { internalType: "address", name: "to", type: "address" },
-        { internalType: "uint256", name: "amount", type: "uint256" },
-      ],
-      name: "transfer",
-      outputs: [{ internalType: "bool", name: "", type: "bool" }],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-  ];
+  const [bidders, setBidders] = useState<any[]>([]); // State to store sorted bidders
+  const [highestBidder, setHighestBidder] = useState<any | null>(null); // State to store the highest bidder
+  const [inputVisible, setInputVisible] = useState(false); // State to toggle input visibility
+  const [inputAmount, setInputAmount] = useState(0); // State to store user input
+  const [error, setError] = useState(""); // State to store error message
+  const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
 
   useEffect(() => {
     const fetchSponsorImage = async () => {
@@ -87,81 +87,143 @@ export default function AddBanner() {
     fetchMetaValue();
   }, []);
 
-  const getEthPrice = async () => {
+  const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC address
+
+  async function getContract(address: string, abi: any) {
     try {
-      const url =
-        "https://api.g.alchemy.com/prices/v1/CA4eh0FjTxMenSW3QxTpJ7D-vWMSHVjq/tokens/by-symbol?symbols=ETH";
-      const headers = {
-        Accept: "application/json",
-      };
+      const provider = new ethers.providers.JsonRpcProvider(
+        "https://base-mainnet.g.alchemy.com/v2/CA4eh0FjTxMenSW3QxTpJ7D-vWMSHVjq"
+      );
 
-      const priceFetch = await fetch(url, {
-        method: "GET",
-        headers: headers,
-      });
-
-      const priceBody = await priceFetch.json();
-      console.log(priceBody.data[0]);
-      console.log(priceBody.data[0].prices[0]);
-      console.log(priceBody.data[0].prices[0].value);
-
-      return priceBody.data[0].prices[0].value;
-    } catch (error) {
-      console.error("Error", error);
-      throw error;
+      const contract = new ethers.Contract(address, abi, provider);
+      return contract;
     }
-  };
+    catch (error) {
+      console.error("Error getting contract:", error);
+    }
+  }
 
-  const handleSend = async () => {
+  async function getAuctionBids() {
     try {
-      setIsLoading(true);
-      setIsSuccess(false);
+      const contract = await getContract(contractAdds.auction, auctionAbi);
+      const bids = await contract?.getBidders();
 
-      let cryptoAmount;
-      if (currency === "ETH") {
-        const ethPrice = await getEthPrice();
-        cryptoAmount = Number(metaValue) / ethPrice;
-      } else {
-        const usdcPrice = 1;
-        cryptoAmount = Number(metaValue) / usdcPrice;
-      }
+      if (bids && Array.isArray(bids)) {
+        const fids = bids.map((bid: any) => bid.fid); // Extract fids from bids
 
-      if (currency === "ETH") {
-        console.log(
-          `Sending ${cryptoAmount} ${currency} to 0xC07f465Cb788De0088E33C03814E2c550dBe33db`
+        const res = await fetch(
+          `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fids.join(",")}`,
+          {
+            headers: {
+              "x-api-key": process.env.NEYNAR_API_KEY as string,
+            },
+          }
         );
 
-        const transactionConfig = {
-          to: "0xC07f465Cb788De0088E33C03814E2c550dBe33db" as `0x${string}`,
-          value: BigInt(
-            ethers.utils.parseEther(cryptoAmount.toFixed(6)).toString()
-          ),
-        };
+        if (!res.ok) {
+          console.error("Error fetching user data from Neynar API");
+          return;
+        }
 
-        sendTransaction(transactionConfig);
-        setIsSuccess(true);
-      } else {
-        const result = await writeContract(config, {
-          abi: ERC20_ABI,
-          address: USDC_CONTRACT_ADDRESS,
-          functionName: "transfer",
-          args: [
-            "0xC07f465Cb788De0088E33C03814E2c550dBe33db",
-            ethers.utils.parseUnits(cryptoAmount.toFixed(6), 6), // USDC has 6 decimals
-          ],
+        const jsonRes = await res.json();
+        const users = jsonRes.users || [];
+
+        const enrichedBidders = bids.map((bid: any) => {
+          const user = users.find((u: any) => u.fid === bid.fid);
+          return {
+            username: user?.username || "Unknown",
+            pfp_url: user?.pfp_url || "",
+            bidAmount: bid.bidAmount,
+          };
         });
 
-        setIsSuccess(true);
+        // Sort the enriched bidders by bidAmount in descending order
+        const sortedBidders = enrichedBidders.sort((a: any, b: any) => b.bidAmount - a.bidAmount);
+
+        // Update the state with sorted enriched bidders
+        setBidders(sortedBidders);
+        setHighestBidder(sortedBidders[0]); // First element is the highest bidder
       }
-    } catch (error) {
-      console.error("Error sending transaction:", error);
-      setIsDropdownOpen(false);
-      throw error;
-    } finally {
-      setIsLoading(false);
-      setIsModalOpen(false);
+
+      console.log("Sorted Bids:", bids);
+      return bids;
     }
-  };
+    catch (error) {
+      console.error("Error getting bids:", error);
+    }
+  }
+
+  useEffect(() => {
+    getAuctionBids();
+  }, [])
+
+const handleSend = async () => {
+  try {
+    const usdc = await getContract(USDC_ADDRESS, usdcAbi);
+
+    console.log("Usdc", usdc);
+
+    // Correct way
+    const tokenName = "USD Coin";
+    const tokenVersion = "2";
+    const nonce = BigInt(await usdc?.nonces(address));
+
+    console.log("Nonce:", nonce);
+
+    const domain = {
+      name: tokenName,
+      version: tokenVersion,
+      chainId: 8453,
+      verifyingContract: USDC_ADDRESS,
+    } as const;
+
+    const types = {
+      Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+    } as const;
+
+    const usdcToSend = parseUnits(String(usdcAmount), 6); // safe bigint
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+    const message = {
+      owner: address as `0x${string}`,
+      spender: contractAdds.auction as `0x${string}`,
+      value: usdcToSend,
+      nonce,
+      deadline,
+    };
+
+    const signature = await signTypedDataAsync({
+      domain,
+      types,
+      primaryType: "Permit",
+      message,
+    });
+
+    const { v, r, s } = splitSignature(signature);
+
+    await writeContract(config, {
+      abi: auctionAbi,
+      address: contractAdds.auction as `0x${string}`,
+      functionName: "bidWithPermit",
+      args: [usdcToSend, user || 1, deadline, v, r, s],
+    });
+
+  } catch (error) {
+    console.error("Error sending transaction:", error);
+    setIsDropdownOpen(false);
+    throw error;
+  } finally {
+    setIsLoading(false);
+    setIsModalOpen(false);
+  }
+};
+
 
   if (address)
     return (
@@ -175,7 +237,7 @@ export default function AddBanner() {
                 className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
               />
               {url !== "#" && <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
-               <PiCursorClickFill/> Click for more info
+                <PiCursorClickFill /> Click for more info
               </span>}
             </div>
 
@@ -202,9 +264,8 @@ export default function AddBanner() {
         )}
 
         <div
-          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${
-            isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
         >
           <div className="bg-gradient-to-b from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
             <button
@@ -213,11 +274,11 @@ export default function AddBanner() {
             >
               <X size={24} />
             </button>
-            <h2 className="text-lg font-bold mb-4">Upload Banner</h2>
+            <h2 className="text-lg font-bold mb-4">Place your Bid</h2>
 
-            {!uploadedImage && (
-              <>
-                <ul className="text-gray-400 text-sm list-disc ml-5 mb-5">
+
+            <>
+              {/* <ul className="text-gray-400 text-sm list-disc ml-5 mb-5">
                   <li>
                     DM the image to{" "}
                     <a
@@ -233,9 +294,9 @@ export default function AddBanner() {
                   </li>
                   <li>Image must be 1500x500 dimensions for best visibility</li>
                   <li>This action will cost ${metaValue}</li>
-                </ul>
+                </ul> */}
 
-                <div className="flex mt-2 gap-2 mb-4 text-sm">
+              {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
                   <button
                     onClick={() => setCurrency("ETH")}
                     className={`flex-1 py-2 rounded-full font-bold transition ${
@@ -256,25 +317,82 @@ export default function AddBanner() {
                   >
                     USDC
                   </button>
+                </div> */}
+
+              {highestBidder && <div>
+                <label className="flex items-center text-md gap-1 font-bold ">
+                  <RiAuctionFill className=" text-white text-xl" />
+                  Current Highest Bid:
+                </label>
+                <div className=" my-4 px-4 py-4 bg-white/10 rounded-sm flex gap-2">
+                  <span className="flex gap-1 w-[70%] truncate"><div className="w-6 h-6 animate-pulse rounded-full bg-white/40"></div> degeneer03</span>
+                  <h4 className="font-bold w-[30%] text-right">120 USDC</h4>
+                </div>
+                <div>
+
+                </div>
+                <div>
+
                 </div>
 
-                <button
-                  type="button"
-                  className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full flex items-center justify-center"
-                  onClick={handleSend}
-                  disabled={isLoading}
-                >
-                  {!isLoading ? (
-                    "Proceed to Payment"
-                  ) : (
-                    <>
-                      <RiLoader5Fill className="animate-spin mr-2" />
-                      Loading...
-                    </>
-                  )}
-                </button>
-              </>
-            )}
+              </div>}
+
+
+              {inputVisible ? (
+                <div className="mt-4">
+                  <input
+                    type="number"
+                    className="w-full px-4 py-2 border rounded-lg"
+                    placeholder="Enter USDC Amount"
+                    value={inputAmount === 0 ? "" : inputAmount} // Ensure initial 0 is not displayed
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      setInputAmount(value);
+                      setError("");
+                    }}
+                  />
+                  {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                  <button
+                    type="button"
+                    className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
+                    onClick={() => {
+                      if (inputAmount <= (highestBidder?.bidAmount || 0)) {
+                        setError("Bid amount must be higher than the current highest bid.");
+                        return;
+                      }
+                      setIsSubmitting(true); // Show loader
+                      setUsdcAmount(inputAmount);
+                      handleSend().finally(() => setIsSubmitting(false)); // Hide loader after submission
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <RiLoader5Fill className="animate-spin mr-2" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit"
+                    )}
+                  </button>
+                </div>
+              ) : (<button
+                type="button"
+                className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full flex items-center justify-center"
+                onClick={() => setInputVisible(true)}
+                disabled={isLoading}
+              >
+                {!isLoading ? (
+                  "Bid"
+                ) : (
+                  <>
+                    <RiLoader5Fill className="animate-spin mr-2" />
+                    Loading...
+                  </>
+                )}
+              </button>)}
+            </>
+
           </div>
         </div>
       </div>
