@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { base } from "wagmi/chains";
 import Rainbow from "./rainbow";
 import { MiniAppProvider } from "@neynar/react";
+import { GlobalProvider } from "./globalContext";
 
 export function MiniKitContextProvider({ children }: { children: ReactNode }) {
   return (
@@ -22,7 +23,10 @@ export function MiniKitContextProvider({ children }: { children: ReactNode }) {
           },
         }}
       >
+        <GlobalProvider>
         <Rainbow>{children}</Rainbow>
+
+        </GlobalProvider>
       </MiniKitProvider>
     // </MiniAppProvider>
   );
