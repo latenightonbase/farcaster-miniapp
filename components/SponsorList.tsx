@@ -109,16 +109,20 @@ export default function AddBanner() {
       const bids = await contract?.getBidders();
 
       if (bids && Array.isArray(bids)) {
-        const fids = bids.map((bid: any) => bid.fid); // Extract fids from bids
+        const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
+
+        console.log("FIDS",fids)
 
         const res = await fetch(
-          `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fids.join(",")}`,
+          `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
           {
             headers: {
-              "x-api-key": process.env.NEYNAR_API_KEY as string,
+              "x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
             },
           }
         );
+
+        console.log("Neynar API Response Status:", res);
 
         if (!res.ok) {
           console.error("Error fetching user data from Neynar API");
@@ -133,19 +137,19 @@ export default function AddBanner() {
           return {
             username: user?.username || "Unknown",
             pfp_url: user?.pfp_url || "",
-            bidAmount: bid.bidAmount,
+            bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
           };
         });
 
         // Sort the enriched bidders by bidAmount in descending order
         const sortedBidders = enrichedBidders.sort((a: any, b: any) => b.bidAmount - a.bidAmount);
 
+        console.log("Sorted Bidders:", sortedBidders);
+
         // Update the state with sorted enriched bidders
         setBidders(sortedBidders);
         setHighestBidder(sortedBidders[0]); // First element is the highest bidder
       }
-
-      console.log("Sorted Bids:", bids);
       return bids;
     }
     catch (error) {
