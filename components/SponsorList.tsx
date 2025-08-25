@@ -236,7 +236,7 @@ const handleSend = async () => {
     const { v, r, s } = splitSignature(signature);
 
 
-    const args = [usdcToSend, user || 1129842, deadline, v, r, s];
+    const args = [usdcToSend, user, deadline, v, r, s];
 
     console.log("Args:", args);
 
@@ -383,7 +383,7 @@ const handleSend = async () => {
                     placeholder="Enter USDC Amount"
                     value={usdcAmount === 0 ? "" : usdcAmount} // Ensure initial 0 is not displayed
                     onChange={(e) => {
-                      const value = Number(e.target.value);
+                      const value = Math.floor(Number(e.target.value)); // Ensure whole number
                       setUsdcAmount(value);
                       setError("");
                     }}
