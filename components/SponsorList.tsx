@@ -432,9 +432,10 @@ const handleSend = async () => {
           </div>
         </div>
 
-        {bidders.length > 0 && (
+        
           <div className="mt-6">
-            <h3 className="text-lg font-bold mb-2">Auction {auctionId && `#${auctionId}`}</h3>
+            <h3 className="text-lg font-bold">Sponsor Auction {auctionId && `#${auctionId}`}</h3>
+            {bidders.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/30">
@@ -462,8 +463,13 @@ const handleSend = async () => {
                 ))}
               </tbody>
             </table>
+            ) : (
+          <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
+            <p className="text-white/70">No bids placed yet.</p>
           </div>
         )}
+          </div>
+        
       </div>
     );
 }
