@@ -164,6 +164,9 @@ export default function AddBanner() {
 
 const handleSend = async () => {
   try {
+    if(usdcAmount === 0){
+      return;
+    }
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
 
     console.log("Usdc", usdc);
@@ -180,6 +183,7 @@ const handleSend = async () => {
       version: tokenVersion,
       chainId: 8453,
       verifyingContract: USDC_ADDRESS,
+      primaryType: "Permit",
     } as const;
 
     const types = {
@@ -192,7 +196,7 @@ const handleSend = async () => {
       ],
     } as const;
 
-    const usdcToSend = parseUnits(String(usdcAmount), 6); // safe bigint
+    const usdcToSend = BigInt(usdcAmount * 1e6); // safe bigint
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
 
     const message = {
@@ -205,18 +209,26 @@ const handleSend = async () => {
 
     const signature = await signTypedDataAsync({
       domain,
-      types,
       primaryType: "Permit",
+      types,
       message,
     });
 
+    console.log("Signature", signature)
+
     const { v, r, s } = splitSignature(signature);
+
+    console.log("Signature:", { v, r, s });
+
+    const args = [usdcToSend, user || 1129842, deadline, v, r, s];
+
+    console.log("Args:", args);
 
     await writeContract(config, {
       abi: auctionAbi,
       address: contractAdds.auction as `0x${string}`,
       functionName: "bidWithPermit",
-      args: [usdcToSend, user || 1, deadline, v, r, s],
+      args,
     });
 
   } catch (error) {
