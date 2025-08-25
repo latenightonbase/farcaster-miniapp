@@ -25,12 +25,12 @@ import Image from "next/image";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  // const [name, setName] = useState("");
-  // const [url, setUrl] = useState("");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [url, setUrl] = useState("");
 
   // const [metaValue, setMetaValue] = useState<number>(0);
-  // const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true); // Added loading state
   const [isLoading, setIsLoading] = useState(false);
 
   // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -50,45 +50,45 @@ export default function AddBanner() {
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
   const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
 
-  // useEffect(() => {
-  //   const fetchSponsorImage = async () => {
-  //     try {
-  //       const response = await axios.get("/api/getImage");
+  useEffect(() => {
+    const fetchSponsorImage = async () => {
+      try {
+        const response = await axios.get("/api/getImage");
 
-  //       if (response.status === 200 && response.data.imageUrl) {
-  //         setUploadedImage(response.data.imageUrl);
-  //         setName(response.data.name || "");
-  //         setUrl(response.data.url || "#"); // Default to "#" if no URL is provided
-  //       } else {
-  //         setUploadedImage(null);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching sponsor image:", error);
-  //       setUploadedImage(null);
-  //     } finally {
-  //       setLoading(false); // Set loading to false after API call
-  //     }
-  //   };
+        if (response.status === 200 && response.data.imageUrl) {
+          setUploadedImage(response.data.imageUrl);
+          setName(response.data.name || "");
+          setUrl(response.data.url || "#"); // Default to "#" if no URL is provided
+        } else {
+          setUploadedImage(null);
+        }
+      } catch (error) {
+        console.error("Error fetching sponsor image:", error);
+        setUploadedImage(null);
+      } finally {
+        setLoading(false); // Set loading to false after API call
+      }
+    };
 
-  //   const fetchMetaValue = async () => {
-  //     try {
-  //       const response = await axios.get("/api/getPrice");
+    // const fetchMetaValue = async () => {
+    //   try {
+    //     const response = await axios.get("/api/getPrice");
 
-  //       if (response.status === 200 && response.data.meta) {
-  //         setMetaValue(response.data.meta.meta_value);
-  //       } else {
-  //         setMetaValue(0);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching meta value:", error);
-  //       setMetaValue(0);
-  //     }
-  //   };
+    //     if (response.status === 200 && response.data.meta) {
+    //       setMetaValue(response.data.meta.meta_value);
+    //     } else {
+    //       setMetaValue(0);
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching meta value:", error);
+    //     setMetaValue(0);
+    //   }
+    // };
 
-  //   fetchSponsorImage();
-  //   fetchMetaValue();
-  //   getAuctionId();
-  // }, []);
+    fetchSponsorImage();
+    // fetchMetaValue();
+    getAuctionId();
+  }, []);
 
   useEffect(() => {
     getAuctionId();
@@ -264,7 +264,7 @@ const handleSend = async () => {
   if (address)
     return (
       <div className="mx-3 text-white">
-        {/* {loading ? null : uploadedImage ? (
+        {loading ? null : uploadedImage && (
           <a href={url || "#"} target="_blank" rel="noopener noreferrer">
             <div className="relative">
               <img
@@ -286,18 +286,7 @@ const handleSend = async () => {
               </span>
             </div>
           </a>
-        ) : (
-          <div
-            className="flex items-center justify-start border border-white/30 rounded-lg bg-gradient-to-br from-emerald-600 to-green-500 p-3 cursor-pointer"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <HiSpeakerphone className="text-white mr-2 -rotate-12" size={24} />
-            <div>
-              <h2 className="text-white text-xl font-bold">SPONSORED SLOT</h2>
-              <h3 className="text-sm text-white">Sponsor this spot</h3>
-            </div>
-          </div>
-        )} */}
+        )}
 
         <div
           className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -316,7 +305,10 @@ const handleSend = async () => {
             <>
               <ul className="text-gray-400 text-sm space-y-2 list-disc ml-5 mb-5">
                   <li>
-                    Get featured on a <b>Live Stream</b> in the <b>"Word from Our Sponsor"</b> section.
+                    Get featured in the <b>"Word from Our Sponsor"</b> section.
+                  </li>
+                  <li>
+                    Become the lead sponsor for the next <b>4 Live Streams</b>.
                   </li>
                   <li>
                     Highest bidder will be contacted via Farcaster.
