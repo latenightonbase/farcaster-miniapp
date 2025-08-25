@@ -439,7 +439,7 @@ const handleSend = async () => {
                 <RiLoader5Fill className="animate-spin text-white text-3xl" />
               </div>
             ) : bidders.length > 0 ? (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse mt-4">
               <thead>
                 <tr className="border-b border-white/30 text-red-300">
                   <th className="py-2 ">Profile</th>
