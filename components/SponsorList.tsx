@@ -262,8 +262,8 @@ const handleSend = async () => {
 
   if (address)
     return (
-      <div className="mx-3">
-        {loading ? null : uploadedImage ? (
+      <div className="mx-3 text-white">
+        {/* {loading ? null : uploadedImage ? (
           <a href={url || "#"} target="_blank" rel="noopener noreferrer">
             <div className="relative">
               <img
@@ -296,13 +296,13 @@ const handleSend = async () => {
               <h3 className="text-sm text-white">Sponsor this spot</h3>
             </div>
           </div>
-        )}
+        )} */}
 
         <div
           className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
         >
-          <div className="bg-gradient-to-b from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
+          <div className="bg-gradient-to-b mx-2 from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-white hover:text-gray-400"
@@ -313,23 +313,15 @@ const handleSend = async () => {
 
 
             <>
-              {/* <ul className="text-gray-400 text-sm list-disc ml-5 mb-5">
+              <ul className="text-gray-400 text-sm space-y-2 list-disc ml-5 mb-5">
                   <li>
-                    DM the image to{" "}
-                    <a
-                      className="text-orange-500 underline"
-                      href="https://farcaster.xyz/latenightonbase"
-                    >
-                      Bill the Bull
-                    </a>
+                    Bid to feature in the "Word from Our Sponsor" section.
                   </li>
                   <li>
-                    Once set, the image will be visible on the miniapp for 24
-                    hours
+                    Highest bidder will be contacted via Farcaster.
                   </li>
-                  <li>Image must be 1500x500 dimensions for best visibility</li>
-                  <li>This action will cost ${metaValue}</li>
-                </ul> */}
+                  <li>Non-winning bids will be refunded.</li>
+              </ul>
 
               {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
                   <button
@@ -433,8 +425,14 @@ const handleSend = async () => {
         </div>
 
         
-          <div className="mt-6">
-            <h3 className="text-lg font-bold">Sponsor Auction {auctionId && `#${auctionId}`}</h3>
+          <div className="mt-6 text-white">
+            <div className="flex items-center">
+              <h3 className="text-xl font-bold w-[70%]">Sponsor Auction {auctionId && `#${auctionId}`}</h3>
+              <div className="w-[30%] flex justify-end">
+                <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl"/> Bid</button>
+              </div>
+              
+            </div>
             {bidders.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
