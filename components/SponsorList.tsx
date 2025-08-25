@@ -48,6 +48,7 @@ export default function AddBanner() {
   const [error, setError] = useState(""); // State to store error message
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
+  const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
 
   // useEffect(() => {
   //   const fetchSponsorImage = async () => {
@@ -89,6 +90,10 @@ export default function AddBanner() {
   //   getAuctionId();
   // }, []);
 
+  useEffect(() => {
+    getAuctionId();
+  }, []);
+
   const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC address
 
   async function getContract(address: string, abi: any) {
@@ -117,6 +122,7 @@ export default function AddBanner() {
 
   async function getAuctionBids() {
     try {
+      setIsFetchingBidders(true); // Start loader
       const contract = await getContract(contractAdds.auction, auctionAbi);
       const bids = await contract?.getBidders(auctionId);
 
@@ -168,9 +174,10 @@ export default function AddBanner() {
         setHighestBidder(sortedBidders[0]); // First element is the highest bidder
       }
       return bids;
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error getting bids:", error);
+    } finally {
+      setIsFetchingBidders(false); // Stop loader
     }
   }
 
@@ -427,12 +434,16 @@ const handleSend = async () => {
               </div>
               
             </div>
-            {bidders.length > 0 ? (
+            {isFetchingBidders ? (
+              <div className="flex justify-center items-center h-20">
+                <RiLoader5Fill className="animate-spin text-white text-3xl" />
+              </div>
+            ) : bidders.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/30">
-                  <th className="py-2">Profile</th>
-                  <th className="py-2 text-right">Bid Amount</th>
+                <tr className="border-b border-white/30 text-red-300">
+                  <th className="py-2 ">Profile</th>
+                  <th className="py-2 text-right ">Bid Amount</th>
                 </tr>
               </thead>
               <tbody>
