@@ -21,6 +21,7 @@ import { contractAdds } from "@/utils/contract/contractAdds";
 import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useGlobalContext } from "@/utils/globalContext";
 import { parseUnits } from "viem";
+import Image from "next/image";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,9 +45,9 @@ export default function AddBanner() {
   const [bidders, setBidders] = useState<any[]>([]); // State to store sorted bidders
   const [highestBidder, setHighestBidder] = useState<any | null>(null); // State to store the highest bidder
   const [inputVisible, setInputVisible] = useState(false); // State to toggle input visibility
-  const [inputAmount, setInputAmount] = useState(0); // State to store user input
   const [error, setError] = useState(""); // State to store error message
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
+  const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
 
   useEffect(() => {
     const fetchSponsorImage = async () => {
@@ -85,6 +86,7 @@ export default function AddBanner() {
 
     fetchSponsorImage();
     fetchMetaValue();
+    getAuctionId();
   }, []);
 
   const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC address
@@ -103,10 +105,20 @@ export default function AddBanner() {
     }
   }
 
+  async function getAuctionId() {
+    try {
+      const contract = await getContract(contractAdds.auction, auctionAbi);
+      const auctionId = await contract?.auctionId();
+      setAuctionId(auctionId);
+    } catch (error) {
+      console.error("Error getting auction ID:", error);
+    }
+  }
+
   async function getAuctionBids() {
     try {
       const contract = await getContract(contractAdds.auction, auctionAbi);
-      const bids = await contract?.getBidders();
+      const bids = await contract?.getBidders(auctionId);
 
       if (bids && Array.isArray(bids)) {
         const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
@@ -130,10 +142,17 @@ export default function AddBanner() {
         }
 
         const jsonRes = await res.json();
+
         const users = jsonRes.users || [];
 
+        console.log("All Users:", users);
+
         const enrichedBidders = bids.map((bid: any) => {
-          const user = users.find((u: any) => u.fid === bid.fid);
+          console.log("Bid:", bid);
+          const user = users.find((u: any) => u.fid === Number(bid.fid));
+
+          console.log("User found for bid:", user);
+
           return {
             username: user?.username || "Unknown",
             pfp_url: user?.pfp_url || "",
@@ -158,9 +177,9 @@ export default function AddBanner() {
   }
 
   useEffect(() => {
-    if(address)
+    if(address && auctionId !== null)
     getAuctionBids();
-  }, [address])
+  }, [address, auctionId])
 
 const handleSend = async () => {
   try {
@@ -214,11 +233,8 @@ const handleSend = async () => {
       message,
     });
 
-    console.log("Signature", signature)
-
     const { v, r, s } = splitSignature(signature);
 
-    console.log("Signature:", { v, r, s });
 
     const args = [usdcToSend, user || 1129842, deadline, v, r, s];
 
@@ -230,6 +246,8 @@ const handleSend = async () => {
       functionName: "bidWithPermit",
       args,
     });
+
+    getAuctionBids()
 
   } catch (error) {
     console.error("Error sending transaction:", error);
@@ -341,9 +359,11 @@ const handleSend = async () => {
                   <RiAuctionFill className=" text-white text-xl" />
                   Current Highest Bid:
                 </label>
-                <div className=" my-4 px-4 py-4 bg-white/10 rounded-sm flex gap-2">
-                  <span className="flex gap-1 w-[70%] truncate"><div className="w-6 h-6 animate-pulse rounded-full bg-white/40"></div> degeneer03</span>
-                  <h4 className="font-bold w-[30%] text-right">120 USDC</h4>
+                <div className=" my-4 px-2 py-4 bg-white/10 rounded-sm flex gap-2">
+                  <span className="flex gap-1 w-[70%] truncate">
+                    <Image alt={highestBidder.username} src={highestBidder.pfp_url} width={24} height={24} className="rounded-full w-6 aspect-square" />
+                    {highestBidder.username}</span>
+                  <h4 className="font-bold w-[30%] text-right">{highestBidder.bidAmount} USDC</h4>
                 </div>
                 <div>
 
@@ -361,10 +381,10 @@ const handleSend = async () => {
                     type="number"
                     className="w-full px-4 py-2 border rounded-lg"
                     placeholder="Enter USDC Amount"
-                    value={inputAmount === 0 ? "" : inputAmount} // Ensure initial 0 is not displayed
+                    value={usdcAmount === 0 ? "" : usdcAmount} // Ensure initial 0 is not displayed
                     onChange={(e) => {
                       const value = Number(e.target.value);
-                      setInputAmount(value);
+                      setUsdcAmount(value);
                       setError("");
                     }}
                   />
@@ -373,12 +393,11 @@ const handleSend = async () => {
                     type="button"
                     className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
                     onClick={() => {
-                      if (inputAmount <= (highestBidder?.bidAmount || 0)) {
+                      if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
                         setError("Bid amount must be higher than the current highest bid.");
                         return;
                       }
                       setIsSubmitting(true); // Show loader
-                      setUsdcAmount(inputAmount);
                       handleSend().finally(() => setIsSubmitting(false)); // Hide loader after submission
                     }}
                     disabled={isSubmitting}
@@ -415,12 +434,12 @@ const handleSend = async () => {
 
         {bidders.length > 0 && (
           <div className="mt-6">
-            <h3 className="text-lg font-bold mb-4">Bidders</h3>
+            <h3 className="text-lg font-bold mb-2">Auction {auctionId && `#${auctionId}`}</h3>
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/30">
                   <th className="py-2">Profile</th>
-                  <th className="py-2 text-right">Bid Amount (USDC)</th>
+                  <th className="py-2 text-right">Bid Amount</th>
                 </tr>
               </thead>
               <tbody>

@@ -4,6 +4,7 @@
       "source": "/.well-known/farcaster.json",
 
        "destination": "https://api.farcaster.xyz/miniapps/hosted-manifest/0198709e-56c4-e059-668e-fa5ed3aeb6bd",
+       
 
       "permanent": false
     }
