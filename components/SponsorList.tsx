@@ -25,15 +25,15 @@ import Image from "next/image";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
+  // const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  // const [name, setName] = useState("");
+  // const [url, setUrl] = useState("");
 
-  const [metaValue, setMetaValue] = useState<number>(0);
-  const [loading, setLoading] = useState(true); // Added loading state
+  // const [metaValue, setMetaValue] = useState<number>(0);
+  // const [loading, setLoading] = useState(true); // Added loading state
   const [isLoading, setIsLoading] = useState(false);
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { signTypedDataAsync } = useSignTypedData()
 
   const [usdcAmount, setUsdcAmount] = useState<number>(0);
@@ -49,45 +49,45 @@ export default function AddBanner() {
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
 
-  useEffect(() => {
-    const fetchSponsorImage = async () => {
-      try {
-        const response = await axios.get("/api/getImage");
+  // useEffect(() => {
+  //   const fetchSponsorImage = async () => {
+  //     try {
+  //       const response = await axios.get("/api/getImage");
 
-        if (response.status === 200 && response.data.imageUrl) {
-          setUploadedImage(response.data.imageUrl);
-          setName(response.data.name || "");
-          setUrl(response.data.url || "#"); // Default to "#" if no URL is provided
-        } else {
-          setUploadedImage(null);
-        }
-      } catch (error) {
-        console.error("Error fetching sponsor image:", error);
-        setUploadedImage(null);
-      } finally {
-        setLoading(false); // Set loading to false after API call
-      }
-    };
+  //       if (response.status === 200 && response.data.imageUrl) {
+  //         setUploadedImage(response.data.imageUrl);
+  //         setName(response.data.name || "");
+  //         setUrl(response.data.url || "#"); // Default to "#" if no URL is provided
+  //       } else {
+  //         setUploadedImage(null);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching sponsor image:", error);
+  //       setUploadedImage(null);
+  //     } finally {
+  //       setLoading(false); // Set loading to false after API call
+  //     }
+  //   };
 
-    const fetchMetaValue = async () => {
-      try {
-        const response = await axios.get("/api/getPrice");
+  //   const fetchMetaValue = async () => {
+  //     try {
+  //       const response = await axios.get("/api/getPrice");
 
-        if (response.status === 200 && response.data.meta) {
-          setMetaValue(response.data.meta.meta_value);
-        } else {
-          setMetaValue(0);
-        }
-      } catch (error) {
-        console.error("Error fetching meta value:", error);
-        setMetaValue(0);
-      }
-    };
+  //       if (response.status === 200 && response.data.meta) {
+  //         setMetaValue(response.data.meta.meta_value);
+  //       } else {
+  //         setMetaValue(0);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching meta value:", error);
+  //       setMetaValue(0);
+  //     }
+  //   };
 
-    fetchSponsorImage();
-    fetchMetaValue();
-    getAuctionId();
-  }, []);
+  //   fetchSponsorImage();
+  //   fetchMetaValue();
+  //   getAuctionId();
+  // }, []);
 
   const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC address
 
@@ -122,8 +122,6 @@ export default function AddBanner() {
 
       if (bids && Array.isArray(bids)) {
         const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
-
-        console.log("FIDS",fids)
 
         const res = await fetch(
           `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
@@ -188,14 +186,10 @@ const handleSend = async () => {
     }
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
 
-    console.log("Usdc", usdc);
-
     // Correct way
     const tokenName = "USD Coin";
     const tokenVersion = "2";
     const nonce = BigInt(await usdc?.nonces(address));
-
-    console.log("Nonce:", nonce);
 
     const domain = {
       name: tokenName,
@@ -251,7 +245,7 @@ const handleSend = async () => {
 
   } catch (error) {
     console.error("Error sending transaction:", error);
-    setIsDropdownOpen(false);
+    // setIsDropdownOpen(false);
     throw error;
   } finally {
     setIsLoading(false);
@@ -315,7 +309,7 @@ const handleSend = async () => {
             <>
               <ul className="text-gray-400 text-sm space-y-2 list-disc ml-5 mb-5">
                   <li>
-                    Bid to feature in the "Word from Our Sponsor" section.
+                    Get featured on a <b>Live Stream</b> in the <b>"Word from Our Sponsor"</b> section.
                   </li>
                   <li>
                     Highest bidder will be contacted via Farcaster.
