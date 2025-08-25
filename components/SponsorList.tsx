@@ -21,6 +21,7 @@ import { contractAdds } from "@/utils/contract/contractAdds";
 import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useGlobalContext } from "@/utils/globalContext";
 import { parseUnits } from "viem";
+import Image from "next/image";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,11 +29,11 @@ export default function AddBanner() {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
 
-  const [metaValue, setMetaValue] = useState<number>(0);
+  // const [metaValue, setMetaValue] = useState<number>(0);
   const [loading, setLoading] = useState(true); // Added loading state
   const [isLoading, setIsLoading] = useState(false);
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { signTypedDataAsync } = useSignTypedData()
 
   const [usdcAmount, setUsdcAmount] = useState<number>(0);
@@ -44,9 +45,10 @@ export default function AddBanner() {
   const [bidders, setBidders] = useState<any[]>([]); // State to store sorted bidders
   const [highestBidder, setHighestBidder] = useState<any | null>(null); // State to store the highest bidder
   const [inputVisible, setInputVisible] = useState(false); // State to toggle input visibility
-  const [inputAmount, setInputAmount] = useState(0); // State to store user input
   const [error, setError] = useState(""); // State to store error message
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
+  const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
+  const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
 
   useEffect(() => {
     const fetchSponsorImage = async () => {
@@ -68,23 +70,28 @@ export default function AddBanner() {
       }
     };
 
-    const fetchMetaValue = async () => {
-      try {
-        const response = await axios.get("/api/getPrice");
+    // const fetchMetaValue = async () => {
+    //   try {
+    //     const response = await axios.get("/api/getPrice");
 
-        if (response.status === 200 && response.data.meta) {
-          setMetaValue(response.data.meta.meta_value);
-        } else {
-          setMetaValue(0);
-        }
-      } catch (error) {
-        console.error("Error fetching meta value:", error);
-        setMetaValue(0);
-      }
-    };
+    //     if (response.status === 200 && response.data.meta) {
+    //       setMetaValue(response.data.meta.meta_value);
+    //     } else {
+    //       setMetaValue(0);
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching meta value:", error);
+    //     setMetaValue(0);
+    //   }
+    // };
 
     fetchSponsorImage();
-    fetchMetaValue();
+    // fetchMetaValue();
+    getAuctionId();
+  }, []);
+
+  useEffect(() => {
+    getAuctionId();
   }, []);
 
   const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC address
@@ -103,15 +110,24 @@ export default function AddBanner() {
     }
   }
 
-  async function getAuctionBids() {
+  async function getAuctionId() {
     try {
       const contract = await getContract(contractAdds.auction, auctionAbi);
-      const bids = await contract?.getBidders();
+      const auctionId = await contract?.auctionId();
+      setAuctionId(auctionId);
+    } catch (error) {
+      console.error("Error getting auction ID:", error);
+    }
+  }
+
+  async function getAuctionBids() {
+    try {
+      setIsFetchingBidders(true); // Start loader
+      const contract = await getContract(contractAdds.auction, auctionAbi);
+      const bids = await contract?.getBidders(auctionId);
 
       if (bids && Array.isArray(bids)) {
         const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
-
-        console.log("FIDS",fids)
 
         const res = await fetch(
           `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
@@ -130,10 +146,17 @@ export default function AddBanner() {
         }
 
         const jsonRes = await res.json();
+
         const users = jsonRes.users || [];
 
+        console.log("All Users:", users);
+
         const enrichedBidders = bids.map((bid: any) => {
-          const user = users.find((u: any) => u.fid === bid.fid);
+          console.log("Bid:", bid);
+          const user = users.find((u: any) => u.fid === Number(bid.fid));
+
+          console.log("User found for bid:", user);
+
           return {
             username: user?.username || "Unknown",
             pfp_url: user?.pfp_url || "",
@@ -151,35 +174,36 @@ export default function AddBanner() {
         setHighestBidder(sortedBidders[0]); // First element is the highest bidder
       }
       return bids;
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error getting bids:", error);
+    } finally {
+      setIsFetchingBidders(false); // Stop loader
     }
   }
 
   useEffect(() => {
-    if(address)
+    if(address && auctionId !== null)
     getAuctionBids();
-  }, [address])
+  }, [address, auctionId])
 
 const handleSend = async () => {
   try {
+    if(usdcAmount === 0){
+      return;
+    }
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
-
-    console.log("Usdc", usdc);
 
     // Correct way
     const tokenName = "USD Coin";
     const tokenVersion = "2";
     const nonce = BigInt(await usdc?.nonces(address));
 
-    console.log("Nonce:", nonce);
-
     const domain = {
       name: tokenName,
       version: tokenVersion,
       chainId: 8453,
       verifyingContract: USDC_ADDRESS,
+      primaryType: "Permit",
     } as const;
 
     const types = {
@@ -192,7 +216,7 @@ const handleSend = async () => {
       ],
     } as const;
 
-    const usdcToSend = parseUnits(String(usdcAmount), 6); // safe bigint
+    const usdcToSend = BigInt(usdcAmount * 1e6); // safe bigint
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
 
     const message = {
@@ -205,23 +229,30 @@ const handleSend = async () => {
 
     const signature = await signTypedDataAsync({
       domain,
-      types,
       primaryType: "Permit",
+      types,
       message,
     });
 
     const { v, r, s } = splitSignature(signature);
 
+
+    const args = [usdcToSend, user, deadline, v, r, s];
+
+    console.log("Args:", args);
+
     await writeContract(config, {
       abi: auctionAbi,
       address: contractAdds.auction as `0x${string}`,
       functionName: "bidWithPermit",
-      args: [usdcToSend, user || 1, deadline, v, r, s],
+      args,
     });
+
+    getAuctionBids()
 
   } catch (error) {
     console.error("Error sending transaction:", error);
-    setIsDropdownOpen(false);
+    // setIsDropdownOpen(false);
     throw error;
   } finally {
     setIsLoading(false);
@@ -232,8 +263,8 @@ const handleSend = async () => {
 
   if (address)
     return (
-      <div className="mx-3">
-        {loading ? null : uploadedImage ? (
+      <div className="mx-3 text-white">
+        {loading ? null : uploadedImage && (
           <a href={url || "#"} target="_blank" rel="noopener noreferrer">
             <div className="relative">
               <img
@@ -255,24 +286,13 @@ const handleSend = async () => {
               </span>
             </div>
           </a>
-        ) : (
-          <div
-            className="flex items-center justify-start border border-white/30 rounded-lg bg-gradient-to-br from-emerald-600 to-green-500 p-3 cursor-pointer"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <HiSpeakerphone className="text-white mr-2 -rotate-12" size={24} />
-            <div>
-              <h2 className="text-white text-xl font-bold">SPONSORED SLOT</h2>
-              <h3 className="text-sm text-white">Sponsor this spot</h3>
-            </div>
-          </div>
         )}
 
         <div
           className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
         >
-          <div className="bg-gradient-to-b from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
+          <div className="bg-gradient-to-b mx-2 from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-white hover:text-gray-400"
@@ -283,23 +303,18 @@ const handleSend = async () => {
 
 
             <>
-              {/* <ul className="text-gray-400 text-sm list-disc ml-5 mb-5">
+              <ul className="text-gray-400 text-sm space-y-2 list-disc ml-5 mb-5">
                   <li>
-                    DM the image to{" "}
-                    <a
-                      className="text-orange-500 underline"
-                      href="https://farcaster.xyz/latenightonbase"
-                    >
-                      Bill the Bull
-                    </a>
+                    Get featured in the <b>"Word from Our Sponsor"</b> section.
                   </li>
                   <li>
-                    Once set, the image will be visible on the miniapp for 24
-                    hours
+                    Become the lead sponsor for the next <b>4 Live Streams</b>.
                   </li>
-                  <li>Image must be 1500x500 dimensions for best visibility</li>
-                  <li>This action will cost ${metaValue}</li>
-                </ul> */}
+                  <li>
+                    Highest bidder will be contacted via Farcaster.
+                  </li>
+                  <li>Non-winning bids will be refunded.</li>
+              </ul>
 
               {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
                   <button
@@ -329,9 +344,11 @@ const handleSend = async () => {
                   <RiAuctionFill className=" text-white text-xl" />
                   Current Highest Bid:
                 </label>
-                <div className=" my-4 px-4 py-4 bg-white/10 rounded-sm flex gap-2">
-                  <span className="flex gap-1 w-[70%] truncate"><div className="w-6 h-6 animate-pulse rounded-full bg-white/40"></div> degeneer03</span>
-                  <h4 className="font-bold w-[30%] text-right">120 USDC</h4>
+                <div className=" my-4 px-2 py-4 bg-white/10 rounded-sm flex gap-2">
+                  <span className="flex gap-1 w-[70%] truncate">
+                    <Image alt={highestBidder.username} src={highestBidder.pfp_url} width={24} height={24} className="rounded-full w-6 aspect-square" />
+                    {highestBidder.username}</span>
+                  <h4 className="font-bold w-[30%] text-right">{highestBidder.bidAmount} USDC</h4>
                 </div>
                 <div>
 
@@ -349,10 +366,10 @@ const handleSend = async () => {
                     type="number"
                     className="w-full px-4 py-2 border rounded-lg"
                     placeholder="Enter USDC Amount"
-                    value={inputAmount === 0 ? "" : inputAmount} // Ensure initial 0 is not displayed
+                    value={usdcAmount === 0 ? "" : usdcAmount} // Ensure initial 0 is not displayed
                     onChange={(e) => {
-                      const value = Number(e.target.value);
-                      setInputAmount(value);
+                      const value = Math.floor(Number(e.target.value)); // Ensure whole number
+                      setUsdcAmount(value);
                       setError("");
                     }}
                   />
@@ -361,12 +378,11 @@ const handleSend = async () => {
                     type="button"
                     className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
                     onClick={() => {
-                      if (inputAmount <= (highestBidder?.bidAmount || 0)) {
+                      if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
                         setError("Bid amount must be higher than the current highest bid.");
                         return;
                       }
                       setIsSubmitting(true); // Show loader
-                      setUsdcAmount(inputAmount);
                       handleSend().finally(() => setIsSubmitting(false)); // Hide loader after submission
                     }}
                     disabled={isSubmitting}
@@ -401,14 +417,25 @@ const handleSend = async () => {
           </div>
         </div>
 
-        {bidders.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-bold mb-4">Bidders</h3>
-            <table className="w-full text-left border-collapse">
+        
+          <div className="mt-6 text-white">
+            <div className="flex items-center">
+              <h3 className="text-xl font-bold w-[70%]">Sponsor Auction {auctionId && `#${auctionId}`}</h3>
+              <div className="w-[30%] flex justify-end">
+                <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl"/> Bid</button>
+              </div>
+              
+            </div>
+            {isFetchingBidders ? (
+              <div className="flex justify-center items-center h-20">
+                <RiLoader5Fill className="animate-spin text-white text-3xl" />
+              </div>
+            ) : bidders.length > 0 ? (
+            <table className="w-full text-left border-collapse mt-4">
               <thead>
-                <tr className="border-b border-white/30">
-                  <th className="py-2">Profile</th>
-                  <th className="py-2 text-right">Bid Amount (USDC)</th>
+                <tr className="border-b border-white/30 text-red-300">
+                  <th className="py-2 ">Profile</th>
+                  <th className="py-2 text-right ">Bid Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -431,8 +458,13 @@ const handleSend = async () => {
                 ))}
               </tbody>
             </table>
+            ) : (
+          <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
+            <p className="text-white/70">No bids placed yet.</p>
           </div>
         )}
+          </div>
+        
       </div>
     );
 }
