@@ -158,8 +158,9 @@ export default function AddBanner() {
   }
 
   useEffect(() => {
+    if(address)
     getAuctionBids();
-  }, [])
+  }, [address])
 
 const handleSend = async () => {
   try {
@@ -399,6 +400,39 @@ const handleSend = async () => {
 
           </div>
         </div>
+
+        {bidders.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-bold mb-4">Bidders</h3>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/30">
+                  <th className="py-2">Profile</th>
+                  <th className="py-2 text-right">Bid Amount (USDC)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bidders.map((bidder, index) => (
+                  <tr key={index} className="border-b border-white/10">
+                    <td className="py-2 flex items-center gap-2">
+                      {bidder.pfp_url ? (
+                        <img
+                          src={bidder.pfp_url}
+                          alt={bidder.username}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-white/40"></div>
+                      )}
+                      <span className="truncate">{bidder.username}</span>
+                    </td>
+                    <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     );
 }
