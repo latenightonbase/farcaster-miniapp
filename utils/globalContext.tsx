@@ -43,13 +43,16 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleSignIn = useCallback(async (): Promise<void> => {
     try {
-      var token: any = "";
+      var token: any;
 
-      const nonce = await getNonce();
+      if (process.env.NEXT_PUBLIC_ENV !== "DEV") {
+        const nonce = await getNonce();
 
-      await sdk.actions.signIn({ nonce });
+        await sdk.actions.signIn({ nonce });
 
-      token = (await sdk.quickAuth.getToken()).token;
+        token = (await sdk.quickAuth.getToken()).token;
+      }
+      console.log("Using token:", token);
 
       const response = await fetch("/api/me", {
         method: "GET",
@@ -64,6 +67,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const data = await response.json();
+      console.log("Fetched user data:", data);
       setUser(data.user);
     } catch (error) {
       console.error("Sign in error:", error);

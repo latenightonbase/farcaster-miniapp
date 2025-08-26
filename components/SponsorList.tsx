@@ -381,10 +381,10 @@ const handleSend = async () => {
                     type="button"
                     className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
                     onClick={() => {
-                      if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
-                        setError("Bid amount must be higher than the current highest bid.");
-                        return;
-                      }
+                      // if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
+                      //   setError("Bid amount must be higher than the current highest bid.");
+                      //   return;
+                      // }
                       setIsSubmitting(true); // Show loader
                       handleSend().finally(() => setIsSubmitting(false)); // Hide loader after submission
                     }}
