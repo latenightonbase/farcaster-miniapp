@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http } from 'viem';
 import { base } from 'viem/chains';
 
@@ -7,12 +7,12 @@ const client = createPublicClient({
   transport: http() 
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  const { typedData, signature, address } = req.body;
+  const { typedData, signature, address } = await req.json();
 
   try {
     // Verify the typed data signature
@@ -26,24 +26,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!valid) {
-      return res.status(401).json({ error: 'Invalid signature' });
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
     // Additional validation logic here
     // e.g., check expiry, nonce, permissions, etc.
     const now = Math.floor(Date.now() / 1000);
     if (typedData.message.expiry < now) {
-      return res.status(401).json({ error: 'Signature expired' });
+      return NextResponse.json({ error: 'Signature expired' }, { status: 401 });
     }
 
     // Process the verified typed data
-    res.json({ 
+    return NextResponse.json({ 
       valid: true, 
       message: 'Signature verified successfully',
       data: typedData.message 
     });
   } catch (error) {
     console.error('Verification error:', error);
-    res.status(500).json({ error: 'Verification failed' });
+    return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
   }
 }
