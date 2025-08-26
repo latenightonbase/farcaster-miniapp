@@ -212,7 +212,7 @@ export default function AddBanner() {
     const domain = {
       name: tokenName,
       version: tokenVersion,
-      chainId: 8453,
+      chainId: BigInt(8453),
       verifyingContract: USDC_ADDRESS,
       primaryType: "Permit",
     } as const;
