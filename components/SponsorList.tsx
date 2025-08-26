@@ -247,21 +247,8 @@ export default function AddBanner() {
   setLogs((prevLogs) => [...prevLogs, `Accounts ${String(accounts)}, ${typeof(accounts)}`]);
 
   const typedData = {
-    domain: {
-    name: 'Spend Permission Manager',
-    version: '1',
-    chainId: 8453, // or any other supported chain
-    verifyingContract: contractAdds.auction,
-  },
-  types: {
-    Permit: [
-        { name: "owner", type: "address" },
-        { name: "spender", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "nonce", type: "uint256" },
-        { name: "deadline", type: "uint256" },
-      ],
-  },
+    domain: domain,
+  types: types,
   primaryType: 'Permit',
   message,
   }
