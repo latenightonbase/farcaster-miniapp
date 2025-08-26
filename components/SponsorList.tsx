@@ -228,7 +228,7 @@ export default function AddBanner() {
       ],
     } as const;
 
-    const usdcToSend = BigInt(String(Math.round(usdcAmount) * 1e6));
+    const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6);
     console.log("USDC to send:", usdcToSend);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
 
