@@ -237,7 +237,7 @@ const handleSend = async () => {
     method: 'eth_requestAccounts'
   });
 
-  setLogs((prevLogs) => [...prevLogs, `Accounts ${String(accounts)}`]);
+  setLogs((prevLogs) => [...prevLogs, `Accounts ${String(accounts)}, ${typeof(accounts)}`]);
 
   const typedData = {
     domain: {
@@ -264,7 +264,7 @@ const handleSend = async () => {
 
 const signature:any = await provider.request({
     method: 'eth_signTypedData_v4',
-    params: [accounts, JSON.stringify(typedData)]
+    params: [accounts[0], JSON.stringify(typedData)]
   });
 
   setLogs((prevLogs) => [...prevLogs, `Signature ${String(signature)}`]);
