@@ -236,25 +236,62 @@ const handleSend = async () => {
     const accounts:any = await provider.request({
     method: 'eth_requestAccounts'
   });
+
+  setLogs((prevLogs) => [...prevLogs, `Accounts ${String(accounts)}`]);
+
+  const typedData = {
+    domain: {
+    name: 'Spend Permission Manager',
+    version: '1',
+    chainId: 8453, // or any other supported chain
+    verifyingContract: contractAdds.auction,
+  },
+  types: {
+    Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+  },
+  primaryType: 'Permit',
+  message,
+  }
+
+    setLogs((prevLogs) => [...prevLogs, `Typed Data ${String(typedData)}`]);
+
+
 const signature:any = await provider.request({
     method: 'eth_signTypedData_v4',
-    params: [accounts[0], JSON.stringify({
-      domain,
-      primaryType: "Permit",
-      types,
-      message,
-    })]
+    params: [accounts[0], JSON.stringify(typedData)]
   });
-    const { v, r, s } = splitSignature(signature);
 
-    const args = [usdcToSend, user, deadline, v, r, s];
+  setLogs((prevLogs) => [...prevLogs, `Signature ${String(signature)}`]);
 
-    await writeContract(config, {
-      abi: auctionAbi,
-      address: contractAdds.auction as `0x${string}`,
-      functionName: "bidWithPermit",
-      args,
-    });
+    const response = await fetch('/typed-data/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      typedData, 
+      signature, 
+      address: accounts[0] 
+    })
+  });
+  
+  const result = await response.json();
+
+  console.log("Verification Result:", result);
+  setLogs((prevLogs) => [...prevLogs, `Verification Response: ${JSON.stringify(result)}`]);
+
+    // const args = [usdcToSend, user, deadline, v, r, s];
+
+    // await writeContract(config, {
+    //   abi: auctionAbi,
+    //   address: contractAdds.auction as `0x${string}`,
+    //   functionName: "bidWithPermit",
+    //   args,
+    // });
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
