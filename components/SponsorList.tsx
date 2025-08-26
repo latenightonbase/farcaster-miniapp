@@ -212,6 +212,8 @@ const handleSend = async () => {
       primaryType: "Permit",
     } as const;
 
+    setLogs((prevLogs) => [...prevLogs, `Domain: ${domain.name}, ${domain.version}, ${domain.chainId}, ${domain.verifyingContract}`]);
+
     const types = {
       Permit: [
         { name: "owner", type: "address" },
@@ -235,7 +237,7 @@ const handleSend = async () => {
       deadline,
     };
 
-    setLogs((prevLogs) => [...prevLogs, "Signing typed data..."]);
+    setLogs((prevLogs) => [...prevLogs, `Signing typed data... ${message.owner} ${message.spender} ${message.value} ${message.nonce} ${message.deadline}`]);
     const signature = await signTypedDataAsync({
       domain,
       primaryType: "Permit",
