@@ -133,7 +133,7 @@ export default function AddBanner() {
           `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
           {
             headers: {
-              "x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
+              "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
             },
           }
         );
@@ -216,7 +216,7 @@ const handleSend = async () => {
       ],
     } as const;
 
-    const usdcToSend = BigInt(usdcAmount * 1e6); // safe bigint
+    const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6); // safe bigint
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
 
     const message = {
@@ -247,6 +247,9 @@ const handleSend = async () => {
       functionName: "bidWithPermit",
       args,
     });
+
+    //add a 5 second delay here
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     getAuctionBids()
 
