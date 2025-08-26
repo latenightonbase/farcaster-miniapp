@@ -264,7 +264,7 @@ const handleSend = async () => {
 
 const signature:any = await provider.request({
     method: 'eth_signTypedData_v4',
-    params: [accounts[0], JSON.stringify(typedData)]
+    params: [accounts, JSON.stringify(typedData)]
   });
 
   setLogs((prevLogs) => [...prevLogs, `Signature ${String(signature)}`]);
