@@ -3,7 +3,7 @@ import { FaBullhorn } from "react-icons/fa";
 import { X } from "lucide-react";
 import axios from "axios";
 import { ethers } from "ethers";
-
+import { createBaseAccountSDK } from "@base-org/account";
 import { HiSpeakerphone } from "react-icons/hi";
 import { useSignTypedData } from 'wagmi'
 import { splitSignature } from "ethers/lib/utils";
@@ -191,6 +191,9 @@ const handleSend = async () => {
     if(usdcAmount === 0){
       return;
     }
+
+    const provider = createBaseAccountSDK({}).getProvider();
+
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
 
     // Correct way
@@ -227,13 +230,18 @@ const handleSend = async () => {
       deadline,
     };
 
-    const signature = await signTypedDataAsync({
+    const accounts:any = await provider.request({
+    method: 'eth_requestAccounts'
+  });
+const signature:any = await provider.request({
+    method: 'eth_signTypedData_v4',
+    params: [accounts[0], JSON.stringify({
       domain,
       primaryType: "Permit",
       types,
       message,
-    });
-
+    })]
+  });
     const { v, r, s } = splitSignature(signature);
 
 
