@@ -50,6 +50,9 @@ export default function AddBanner() {
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
   const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
 
+  // Add a state variable to store logs
+  const [logs, setLogs] = useState<string[]>([]);
+
   useEffect(() => {
     const fetchSponsorImage = async () => {
       try {
@@ -188,18 +191,19 @@ export default function AddBanner() {
 
 const handleSend = async () => {
   try {
-    if(usdcAmount === 0){
+    if (usdcAmount === 0) {
+      setLogs((prevLogs) => [...prevLogs, "USDC amount is zero. Exiting."]);
       return;
     }
-
     const provider = createBaseAccountSDK({}).getProvider();
 
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
 
-    // Correct way
     const tokenName = "USD Coin";
     const tokenVersion = "2";
     const nonce = BigInt(await usdc?.nonces(address));
+
+    setLogs((prevLogs) => [...prevLogs, `Nonce fetched: ${nonce} for ${address}`]);
 
     const domain = {
       name: tokenName,
@@ -208,6 +212,8 @@ const handleSend = async () => {
       verifyingContract: USDC_ADDRESS,
       primaryType: "Permit",
     } as const;
+
+    setLogs((prevLogs) => [...prevLogs, `Domain: ${domain.name}, ${domain.version}, ${domain.chainId}, ${domain.verifyingContract}`]);
 
     const types = {
       Permit: [
@@ -219,8 +225,10 @@ const handleSend = async () => {
       ],
     } as const;
 
-    const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6); // safe bigint
+    const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+    setLogs((prevLogs) => [...prevLogs, `USDC to send: ${usdcToSend}, Deadline: ${deadline}`]);
 
     const message = {
       owner: address as `0x${string}`,
@@ -229,6 +237,7 @@ const handleSend = async () => {
       nonce,
       deadline,
     };
+
 
     const accounts:any = await provider.request({
     method: 'eth_requestAccounts'
@@ -244,10 +253,11 @@ const signature:any = await provider.request({
   });
     const { v, r, s } = splitSignature(signature);
 
+    setLogs((prevLogs) => [...prevLogs, `Signature split: v=${v}, r=${r}, s=${s}`]);
 
     const args = [usdcToSend, user, deadline, v, r, s];
 
-    console.log("Args:", args);
+    setLogs((prevLogs) => [...prevLogs, `Args prepared: ${String(args)}`]);
 
     await writeContract(config, {
       abi: auctionAbi,
@@ -256,14 +266,15 @@ const signature:any = await provider.request({
       args,
     });
 
-    //add a 5 second delay here
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    setLogs((prevLogs) => [...prevLogs, "Transaction sent. Waiting for 5 seconds..."]);
 
-    getAuctionBids()
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
-  } catch (error) {
+    setLogs((prevLogs) => [...prevLogs, "Fetching auction bids..."]);
+    getAuctionBids();
+  } catch (error:any) {
     console.error("Error sending transaction:", error);
-    // setIsDropdownOpen(false);
+    setLogs((prevLogs) => [...prevLogs, `Error: ${error.message}`]);
     throw error;
   } finally {
     setIsLoading(false);
@@ -389,10 +400,10 @@ const signature:any = await provider.request({
                     type="button"
                     className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
                     onClick={() => {
-                      if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
-                        setError("Bid amount must be higher than the current highest bid.");
-                        return;
-                      }
+                      // if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
+                      //   setError("Bid amount must be higher than the current highest bid.");
+                      //   return;
+                      // }
                       setIsSubmitting(true); // Show loader
                       handleSend().finally(() => setIsSubmitting(false)); // Hide loader after submission
                     }}
@@ -474,6 +485,15 @@ const signature:any = await provider.request({
             <p className="text-white/70">No bids placed yet.</p>
           </div>
         )}
+          </div>
+
+          <div className="mt-4 bg-white/10 rounded-lg p-4">
+            <h3 className="text-lg font-bold text-white">Logs</h3>
+            <div className="text-sm text-gray-300 max-h-40 overflow-y-auto">
+              {logs.map((log, index) => (
+                <p key={index}>{log}</p>
+              ))}
+            </div>
           </div>
         
       </div>
