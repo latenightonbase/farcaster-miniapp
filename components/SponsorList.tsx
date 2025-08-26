@@ -228,7 +228,7 @@ export default function AddBanner() {
         ],
       } as const;
 
-      const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6);
+      const usdcToSend = ethers.utils.parseUnits(String(Math.round(usdcAmount)), 6);
 
       console.log("USDC to send:", usdcToSend);
 
