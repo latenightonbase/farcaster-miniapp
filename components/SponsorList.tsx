@@ -190,15 +190,15 @@ export default function AddBanner() {
     getAuctionBids();
   }, [address, auctionId])
 
-  const sdk = createBaseAccountSDK({
-  appName: 'Test App',
-  appLogoUrl: 'https://farcaster-miniapp-chi.vercel.app/pfp.jpg',
-  appChainIds: [base.id],
-});
-
-const handleSend = async () => {
-  try {
-    if (usdcAmount === 0) {
+  
+  const handleSend = async () => {
+    try {
+      const sdk = createBaseAccountSDK({
+      appName: 'Test App',
+      appLogoUrl: 'https://farcaster-miniapp-chi.vercel.app/pfp.jpg',
+      appChainIds: [base.id],
+    });
+      if (usdcAmount === 0) {
       return;
     }
     const provider = sdk.getProvider();
