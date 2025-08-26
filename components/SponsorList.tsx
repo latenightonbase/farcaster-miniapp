@@ -192,7 +192,6 @@ export default function AddBanner() {
 const handleSend = async () => {
   try {
     if (usdcAmount === 0) {
-      setLogs((prevLogs) => [...prevLogs, "USDC amount is zero. Exiting."]);
       return;
     }
     const provider = createBaseAccountSDK({}).getProvider();
@@ -203,8 +202,6 @@ const handleSend = async () => {
     const tokenVersion = "2";
     const nonce = BigInt(await usdc?.nonces(address));
 
-    setLogs((prevLogs) => [...prevLogs, `Nonce fetched: ${nonce} for ${address}`]);
-
     const domain = {
       name: tokenName,
       version: tokenVersion,
@@ -213,7 +210,6 @@ const handleSend = async () => {
       primaryType: "Permit",
     } as const;
 
-    setLogs((prevLogs) => [...prevLogs, `Domain: ${domain.name}, ${domain.version}, ${domain.chainId}, ${domain.verifyingContract}`]);
 
     const types = {
       Permit: [
@@ -227,8 +223,6 @@ const handleSend = async () => {
 
     const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
-
-    setLogs((prevLogs) => [...prevLogs, `USDC to send: ${usdcToSend}, Deadline: ${deadline}`]);
 
     const message = {
       owner: address as `0x${string}`,
@@ -253,11 +247,7 @@ const signature:any = await provider.request({
   });
     const { v, r, s } = splitSignature(signature);
 
-    setLogs((prevLogs) => [...prevLogs, `Signature split: v=${v}, r=${r}, s=${s}`]);
-
     const args = [usdcToSend, user, deadline, v, r, s];
-
-    setLogs((prevLogs) => [...prevLogs, `Args prepared: ${String(args)}`]);
 
     await writeContract(config, {
       abi: auctionAbi,
@@ -266,15 +256,11 @@ const signature:any = await provider.request({
       args,
     });
 
-    setLogs((prevLogs) => [...prevLogs, "Transaction sent. Waiting for 5 seconds..."]);
-
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    setLogs((prevLogs) => [...prevLogs, "Fetching auction bids..."]);
     getAuctionBids();
   } catch (error:any) {
     console.error("Error sending transaction:", error);
-    setLogs((prevLogs) => [...prevLogs, `Error: ${error.message}`]);
     throw error;
   } finally {
     setIsLoading(false);
