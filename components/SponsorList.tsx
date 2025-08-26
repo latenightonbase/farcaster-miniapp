@@ -186,124 +186,126 @@ export default function AddBanner() {
   }
 
   useEffect(() => {
-    if(address && auctionId !== null)
-    getAuctionBids();
+    if (address && auctionId !== null)
+      getAuctionBids();
   }, [address, auctionId])
 
-  
+
   const handleSend = async () => {
     try {
       const sdk = createBaseAccountSDK({
-      appName: 'Test App',
-      appLogoUrl: 'https://farcaster-miniapp-chi.vercel.app/pfp.jpg',
-      appChainIds: [base.id],
-    });
+        appName: 'Test App',
+        appLogoUrl: 'https://farcaster-miniapp-chi.vercel.app/pfp.jpg',
+        appChainIds: [base.id],
+      });
       if (usdcAmount === 0) {
-      return;
+        return;
+      }
+      const provider = sdk.getProvider();
+
+      const usdc = await getContract(USDC_ADDRESS, usdcAbi);
+
+      const tokenName = "USD Coin";
+      const tokenVersion = "2";
+      const nonce = BigInt(await usdc?.nonces(address));
+
+      const domain = {
+        name: tokenName,
+        version: tokenVersion,
+        chainId: 8453,
+        verifyingContract: USDC_ADDRESS,
+        // primaryType: "Permit",
+      } as const;
+
+
+      const types = {
+        Permit: [
+          { name: "owner", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ],
+      } as const;
+
+      const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6);
+
+      console.log("USDC to send:", usdcToSend);
+
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+      const message = {
+        owner: address as `0x${string}`,
+        spender: contractAdds.auction as `0x${string}`,
+        value: usdcToSend,
+        nonce,
+        deadline,
+      };
+
+      const typedData = {
+        domain: domain,
+        types: types,
+        primaryType: 'Permit',
+        message,
+      }
+
+      console.log("Typed Data:", JSON.stringify(typedData, (_, value) =>
+        typeof value === "bigint" ? value.toString() : value
+      ))
+
+      const accounts:any = await provider.request({
+        method: 'eth_requestAccounts'
+      });
+
+      console.log(accounts)
+
+      const signature: any = await provider.request({
+        method: 'eth_signTypedData_v4',
+        params: [accounts[0], JSON.stringify(typedData, (_, value) =>
+          typeof value === "bigint" ? value.toString() : value
+        )]
+      });
+
+      console.log("Signature", signature)
+
+      setLogs((prevLogs) => [...prevLogs, `Signature ${String(signature)}`]);
+
+      const response = await fetch('/typed-data/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          typedData,
+          signature,
+          address: address
+        })
+      });
+
+      const result = await response.json();
+
+      console.log("Verification Result:", result);
+      setLogs((prevLogs) => [...prevLogs, `Verification Response: ${JSON.stringify(result)}`]);
+
+      // const args = [usdcToSend, user, deadline, v, r, s];
+
+      // await writeContract(config, {
+      //   abi: auctionAbi,
+      //   address: contractAdds.auction as `0x${string}`,
+      //   functionName: "bidWithPermit",
+      //   args,
+      // });
+
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      getAuctionBids();
+    } catch (error: any) {
+      setLogs((prevLogs) => [...prevLogs, `Error sending transaction: ${String(error)}`]);
+      console.error("Error sending transaction:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+      setIsModalOpen(false);
     }
-    const provider = sdk.getProvider();
-
-    const usdc = await getContract(USDC_ADDRESS, usdcAbi);
-
-    const tokenName = "USD Coin";
-    const tokenVersion = "2";
-    const nonce = BigInt(await usdc?.nonces(address));
-
-    const domain = {
-      name: tokenName,
-      version: tokenVersion,
-      chainId: 8453,
-      verifyingContract: USDC_ADDRESS,
-      // primaryType: "Permit",
-    } as const;
-
-
-    const types = {
-      Permit: [
-        { name: "owner", type: "address" },
-        { name: "spender", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "nonce", type: "uint256" },
-        { name: "deadline", type: "uint256" },
-      ],
-    } as const;
-
-    const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6);
-    console.log("USDC to send:", usdcToSend);
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
-
-    const message = {
-      owner: address as `0x${string}`,
-      spender: contractAdds.auction as `0x${string}`,
-      value: usdcToSend,
-      nonce,
-      deadline,
-    };
-
-  const typedData = {
-    domain: domain,
-  types: types,
-  primaryType: 'Permit',
-  message,
-  }
-
-  console.log("Typed Data:", JSON.stringify(typedData, (_, value) =>
-  typeof value === "bigint" ? value.toString() : value
-))
-
-const accounts = await provider.request({
-    method: 'eth_requestAccounts'
-  });
-
-  console.log(accounts)
-
-const signature:any = await provider.request({
-    method: 'eth_signTypedData_v4',
-    params: [address, JSON.stringify(typedData, (_, value) =>
-  typeof value === "bigint" ? value.toString() : value
-)]
-  });
-
-  console.log("Signature", signature)
-
-  setLogs((prevLogs) => [...prevLogs, `Signature ${String(signature)}`]);
-
-    const response = await fetch('/typed-data/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      typedData, 
-      signature, 
-      address: address 
-    })
-  });
-  
-  const result = await response.json();
-
-  console.log("Verification Result:", result);
-  setLogs((prevLogs) => [...prevLogs, `Verification Response: ${JSON.stringify(result)}`]);
-
-    // const args = [usdcToSend, user, deadline, v, r, s];
-
-    // await writeContract(config, {
-    //   abi: auctionAbi,
-    //   address: contractAdds.auction as `0x${string}`,
-    //   functionName: "bidWithPermit",
-    //   args,
-    // });
-
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-
-    getAuctionBids();
-  } catch (error:any) {
-    setLogs((prevLogs) => [...prevLogs, `Error sending transaction: ${String(error)}`]);
-    console.error("Error sending transaction:", error);
-    throw error;
-  } finally {
-    setIsLoading(false);
-    setIsModalOpen(false);
-  }
-};
+  };
 
 
   if (address)
@@ -349,16 +351,16 @@ const signature:any = await provider.request({
 
             <>
               <ul className="text-gray-400 text-sm space-y-2 list-disc ml-5 mb-5">
-                  <li>
-                    Get featured in the <b>"Word from Our Sponsor"</b> section.
-                  </li>
-                  <li>
-                    Become the lead sponsor for the next <b>4 Live Streams</b>.
-                  </li>
-                  <li>
-                    Highest bidder will be contacted via Farcaster.
-                  </li>
-                  <li>Non-winning bids will be refunded.</li>
+                <li>
+                  Get featured in the <b>"Word from Our Sponsor"</b> section.
+                </li>
+                <li>
+                  Become the lead sponsor for the next <b>4 Live Streams</b>.
+                </li>
+                <li>
+                  Highest bidder will be contacted via Farcaster.
+                </li>
+                <li>Non-winning bids will be refunded.</li>
               </ul>
 
               {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
@@ -462,20 +464,20 @@ const signature:any = await provider.request({
           </div>
         </div>
 
-        
-          <div className="mt-6 text-white">
-            <div className="flex items-center">
-              <h3 className="text-xl font-bold w-[70%]">Sponsor Auction {auctionId && `#${auctionId}`}</h3>
-              <div className="w-[30%] flex justify-end">
-                <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl"/> Bid</button>
-              </div>
-              
+
+        <div className="mt-6 text-white">
+          <div className="flex items-center">
+            <h3 className="text-xl font-bold w-[70%]">Sponsor Auction {auctionId && `#${auctionId}`}</h3>
+            <div className="w-[30%] flex justify-end">
+              <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl" /> Bid</button>
             </div>
-            {isFetchingBidders ? (
-              <div className="flex justify-center items-center h-20">
-                <RiLoader5Fill className="animate-spin text-white text-3xl" />
-              </div>
-            ) : bidders.length > 0 ? (
+
+          </div>
+          {isFetchingBidders ? (
+            <div className="flex justify-center items-center h-20">
+              <RiLoader5Fill className="animate-spin text-white text-3xl" />
+            </div>
+          ) : bidders.length > 0 ? (
             <table className="w-full text-left border-collapse mt-4">
               <thead>
                 <tr className="border-b border-white/30 text-red-300">
@@ -503,22 +505,22 @@ const signature:any = await provider.request({
                 ))}
               </tbody>
             </table>
-            ) : (
-          <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
-            <p className="text-white/70">No bids placed yet.</p>
-          </div>
-        )}
-          </div>
-
-          <div className="mt-4 bg-white/10 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-white">Logs</h3>
-            <div className="text-sm text-gray-300 max-h-40 overflow-y-auto">
-              {logs.map((log, index) => (
-                <p key={index}>{log}</p>
-              ))}
+          ) : (
+            <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
+              <p className="text-white/70">No bids placed yet.</p>
             </div>
+          )}
+        </div>
+
+        <div className="mt-4 bg-white/10 rounded-lg p-4">
+          <h3 className="text-lg font-bold text-white">Logs</h3>
+          <div className="text-sm text-gray-300 max-h-40 overflow-y-auto">
+            {logs.map((log, index) => (
+              <p key={index}>{log}</p>
+            ))}
           </div>
-        
+        </div>
+
       </div>
     );
 }
