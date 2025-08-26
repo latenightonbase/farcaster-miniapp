@@ -202,7 +202,7 @@ const handleSend = async () => {
     const tokenVersion = "2";
     const nonce = BigInt(await usdc?.nonces(address));
 
-    setLogs((prevLogs) => [...prevLogs, `Nonce fetched: ${nonce}`]);
+    setLogs((prevLogs) => [...prevLogs, `Nonce fetched: ${nonce} for ${address}`]);
 
     const domain = {
       name: tokenName,
