@@ -219,6 +219,12 @@ export default function AddBanner() {
 
 
     const types = {
+      EIP712Domain: [
+      { name: "name", type: "string" },
+      { name: "version", type: "string" },
+      { name: "chainId", type: "uint256" },
+      { name: "verifyingContract", type: "address" },
+    ],
       Permit: [
         { name: "owner", type: "address" },
         { name: "spender", type: "address" },
@@ -258,7 +264,7 @@ export default function AddBanner() {
 
 const signature:any = await provider.request({
     method: 'eth_signTypedData_v4',
-    params: [accounts[0], JSON.stringify(typedData)]
+    params: [address, JSON.stringify(typedData)]
   });
 
   setLogs((prevLogs) => [...prevLogs, `Signature ${String(signature)}`]);
