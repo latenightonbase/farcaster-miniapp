@@ -22,6 +22,7 @@ import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useGlobalContext } from "@/utils/globalContext";
 import { parseUnits } from "viem";
 import Image from "next/image";
+import { base } from "viem/chains";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -189,12 +190,18 @@ export default function AddBanner() {
     getAuctionBids();
   }, [address, auctionId])
 
+  const sdk = createBaseAccountSDK({
+  appName: 'Test App',
+  appLogoUrl: 'https://farcaster-miniapp-chi.vercel.app/pfp.jpg',
+  appChainIds: [base.id],
+});
+
 const handleSend = async () => {
   try {
     if (usdcAmount === 0) {
       return;
     }
-    const provider = createBaseAccountSDK({}).getProvider();
+    const provider = sdk.getProvider();
 
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
 
