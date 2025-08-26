@@ -212,19 +212,13 @@ export default function AddBanner() {
     const domain = {
       name: tokenName,
       version: tokenVersion,
-      chainId: BigInt(8453),
+      chainId: 8453,
       verifyingContract: USDC_ADDRESS,
-      primaryType: "Permit",
+      // primaryType: "Permit",
     } as const;
 
 
     const types = {
-      EIP712Domain: [
-      { name: "name", type: "string" },
-      { name: "version", type: "string" },
-      { name: "chainId", type: "uint256" },
-      { name: "verifyingContract", type: "address" },
-    ],
       Permit: [
         { name: "owner", type: "address" },
         { name: "spender", type: "address" },
@@ -234,7 +228,8 @@ export default function AddBanner() {
       ],
     } as const;
 
-    const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6);
+    const usdcToSend = BigInt(String(Math.round(usdcAmount) * 1e6));
+    console.log("USDC to send:", usdcToSend);
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
 
     const message = {
@@ -245,13 +240,6 @@ export default function AddBanner() {
       deadline,
     };
 
-
-    const accounts:any = await provider.request({
-    method: 'eth_requestAccounts'
-  });
-
-  setLogs((prevLogs) => [...prevLogs, `Accounts ${String(accounts)}, ${typeof(accounts)}`]);
-
   const typedData = {
     domain: domain,
   types: types,
@@ -259,13 +247,24 @@ export default function AddBanner() {
   message,
   }
 
-    setLogs((prevLogs) => [...prevLogs, `Typed Data ${String(typedData)}`]);
+  console.log("Typed Data:", JSON.stringify(typedData, (_, value) =>
+  typeof value === "bigint" ? value.toString() : value
+))
 
+const accounts = await provider.request({
+    method: 'eth_requestAccounts'
+  });
+
+  console.log(accounts)
 
 const signature:any = await provider.request({
     method: 'eth_signTypedData_v4',
-    params: [address, JSON.stringify(typedData)]
+    params: [address, JSON.stringify(typedData, (_, value) =>
+  typeof value === "bigint" ? value.toString() : value
+)]
   });
+
+  console.log("Signature", signature)
 
   setLogs((prevLogs) => [...prevLogs, `Signature ${String(signature)}`]);
 
@@ -275,7 +274,7 @@ const signature:any = await provider.request({
     body: JSON.stringify({ 
       typedData, 
       signature, 
-      address: accounts[0] 
+      address: address 
     })
   });
   
@@ -297,6 +296,7 @@ const signature:any = await provider.request({
 
     getAuctionBids();
   } catch (error:any) {
+    setLogs((prevLogs) => [...prevLogs, `Error sending transaction: ${String(error)}`]);
     console.error("Error sending transaction:", error);
     throw error;
   } finally {
