@@ -15,6 +15,8 @@ import {
 import { useAccount } from "wagmi";
 import axios from "axios";
 import SponsorList from "@/components/SponsorList";
+import { useRouter } from "next/navigation";
+import { IoMdTrophy } from "react-icons/io";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
@@ -101,9 +103,14 @@ export default function Home() {
     // }
   };
 
+  const router = useRouter()
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-black animate-rise font-[var(--font-geist-mono)] ">
       <main className="relative h-full">
+        <button onClick={() => router.push("/leaderboard")} className="flex m-4 fixed text-yellow-500 text-2xl z-50 top-0 right-0 items-center justify-center bg-white/10 rounded-full w-10 aspect-square" >
+          <IoMdTrophy/>
+        </button>
         <div className="relative z-50">
           <div
             className={`h-screen w-screen fixed top-0 left-0 duration-200 transition-all ${

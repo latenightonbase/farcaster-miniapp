@@ -22,6 +22,8 @@ import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useGlobalContext } from "@/utils/globalContext";
 import { parseUnits } from "viem";
 import Image from "next/image";
+import { IoIosArrowBack } from "react-icons/io";
+import AuctionDisplay from "./AuctionDisplay";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,13 +45,15 @@ export default function AddBanner() {
   const user = globalContext?.user;
 
   const [bidders, setBidders] = useState<any[]>([]); // State to store sorted bidders
+  const [history, setHistory] = useState<any[]>([]); // State to store sorted bidders
+
   const [highestBidder, setHighestBidder] = useState<any | null>(null); // State to store the highest bidder
   const [inputVisible, setInputVisible] = useState(false); // State to toggle input visibility
   const [error, setError] = useState(""); // State to store error message
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
   const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
-
+  const [constAuctionId, setConstAuctionId] = useState<number | null>(null); // State to store constant auction ID
   useEffect(() => {
     const fetchSponsorImage = async () => {
       try {
@@ -87,12 +91,12 @@ export default function AddBanner() {
 
     fetchSponsorImage();
     // fetchMetaValue();
-    getAuctionId();
+    // getAuctionId();
   }, []);
 
-  useEffect(() => {
-    getAuctionId();
-  }, []);
+  // useEffect(() => {
+  //   getAuctionId();
+  // }, []);
 
   const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC address
 
@@ -181,14 +185,74 @@ export default function AddBanner() {
     }
   }
 
+  useEffect(()=>{
+    getAuctionId()
+  },[])
+
   useEffect(() => {
-    if(address && auctionId !== null)
-    getAuctionBids();
+    if(address && auctionId !== null){
+      getAuctionBids();
+      // getHistoricalBids();
+    }
   }, [address, auctionId])
+
+  // async function getHistoricalBids() {
+  //   if (!auctionId) return;
+  //   try {
+  //     const contract = await getContract(contractAdds.auction, auctionAbi);
+
+  //     for (let i = 0; i < auctionId; i++) {
+  //       const bids = await contract?.getBidders(i);
+
+  //       if (bids && Array.isArray(bids)) {
+  //         const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
+
+  //         const res = await fetch(
+  //           `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
+  //           {
+  //             headers: {
+  //               "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
+  //             },
+  //           }
+  //         );
+
+  //         if (!res.ok) {
+  //           console.error("Error fetching user data from Neynar API");
+  //           continue;
+  //         }
+
+  //         const jsonRes = await res.json();
+
+  //         const users = jsonRes.users || [];
+
+  //         const enrichedBidders = bids.map((bid: any) => {
+  //           const user = users.find((u: any) => u.fid === Number(bid.fid));
+
+  //           return {
+  //             username: user?.username || "Unknown",
+  //             pfp_url: user?.pfp_url || "",
+  //             bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
+  //           };
+  //         });
+
+  //         const sortedBidders = enrichedBidders.sort(
+  //           (a: any, b: any) => b.bidAmount - a.bidAmount
+  //         );
+
+  //         setHistory((prev) => [
+  //           ...prev,
+  //           { isOpen: false, bidders: sortedBidders },
+  //         ]);
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching historical bids:", err);
+  //   }
+  // }
 
 const handleSend = async () => {
   try {
-    if(usdcAmount === 0){
+    if (usdcAmount === 0) {
       return;
     }
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
@@ -252,10 +316,10 @@ const handleSend = async () => {
     await new Promise(resolve => setTimeout(resolve, 5000));
 
     getAuctionBids()
-
+    window.location.reload();
   } catch (error) {
     console.error("Error sending transaction:", error);
-    // setIsDropdownOpen(false);
+    setError("Transaction failed. Please try again."); // Display error message in the frontend
     throw error;
   } finally {
     setIsLoading(false);
@@ -263,6 +327,90 @@ const handleSend = async () => {
   }
 };
 
+
+//   const handleNavigation = (direction:string) => {
+
+//     if(!auctionId || !constAuctionId) return;
+
+//     if (direction === "left" && auctionId > 1) {
+//       setAuctionId((prev:any) => prev - 1);
+//     } else if (direction === "right" && auctionId < constAuctionId) {
+//       setAuctionId((prev:any) => prev + 1);
+//     }
+//   };
+
+//   // Modify the bid fetching logic
+//   useEffect(() => {
+  
+//     const fetchAuctionData = async () => {
+//       try {
+//         const contract = await getContract(contractAdds.auction, auctionAbi);
+//         const currentAuctionId = Number(await contract?.auctionId());
+//         setAuctionId(currentAuctionId);
+//         setConstAuctionId(currentAuctionId);
+
+//         const fetchedBidders = [];
+
+//         let lastAuctionId = Math.max(1, currentAuctionId - 5);
+
+//         for (let i = currentAuctionId; i >= lastAuctionId; i--) { // Ensure we fetch all auctions from current to Auction #1
+//           const bids = await contract?.getBidders(i);
+
+//           if (bids && Array.isArray(bids) && bids.length > 0) {
+//             const fids = bids.map((bid) => Number(bid.fid));
+
+//             const res = await fetch(
+//               `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
+//               {
+//                 headers: {
+//                   "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152",
+//                 },
+//               }
+//             );
+
+//             if (!res.ok) {
+//               console.error("Error fetching user data from Neynar API");
+//               continue;
+//             }
+
+//             const jsonRes = await res.json();
+//             const users = jsonRes.users || [];
+
+//             const enrichedBidders = bids.map((bid) => {
+//               const user = users.find((u: any) => u.fid === Number(bid.fid));
+
+//               return {
+//                 username: user?.username || "Unknown",
+//                 pfp_url: user?.pfp_url || "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/2e7cd5a1-e72f-4709-1757-c49a71e56b00/original",
+//                 bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
+//               };
+//             });
+
+//             console.log(`Enriched Bidders ${i} :`, enrichedBidders);
+
+//             const sortedBidders = enrichedBidders.sort(
+//             (a: any, b: any) => b.bidAmount - a.bidAmount
+//           );
+
+//             fetchedBidders.push({ auctionId: i, data: sortedBidders });
+//           }
+//           else {
+//             console.log(`No Bidders Found for Auction ${i}`);
+//             fetchedBidders.push({ auctionId: i, data: [] });
+//           }
+//         }
+
+//         setBidders(fetchedBidders); // Reverse to show most recent first
+//         setHighestBidder(fetchedBidders[0]?.data[0]);
+//       } catch (error) {
+//         console.error("Error fetching auction data:", error);
+//       }
+//     };
+// if(bidders.length == 0){
+//     fetchAuctionData();  
+//     }
+    
+//   }, []);
 
   if (address)
     return (
@@ -420,10 +568,9 @@ const handleSend = async () => {
           </div>
         </div>
 
-        
-          <div className="mt-6 text-white">
+        <div className="mt-6 text-white">
             <div className="flex items-center">
-              <h3 className="text-xl font-bold w-[70%]">Sponsor Auction {auctionId && `#${auctionId}`}</h3>
+              <h3 className="text-xl font-bold w-[70%]">Auction {auctionId && `#${auctionId}`}</h3>
               <div className="w-[30%] flex justify-end">
                 <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl"/> Bid</button>
               </div>
@@ -467,7 +614,6 @@ const handleSend = async () => {
           </div>
         )}
           </div>
-        
       </div>
     );
 }
