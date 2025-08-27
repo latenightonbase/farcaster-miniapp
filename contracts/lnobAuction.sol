@@ -20,17 +20,19 @@ contract LNOBAuction is Ownable {
     uint256 public highestBid;
 
     mapping(address => uint256) public bids;  // track total bids per address
-    Bidders[] private bidders;                // track unique bidders with extra data
-    mapping(address => bool) private hasBid;  // track if someone is already in bidders[]
+    mapping(uint256 => Bidders[]) public biddersByAuctionId;
+    mapping(uint256 => mapping(address => bool)) private hasBid;  // track if someone is already in bidders[]
 
     event BidPlaced(address indexed bidder, uint256 amount, uint256 fid);
     event AuctionEnded(address winner, uint256 amount);
 
-    constructor(address _usdc) Ownable(msg.sender) {
-        require(_usdc != address(0), "Invalid USDC address");
+    constructor(address _owner) Ownable(_owner) {
+        address _usdc = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
         usdc = IERC20(_usdc);
         usdcPermit = IERC20Permit(_usdc);
     }
+
+    uint256 public auctionId = 1;
 
     /// @notice Place a bid using EIP-2612 permit signature
     function bidWithPermit(
@@ -41,7 +43,6 @@ contract LNOBAuction is Ownable {
         bytes32 r,
         bytes32 s
     ) external {
-        require(!auctionEnded, "Auction already ended");
         require(amount > 0, "Amount must be > 0");
 
         // Permit this contract to spend bidder's tokens
@@ -53,13 +54,15 @@ contract LNOBAuction is Ownable {
         // Update bid data
         bids[msg.sender] += amount;
 
-        if (!hasBid[msg.sender]) {
+        Bidders[] storage bidders = biddersByAuctionId[auctionId];
+
+        if (!hasBid[auctionId][msg.sender]) {
             bidders.push(Bidders({
                 bidder: msg.sender,
                 bidAmount: bids[msg.sender],
                 fid: fid
             }));
-            hasBid[msg.sender] = true;
+            hasBid[auctionId][msg.sender] = true;
         } else {
             // update their bidAmount inside struct
             for (uint256 i = 0; i < bidders.length; i++) {
@@ -82,13 +85,13 @@ contract LNOBAuction is Ownable {
 
     /// @notice Ends the auction, pays owner, refunds others
     function endAuction() external onlyOwner {
-        require(!auctionEnded, "Auction already ended");
-        auctionEnded = true;
 
         // Transfer highest bid to owner
         if (highestBid > 0 && highestBidder != address(0)) {
             require(usdc.transfer(owner(), highestBid), "USDC transfer to owner failed");
         }
+
+        Bidders[] storage bidders = biddersByAuctionId[auctionId];
 
         // Refund all other bidders
         for (uint256 i = 0; i < bidders.length; i++) {
@@ -99,17 +102,19 @@ contract LNOBAuction is Ownable {
                 require(usdc.transfer(b.bidder, refund), "Refund failed");
             }
             // reset their hasBid flag too
-            hasBid[b.bidder] = false;
+            hasBid[auctionId][b.bidder] = false;
         }
 
-        // Clear bidders array after auction
-        delete bidders;
+        auctionId +=1;
+
 
         emit AuctionEnded(highestBidder, highestBid);
+        highestBidder = address(0);
+        highestBid = 0;
     }
 
     /// @notice Get list of bidders
-    function getBidders() external view returns (Bidders[] memory) {
-        return bidders;
+    function getBidders(uint256 _auctionId) external view returns (Bidders[] memory) {
+        return biddersByAuctionId[_auctionId];
     }
 }
