@@ -7,14 +7,18 @@ import { FaArrowLeft } from "react-icons/fa";
 export default function LeaderboardPage() {
     const router = useRouter()
     return (
-        <div className="min-h-screen overflow-x-hidden bg-black animate-rise font-[var(--font-geist-mono)] p-4">
+    <div className="h-screen overflow-y-scroll overflow-x-hidden bg-black animate-rise font-[var(--font-geist-mono)] ">
 
-            <main className="relative h-screen z-50">
-                <button onClick={() => router.back()} className="flex items-center justify-center bg-white/10 rounded-full w-8 aspect-square" ><FaArrowLeft/></button>
+            <main className="relative h-screen">
+                <div className="relative z-50 p-4">
+<button onClick={() => router.back()} className="flex items-center justify-center bg-white/10 rounded-full w-8 aspect-square" ><FaArrowLeft/></button>
 <AuctionDisplay/>
+                </div>
+                
+            <Background selected="youtube" />
             </main>
             
-            <Background selected="youtube" />
+            
         </div>
     )
 }

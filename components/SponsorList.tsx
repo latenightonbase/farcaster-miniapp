@@ -439,6 +439,135 @@ const handleSend = async () => {
           </a>
         )}
 
+        <div
+          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+        >
+          <div className="bg-gradient-to-b mx-2 from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-white hover:text-gray-400"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="text-lg font-bold mb-4">Place your Bid</h2>
+
+
+            <>
+              <ul className="text-gray-400 text-sm space-y-2 list-disc ml-5 mb-5">
+                  <li>
+                    Get featured in the <b>"Word from Our Sponsor"</b> section.
+                  </li>
+                  <li>
+                    Become the lead sponsor for the next <b>4 Live Streams</b>.
+                  </li>
+                  <li>
+                    Highest bidder will be contacted via Farcaster.
+                  </li>
+                  <li>Non-winning bids will be refunded.</li>
+              </ul>
+
+              {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
+                  <button
+                    onClick={() => setCurrency("ETH")}
+                    className={`flex-1 py-2 rounded-full font-bold transition ${
+                      currency === "ETH"
+                        ? "bg-orange-500 text-white"
+                        : "bg-orange-950/50 text-gray-300"
+                    } hover:bg-orange-600`}
+                  >
+                    ETH
+                  </button>
+                  <button
+                    onClick={() => setCurrency("USDC")}
+                    className={`flex-1 py-2 rounded-full font-bold transition ${
+                      currency === "USDC"
+                        ? "bg-orange-500 text-white"
+                        : "bg-orange-950/50 text-gray-300"
+                    } hover:bg-orange-600`}
+                  >
+                    USDC
+                  </button>
+                </div> */}
+
+              {highestBidder && <div>
+                <label className="flex items-center text-md gap-1 font-bold ">
+                  <RiAuctionFill className=" text-white text-xl" />
+                  Current Highest Bid:
+                </label>
+                <div className=" my-4 px-2 py-4 bg-white/10 rounded-sm flex gap-2">
+                  <span className="flex gap-1 w-[70%] truncate">
+                    <Image alt={highestBidder.username} src={highestBidder.pfp_url} width={24} height={24} className="rounded-full w-6 aspect-square" />
+                    {highestBidder.username}</span>
+                  <h4 className="font-bold w-[30%] text-right">{highestBidder.bidAmount} USDC</h4>
+                </div>
+                <div>
+
+                </div>
+                <div>
+
+                </div>
+
+              </div>}
+
+
+              {inputVisible ? (
+                <div className="mt-4">
+                  <input
+                    type="number"
+                    className="w-full px-4 py-2 border rounded-lg"
+                    placeholder="Enter USDC Amount"
+                    value={usdcAmount === 0 ? "" : usdcAmount} // Ensure initial 0 is not displayed
+                    onChange={(e) => {
+                      const value = Math.floor(Number(e.target.value)); // Ensure whole number
+                      setUsdcAmount(value);
+                      setError("");
+                    }}
+                  />
+                  {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                  <button
+                    type="button"
+                    className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
+                    onClick={() => {
+                      if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
+                        setError("Bid amount must be higher than the current highest bid.");
+                        return;
+                      }
+                      setIsSubmitting(true); // Show loader
+                      handleSend().finally(() => setIsSubmitting(false)); // Hide loader after submission
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <RiLoader5Fill className="animate-spin mr-2" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit"
+                    )}
+                  </button>
+                </div>
+              ) : (<button
+                type="button"
+                className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full flex items-center justify-center"
+                onClick={() => setInputVisible(true)}
+                disabled={isLoading}
+              >
+                {!isLoading ? (
+                  "Bid"
+                ) : (
+                  <>
+                    <RiLoader5Fill className="animate-spin mr-2" />
+                    Loading...
+                  </>
+                )}
+              </button>)}
+            </>
+
+          </div>
+        </div>
+
         <div className="mt-6 text-white">
             <div className="flex items-center">
               <h3 className="text-xl font-bold w-[70%]">Auction {auctionId && `#${auctionId}`}</h3>
