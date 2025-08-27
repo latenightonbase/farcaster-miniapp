@@ -612,7 +612,7 @@ if(bidders.length == 0){
                                 )}
                                 <span className="truncate">{bidder.username}</span>
                               </td>
-                              <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
+                              <td className={`py-2 text-right font-bold ${idx === 0 ? 'bg-gradient-to-br from-yellow-600 to-yellow-400 via-yellow-500 bg-clip-text text-transparent' : ''}`}>{bidder.bidAmount} USDC</td>
                             </tr>
                           ))}
                         </tbody>
