@@ -168,8 +168,11 @@ export default function AddBanner() {
           };
         });
 
+        // Filter out bidders with bidAmount = 0
+        const filteredBidders = enrichedBidders.filter((bidder) => Number(bidder.bidAmount) > 0);
+
         // Sort the enriched bidders by bidAmount in descending order
-        const sortedBidders = enrichedBidders.sort((a: any, b: any) => b.bidAmount - a.bidAmount);
+        const sortedBidders = filteredBidders.sort((a: any, b: any) => b.bidAmount - a.bidAmount);
 
         console.log("Sorted Bidders:", sortedBidders);
 
