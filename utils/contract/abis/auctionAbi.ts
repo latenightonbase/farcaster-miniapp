@@ -36,6 +36,12 @@ export const auctionAbi = [
 		"anonymous": false,
 		"inputs": [
 			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "auctionId",
+				"type": "uint256"
+			},
+			{
 				"indexed": false,
 				"internalType": "address",
 				"name": "winner",
@@ -162,19 +168,6 @@ export const auctionAbi = [
 	},
 	{
 		"inputs": [],
-		"name": "auctionEnded",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "auctionId",
 		"outputs": [
 			{
@@ -222,6 +215,11 @@ export const auctionAbi = [
 	},
 	{
 		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
 			{
 				"internalType": "address",
 				"name": "",
