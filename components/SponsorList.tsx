@@ -301,7 +301,7 @@ const handleSend = async () => {
     const { v, r, s } = splitSignature(signature);
 
 
-    const args = [usdcToSend, user, deadline, v, r, s];
+    const args = [usdcToSend, user || 1185279, deadline, v, r, s];
 
     console.log("Args:", args);
 
