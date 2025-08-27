@@ -337,6 +337,7 @@ const handleSend = async () => {
 
   // Modify the bid fetching logic
   useEffect(() => {
+  
     const fetchAuctionData = async () => {
       try {
         const contract = await getContract(contractAdds.auction, auctionAbi);
@@ -349,7 +350,7 @@ const handleSend = async () => {
         for (let i = currentAuctionId; i >= 1; i--) { // Ensure we fetch all auctions from current to Auction #1
           const bids = await contract?.getBidders(i);
 
-          if (bids && Array.isArray(bids)) {
+          if (bids && Array.isArray(bids) && bids.length > 0) {
             const fids = bids.map((bid) => Number(bid.fid));
 
             const res = await fetch(
@@ -379,19 +380,25 @@ const handleSend = async () => {
               };
             });
 
+            console.log(`Enriched Bidders ${i} :`, enrichedBidders);
+
             fetchedBidders.push({ auctionId: i, data: enrichedBidders });
-          } else {
-            fetchedBidders.push({ auctionId: i, data: [] }); // Ensure empty auctions are included
+          }
+          else {
+            console.log(`No Bidders Found for Auction ${i}`);
+            fetchedBidders.push({ auctionId: i, data: [] });
           }
         }
 
-        setBidders(fetchedBidders.reverse()); // Reverse to show most recent first
+        setBidders(fetchedBidders); // Reverse to show most recent first
       } catch (error) {
         console.error("Error fetching auction data:", error);
       }
     };
-
-    fetchAuctionData();
+if(bidders.length == 0){
+    fetchAuctionData();  
+    }
+    
   }, []);
 
   if (address)
@@ -564,7 +571,7 @@ const handleSend = async () => {
 
               </div>
               <div className="w-[30%] flex justify-end">
-                <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl"/> Bid</button>
+                <button onClick={() => setIsModalOpen(true)} className={`${constAuctionId === auctionId ? "block" : "hidden"} bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl`} ><RiAuctionFill className=" text-white text-xl"/> Bid</button>
               </div>
               
             </div>}
@@ -578,7 +585,7 @@ const handleSend = async () => {
                 bidders.map((auction) => (
                   <div key={auction.auctionId} className={auction.auctionId === auctionId ? "block" : "hidden"}>
                   
-                    { auction.data.length === 0 ? (
+                    { !auction.data || auction.data.length === 0 ? (
                       <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
                         <p className="text-white/70">No bids placed yet.</p>
                       </div>
