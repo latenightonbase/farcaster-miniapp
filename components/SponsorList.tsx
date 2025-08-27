@@ -3,7 +3,7 @@ import { FaBullhorn } from "react-icons/fa";
 import { X } from "lucide-react";
 import axios from "axios";
 import { ethers } from "ethers";
-import { createBaseAccountSDK } from "@base-org/account";
+
 import { HiSpeakerphone } from "react-icons/hi";
 import { useSignTypedData } from 'wagmi'
 import { splitSignature } from "ethers/lib/utils";
@@ -22,7 +22,7 @@ import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useGlobalContext } from "@/utils/globalContext";
 import { parseUnits } from "viem";
 import Image from "next/image";
-import { base } from "viem/chains";
+import { IoIosArrowBack } from "react-icons/io";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,16 +44,15 @@ export default function AddBanner() {
   const user = globalContext?.user;
 
   const [bidders, setBidders] = useState<any[]>([]); // State to store sorted bidders
+  const [history, setHistory] = useState<any[]>([]); // State to store sorted bidders
+
   const [highestBidder, setHighestBidder] = useState<any | null>(null); // State to store the highest bidder
   const [inputVisible, setInputVisible] = useState(false); // State to toggle input visibility
   const [error, setError] = useState(""); // State to store error message
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
   const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
-
-  // Add a state variable to store logs
-  const [logs, setLogs] = useState<string[]>([]);
-
+  const [constAuctionId, setConstAuctionId] = useState<number | null>(null); // State to store constant auction ID
   useEffect(() => {
     const fetchSponsorImage = async () => {
       try {
@@ -91,12 +90,12 @@ export default function AddBanner() {
 
     fetchSponsorImage();
     // fetchMetaValue();
-    getAuctionId();
+    // getAuctionId();
   }, []);
 
-  useEffect(() => {
-    getAuctionId();
-  }, []);
+  // useEffect(() => {
+  //   getAuctionId();
+  // }, []);
 
   const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC address
 
@@ -114,199 +113,285 @@ export default function AddBanner() {
     }
   }
 
-  async function getAuctionId() {
-    try {
-      const contract = await getContract(contractAdds.auction, auctionAbi);
-      const auctionId = await contract?.auctionId();
-      setAuctionId(auctionId);
-    } catch (error) {
-      console.error("Error getting auction ID:", error);
-    }
-  }
+  // async function getAuctionId() {
+  //   try {
+  //     const contract = await getContract(contractAdds.auction, auctionAbi);
+  //     const auctionId = await contract?.auctionId();
+  //     setAuctionId(auctionId);
+  //   } catch (error) {
+  //     console.error("Error getting auction ID:", error);
+  //   }
+  // }
 
-  async function getAuctionBids() {
-    try {
-      setIsFetchingBidders(true); // Start loader
-      const contract = await getContract(contractAdds.auction, auctionAbi);
-      const bids = await contract?.getBidders(auctionId);
+  // async function getAuctionBids() {
+  //   try {
+  //     setIsFetchingBidders(true); // Start loader
+  //     const contract = await getContract(contractAdds.auction, auctionAbi);
+  //     const bids = await contract?.getBidders(auctionId);
 
-      if (bids && Array.isArray(bids)) {
-        const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
+  //     if (bids && Array.isArray(bids)) {
+  //       const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
 
-        const res = await fetch(
-          `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
-          {
-            headers: {
-              "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
-            },
-          }
-        );
+  //       const res = await fetch(
+  //         `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
+  //         {
+  //           headers: {
+  //             "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
+  //           },
+  //         }
+  //       );
 
-        console.log("Neynar API Response Status:", res);
+  //       console.log("Neynar API Response Status:", res);
 
-        if (!res.ok) {
-          console.error("Error fetching user data from Neynar API");
-          return;
-        }
+  //       if (!res.ok) {
+  //         console.error("Error fetching user data from Neynar API");
+  //         return;
+  //       }
 
-        const jsonRes = await res.json();
+  //       const jsonRes = await res.json();
 
-        const users = jsonRes.users || [];
+  //       const users = jsonRes.users || [];
 
-        console.log("All Users:", users);
+  //       console.log("All Users:", users);
 
-        const enrichedBidders = bids.map((bid: any) => {
-          console.log("Bid:", bid);
-          const user = users.find((u: any) => u.fid === Number(bid.fid));
+  //       const enrichedBidders = bids.map((bid: any) => {
+  //         console.log("Bid:", bid);
+  //         const user = users.find((u: any) => u.fid === Number(bid.fid));
 
-          console.log("User found for bid:", user);
+  //         console.log("User found for bid:", user);
 
-          return {
-            username: user?.username || "Unknown",
-            pfp_url: user?.pfp_url || "",
-            bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
-          };
-        });
+  //         return {
+  //           username: user?.username || "Unknown",
+  //           pfp_url: user?.pfp_url || "",
+  //           bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
+  //         };
+  //       });
 
-        // Sort the enriched bidders by bidAmount in descending order
-        const sortedBidders = enrichedBidders.sort((a: any, b: any) => b.bidAmount - a.bidAmount);
+  //       // Sort the enriched bidders by bidAmount in descending order
+  //       const sortedBidders = enrichedBidders.sort((a: any, b: any) => b.bidAmount - a.bidAmount);
 
-        console.log("Sorted Bidders:", sortedBidders);
+  //       console.log("Sorted Bidders:", sortedBidders);
 
-        // Update the state with sorted enriched bidders
-        setBidders(sortedBidders);
-        setHighestBidder(sortedBidders[0]); // First element is the highest bidder
-      }
-      return bids;
-    } catch (error) {
-      console.error("Error getting bids:", error);
-    } finally {
-      setIsFetchingBidders(false); // Stop loader
-    }
-  }
+  //       // Update the state with sorted enriched bidders
+  //       setBidders(sortedBidders);
+  //       setHighestBidder(sortedBidders[0]); // First element is the highest bidder
+  //     }
+  //     return bids;
+  //   } catch (error) {
+  //     console.error("Error getting bids:", error);
+  //   } finally {
+  //     setIsFetchingBidders(false); // Stop loader
+  //   }
+  // }
 
   useEffect(() => {
-    if (address && auctionId !== null)
-      getAuctionBids();
+    if(address && auctionId !== null){
+      // getAuctionBids();
+      // getHistoricalBids();
+    }
   }, [address, auctionId])
 
+  // async function getHistoricalBids() {
+  //   if (!auctionId) return;
+  //   try {
+  //     const contract = await getContract(contractAdds.auction, auctionAbi);
 
-  const handleSend = async () => {
-    try {
-      const sdk = createBaseAccountSDK({
-        appName: 'Test App',
-        appLogoUrl: 'https://farcaster-miniapp-chi.vercel.app/pfp.jpg',
-        appChainIds: [base.id],
-      });
-      if (usdcAmount === 0) {
-        return;
-      }
-      const provider = sdk.getProvider();
+  //     for (let i = 0; i < auctionId; i++) {
+  //       const bids = await contract?.getBidders(i);
 
-      const usdc = await getContract(USDC_ADDRESS, usdcAbi);
+  //       if (bids && Array.isArray(bids)) {
+  //         const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
 
-      const tokenName = "USD Coin";
-      const tokenVersion = "2";
-      const nonce = BigInt(await usdc?.nonces(address));
+  //         const res = await fetch(
+  //           `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
+  //           {
+  //             headers: {
+  //               "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
+  //             },
+  //           }
+  //         );
 
-      const domain = {
-        name: tokenName,
-        version: tokenVersion,
-        chainId: 8453,
-        verifyingContract: USDC_ADDRESS,
-        // primaryType: "Permit",
-      } as const;
+  //         if (!res.ok) {
+  //           console.error("Error fetching user data from Neynar API");
+  //           continue;
+  //         }
+
+  //         const jsonRes = await res.json();
+
+  //         const users = jsonRes.users || [];
+
+  //         const enrichedBidders = bids.map((bid: any) => {
+  //           const user = users.find((u: any) => u.fid === Number(bid.fid));
+
+  //           return {
+  //             username: user?.username || "Unknown",
+  //             pfp_url: user?.pfp_url || "",
+  //             bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
+  //           };
+  //         });
+
+  //         const sortedBidders = enrichedBidders.sort(
+  //           (a: any, b: any) => b.bidAmount - a.bidAmount
+  //         );
+
+  //         setHistory((prev) => [
+  //           ...prev,
+  //           { isOpen: false, bidders: sortedBidders },
+  //         ]);
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching historical bids:", err);
+  //   }
+  // }
+
+const handleSend = async () => {
+  try {
+    if(usdcAmount === 0){
+      return;
+    }
+    const usdc = await getContract(USDC_ADDRESS, usdcAbi);
+
+    // Correct way
+    const tokenName = "USD Coin";
+    const tokenVersion = "2";
+    const nonce = BigInt(await usdc?.nonces(address));
+
+    const domain = {
+      name: tokenName,
+      version: tokenVersion,
+      chainId: 8453,
+      verifyingContract: USDC_ADDRESS,
+      primaryType: "Permit",
+    } as const;
+
+    const types = {
+      Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+    } as const;
+
+    const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6); // safe bigint
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+    const message = {
+      owner: address as `0x${string}`,
+      spender: contractAdds.auction as `0x${string}`,
+      value: usdcToSend,
+      nonce,
+      deadline,
+    };
+
+    const signature = await signTypedDataAsync({
+      domain,
+      primaryType: "Permit",
+      types,
+      message,
+    });
+
+    const { v, r, s } = splitSignature(signature);
 
 
-      const types = {
-        Permit: [
-          { name: "owner", type: "address" },
-          { name: "spender", type: "address" },
-          { name: "value", type: "uint256" },
-          { name: "nonce", type: "uint256" },
-          { name: "deadline", type: "uint256" },
-        ],
-      } as const;
+    const args = [usdcToSend, user|| 1129842, deadline, v, r, s];
 
-      const usdcToSend = Math.round(usdcAmount);
+    console.log("Args:", args);
 
-      console.log("USDC to send:", usdcToSend);
+    await writeContract(config, {
+      abi: auctionAbi,
+      address: contractAdds.auction as `0x${string}`,
+      functionName: "bidWithPermit",
+      args,
+    });
 
-      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+    //add a 5 second delay here
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
-      const message = {
-        owner: address as `0x${string}`,
-        spender: contractAdds.auction as `0x${string}`,
-        value: usdcToSend,
-        nonce,
-        deadline,
-      };
+    // getAuctionBids()
+    window.location.reload();
 
-      const typedData = {
-        domain: domain,
-        types: types,
-        primaryType: 'Permit',
-        message,
-      }
+  } catch (error) {
+    console.error("Error sending transaction:", error);
+    // setIsDropdownOpen(false);
+    throw error;
+  } finally {
+    setIsLoading(false);
+    setIsModalOpen(false);
+  }
+};
 
-      console.log("Typed Data:", JSON.stringify(typedData, (_, value) =>
-        typeof value === "bigint" ? value.toString() : value
-      ))
 
-      const accounts:any = await provider.request({
-        method: 'eth_requestAccounts'
-      });
+  const handleNavigation = (direction:string) => {
 
-      console.log(accounts)
+    if(!auctionId || !constAuctionId) return;
 
-      const signature: any = await provider.request({
-        method: 'eth_signTypedData_v4',
-        params: [accounts[0], JSON.stringify(typedData, (_, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )]
-      });
-
-      console.log("Signature", signature)
-
-      setLogs((prevLogs) => [...prevLogs, `Signature ${String(signature)}`]);
-
-      const response = await fetch('/typed-data/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          typedData,
-          signature,
-          address: address
-        })
-      });
-
-      const result = await response.json();
-
-      console.log("Verification Result:", result);
-      setLogs((prevLogs) => [...prevLogs, `Verification Response: ${JSON.stringify(result)}`]);
-
-      // const args = [usdcToSend, user, deadline, v, r, s];
-
-      // await writeContract(config, {
-      //   abi: auctionAbi,
-      //   address: contractAdds.auction as `0x${string}`,
-      //   functionName: "bidWithPermit",
-      //   args,
-      // });
-
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
-      getAuctionBids();
-    } catch (error: any) {
-      setLogs((prevLogs) => [...prevLogs, `Error sending transaction: ${String(error)}`]);
-      console.error("Error sending transaction:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-      setIsModalOpen(false);
+    if (direction === "left" && auctionId > 1) {
+      setAuctionId((prev:any) => prev - 1);
+    } else if (direction === "right" && auctionId < constAuctionId) {
+      setAuctionId((prev:any) => prev + 1);
     }
   };
 
+  // Modify the bid fetching logic
+  useEffect(() => {
+    const fetchAuctionData = async () => {
+      try {
+        const contract = await getContract(contractAdds.auction, auctionAbi);
+        const currentAuctionId = Number(await contract?.auctionId());
+        setAuctionId(currentAuctionId);
+        setConstAuctionId(currentAuctionId);
+
+        const recentAuctions = Math.max(0, currentAuctionId - 5);
+        const fetchedBidders = [];
+
+        for (let i = currentAuctionId; i > recentAuctions; i--) {
+          const bids = await contract?.getBidders(i);
+
+          if (bids && Array.isArray(bids)) {
+            const fids = bids.map((bid) => Number(bid.fid));
+
+            const res = await fetch(
+              `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
+              {
+                headers: {
+                  "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152",
+                },
+              }
+            );
+
+            if (!res.ok) {
+              console.error("Error fetching user data from Neynar API");
+              continue;
+            }
+
+            const jsonRes = await res.json();
+            const users = jsonRes.users || [];
+
+            const enrichedBidders = bids.map((bid) => {
+              const user = users.find((u:any) => u.fid === Number(bid.fid));
+
+              return {
+                username: user?.username || "Unknown",
+                pfp_url: user?.pfp_url || "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/2e7cd5a1-e72f-4709-1757-c49a71e56b00/original",
+                bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6), // Ensure bidAmount is formatted as a string
+              };
+            });
+            console.log("Enriched Bidders:", enrichedBidders);
+            fetchedBidders.push({ auctionId: i, data: enrichedBidders });
+          }
+        }
+        console.log(fetchedBidders)
+        setBidders(fetchedBidders.reverse()); // Reverse to show most recent first
+      } catch (error) {
+        console.error("Error fetching auction data:", error);
+      }
+    };
+
+    fetchAuctionData();
+  }, []);
 
   if (address)
     return (
@@ -351,16 +436,16 @@ export default function AddBanner() {
 
             <>
               <ul className="text-gray-400 text-sm space-y-2 list-disc ml-5 mb-5">
-                <li>
-                  Get featured in the <b>"Word from Our Sponsor"</b> section.
-                </li>
-                <li>
-                  Become the lead sponsor for the next <b>4 Live Streams</b>.
-                </li>
-                <li>
-                  Highest bidder will be contacted via Farcaster.
-                </li>
-                <li>Non-winning bids will be refunded.</li>
+                  <li>
+                    Get featured in the <b>"Word from Our Sponsor"</b> section.
+                  </li>
+                  <li>
+                    Become the lead sponsor for the next <b>4 Live Streams</b>.
+                  </li>
+                  <li>
+                    Highest bidder will be contacted via Farcaster.
+                  </li>
+                  <li>Non-winning bids will be refunded.</li>
               </ul>
 
               {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
@@ -425,10 +510,10 @@ export default function AddBanner() {
                     type="button"
                     className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
                     onClick={() => {
-                      // if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
-                      //   setError("Bid amount must be higher than the current highest bid.");
-                      //   return;
-                      // }
+                      if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
+                        setError("Bid amount must be higher than the current highest bid.");
+                        return;
+                      }
                       setIsSubmitting(true); // Show loader
                       handleSend().finally(() => setIsSubmitting(false)); // Hide loader after submission
                     }}
@@ -464,63 +549,137 @@ export default function AddBanner() {
           </div>
         </div>
 
+        
+          <div className="mt-6 text-white">
+            {auctionId && constAuctionId && <div className="flex items-center">
+              <div className="w-[70%] flex gap-2">
+                <h3 className="text-xl font-bold">Auction #{auctionId}</h3>
+                <button className="flex bg-white/10 disabled:bg-transparent disabled:text-white/40 w-8 text-sm aspect-video rounded-full text-white items-center justify-center" onClick={() => handleNavigation("left")} disabled={auctionId <= 1}>
+                  <IoIosArrowBack />
+                </button>
+                <button className="flex disabled:bg-transparent disabled:text-white/40 bg-white/10 w-8 text-sm aspect-video rotate-180 rounded-full text-white items-center justify-center" onClick={() => handleNavigation("right")} disabled={auctionId >= constAuctionId}>
+                  <IoIosArrowBack />
+                </button>
 
-        <div className="mt-6 text-white">
-          <div className="flex items-center">
-            <h3 className="text-xl font-bold w-[70%]">Sponsor Auction {auctionId && `#${auctionId}`}</h3>
-            <div className="w-[30%] flex justify-end">
-              <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl" /> Bid</button>
-            </div>
-
+              </div>
+              <div className="w-[30%] flex justify-end">
+                <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl"/> Bid</button>
+              </div>
+              
+            </div>}
+            {isFetchingBidders ? (
+              <div className="flex justify-center items-center h-20">
+                <RiLoader5Fill className="animate-spin text-white text-3xl" />
+              </div>
+            ) : bidders.length > 0 ? (
+            <div className="mt-4">
+              {bidders.length > 0 && (
+                bidders.map((auction) => (
+                  <div key={auction.auctionId} className={auction.auctionId === auctionId ? "block" : "hidden"}>
+                  
+                    {auction.data.length === 0 ? <>
+                        <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
+            <p className="text-white/70">No bids placed yet.</p>
           </div>
-          {isFetchingBidders ? (
-            <div className="flex justify-center items-center h-20">
-              <RiLoader5Fill className="animate-spin text-white text-3xl" />
+                        </> :<table className="w-full text-left border-collapse mt-4">
+                      <thead>
+                        <tr className="border-b border-white/30 text-red-300">
+                          <th className="py-2">Profile</th>
+                          <th className="py-2 text-right">Bid Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                         <>
+                          {auction.data.map((bidder:any, idx:any) => (
+                            <tr key={idx} className="border-b border-white/10">
+                              <td className="py-2 flex items-center gap-2">
+                                {bidder.pfp_url ? (
+                                  <img
+                                    src={bidder.pfp_url}
+                                    alt={bidder.username}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-white/40"></div>
+                                )}
+                                <span className="truncate">{bidder.username}</span>
+                              </td>
+                              <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
+                            </tr>
+                          ))}
+                        </>
+                        
+                      </tbody>
+                    </table>}
+                  </div>
+                ))
+              )}
             </div>
-          ) : bidders.length > 0 ? (
-            <table className="w-full text-left border-collapse mt-4">
-              <thead>
-                <tr className="border-b border-white/30 text-red-300">
-                  <th className="py-2 ">Profile</th>
-                  <th className="py-2 text-right ">Bid Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bidders.map((bidder, index) => (
-                  <tr key={index} className="border-b border-white/10">
-                    <td className="py-2 flex items-center gap-2">
-                      {bidder.pfp_url ? (
-                        <img
-                          src={bidder.pfp_url}
-                          alt={bidder.username}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-white/40"></div>
-                      )}
-                      <span className="truncate">{bidder.username}</span>
-                    </td>
-                    <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           ) : (
-            <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
-              <p className="text-white/70">No bids placed yet.</p>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-4 bg-white/10 rounded-lg p-4">
-          <h3 className="text-lg font-bold text-white">Logs</h3>
-          <div className="text-sm text-gray-300 max-h-40 overflow-y-auto">
-            {logs.map((log, index) => (
-              <p key={index}>{log}</p>
-            ))}
+          <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
+            <p className="text-white/70">No bids placed yet.</p>
           </div>
+        )}
+          </div>
+          {/* History Section */}
+          {/* <div className="mt-6 text-white">
+            <h3 className="text-xl font-bold">Auction History</h3>
+            {history.length > 0 ? (
+              <div className="mt-4">
+                {history.map((auctionHistory, index) => (
+                  <div key={index} className="mt-2">
+                    <button
+                      onClick={() => {
+                        setHistory((prev) =>
+                          prev.map((item, i) =>
+                            i === index
+                              ? { ...item, isOpen: !item.isOpen }
+                              : { ...item, isOpen: false }
+                          )
+                        );
+                      }}
+                      className="bg-gradient-to-br from-blue-600 to-blue-800 text-white px-4 py-2 rounded-lg w-full text-left"
+                    >
+                      Auction #{index + 1}
+                    </button>
+                    {auctionHistory.isOpen && (
+                      <table className="w-full text-left border-collapse mt-2">
+                        <thead>
+                          <tr className="border-b border-white/30 text-red-300">
+                            <th className="py-2">Profile</th>
+                            <th className="py-2 text-right">Bid Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {auctionHistory.bidders.map((bidder: any, idx: number) => (
+                            <tr key={idx} className="border-b border-white/10">
+                              <td className="py-2 flex items-center gap-2">
+                                {bidder.pfp_url ? (
+                                  <img
+                                    src={bidder.pfp_url}
+                                    alt={bidder.username}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-white/40"></div>
+                                )}
+                                <span className="truncate">{bidder.username}</span>
+                              </td>
+                              <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
+                <p className="text-white/70">No historical auctions available.</p>
+              </div>
+            )}
+          </div> */}
         </div>
-
-      </div>
     );
 }
