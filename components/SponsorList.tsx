@@ -23,6 +23,7 @@ import { useGlobalContext } from "@/utils/globalContext";
 import { parseUnits } from "viem";
 import Image from "next/image";
 import { IoIosArrowBack } from "react-icons/io";
+import AuctionDisplay from "./AuctionDisplay";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -113,80 +114,84 @@ export default function AddBanner() {
     }
   }
 
-  // async function getAuctionId() {
-  //   try {
-  //     const contract = await getContract(contractAdds.auction, auctionAbi);
-  //     const auctionId = await contract?.auctionId();
-  //     setAuctionId(auctionId);
-  //   } catch (error) {
-  //     console.error("Error getting auction ID:", error);
-  //   }
-  // }
+  async function getAuctionId() {
+    try {
+      const contract = await getContract(contractAdds.auction, auctionAbi);
+      const auctionId = await contract?.auctionId();
+      setAuctionId(auctionId);
+    } catch (error) {
+      console.error("Error getting auction ID:", error);
+    }
+  }
 
-  // async function getAuctionBids() {
-  //   try {
-  //     setIsFetchingBidders(true); // Start loader
-  //     const contract = await getContract(contractAdds.auction, auctionAbi);
-  //     const bids = await contract?.getBidders(auctionId);
+  async function getAuctionBids() {
+    try {
+      setIsFetchingBidders(true); // Start loader
+      const contract = await getContract(contractAdds.auction, auctionAbi);
+      const bids = await contract?.getBidders(auctionId);
 
-  //     if (bids && Array.isArray(bids)) {
-  //       const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
+      if (bids && Array.isArray(bids)) {
+        const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
 
-  //       const res = await fetch(
-  //         `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
-  //         {
-  //           headers: {
-  //             "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
-  //           },
-  //         }
-  //       );
+        const res = await fetch(
+          `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
+          {
+            headers: {
+              "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
+            },
+          }
+        );
 
-  //       console.log("Neynar API Response Status:", res);
+        console.log("Neynar API Response Status:", res);
 
-  //       if (!res.ok) {
-  //         console.error("Error fetching user data from Neynar API");
-  //         return;
-  //       }
+        if (!res.ok) {
+          console.error("Error fetching user data from Neynar API");
+          return;
+        }
 
-  //       const jsonRes = await res.json();
+        const jsonRes = await res.json();
 
-  //       const users = jsonRes.users || [];
+        const users = jsonRes.users || [];
 
-  //       console.log("All Users:", users);
+        console.log("All Users:", users);
 
-  //       const enrichedBidders = bids.map((bid: any) => {
-  //         console.log("Bid:", bid);
-  //         const user = users.find((u: any) => u.fid === Number(bid.fid));
+        const enrichedBidders = bids.map((bid: any) => {
+          console.log("Bid:", bid);
+          const user = users.find((u: any) => u.fid === Number(bid.fid));
 
-  //         console.log("User found for bid:", user);
+          console.log("User found for bid:", user);
 
-  //         return {
-  //           username: user?.username || "Unknown",
-  //           pfp_url: user?.pfp_url || "",
-  //           bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
-  //         };
-  //       });
+          return {
+            username: user?.username || "Unknown",
+            pfp_url: user?.pfp_url || "",
+            bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
+          };
+        });
 
-  //       // Sort the enriched bidders by bidAmount in descending order
-  //       const sortedBidders = enrichedBidders.sort((a: any, b: any) => b.bidAmount - a.bidAmount);
+        // Sort the enriched bidders by bidAmount in descending order
+        const sortedBidders = enrichedBidders.sort((a: any, b: any) => b.bidAmount - a.bidAmount);
 
-  //       console.log("Sorted Bidders:", sortedBidders);
+        console.log("Sorted Bidders:", sortedBidders);
 
-  //       // Update the state with sorted enriched bidders
-  //       setBidders(sortedBidders);
-  //       setHighestBidder(sortedBidders[0]); // First element is the highest bidder
-  //     }
-  //     return bids;
-  //   } catch (error) {
-  //     console.error("Error getting bids:", error);
-  //   } finally {
-  //     setIsFetchingBidders(false); // Stop loader
-  //   }
-  // }
+        // Update the state with sorted enriched bidders
+        setBidders(sortedBidders);
+        setHighestBidder(sortedBidders[0]); // First element is the highest bidder
+      }
+      return bids;
+    } catch (error) {
+      console.error("Error getting bids:", error);
+    } finally {
+      setIsFetchingBidders(false); // Stop loader
+    }
+  }
+
+  useEffect(()=>{
+    getAuctionId()
+  },[])
 
   useEffect(() => {
     if(address && auctionId !== null){
-      // getAuctionBids();
+      getAuctionBids();
       // getHistoricalBids();
     }
   }, [address, auctionId])
@@ -247,7 +252,7 @@ export default function AddBanner() {
 
 const handleSend = async () => {
   try {
-    if(usdcAmount === 0){
+    if (usdcAmount === 0) {
       return;
     }
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
@@ -296,7 +301,7 @@ const handleSend = async () => {
     const { v, r, s } = splitSignature(signature);
 
 
-    const args = [usdcToSend, user|| 1129842, deadline, v, r, s];
+    const args = [usdcToSend, user, deadline, v, r, s];
 
     console.log("Args:", args);
 
@@ -310,12 +315,11 @@ const handleSend = async () => {
     //add a 5 second delay here
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    // getAuctionBids()
+    getAuctionBids()
     window.location.reload();
-
   } catch (error) {
     console.error("Error sending transaction:", error);
-    // setIsDropdownOpen(false);
+    setError("Transaction failed. Please try again."); // Display error message in the frontend
     throw error;
   } finally {
     setIsLoading(false);
@@ -324,75 +328,89 @@ const handleSend = async () => {
 };
 
 
-  const handleNavigation = (direction:string) => {
+//   const handleNavigation = (direction:string) => {
 
-    if(!auctionId || !constAuctionId) return;
+//     if(!auctionId || !constAuctionId) return;
 
-    if (direction === "left" && auctionId > 1) {
-      setAuctionId((prev:any) => prev - 1);
-    } else if (direction === "right" && auctionId < constAuctionId) {
-      setAuctionId((prev:any) => prev + 1);
-    }
-  };
+//     if (direction === "left" && auctionId > 1) {
+//       setAuctionId((prev:any) => prev - 1);
+//     } else if (direction === "right" && auctionId < constAuctionId) {
+//       setAuctionId((prev:any) => prev + 1);
+//     }
+//   };
 
-  // Modify the bid fetching logic
-  useEffect(() => {
-    const fetchAuctionData = async () => {
-      try {
-        const contract = await getContract(contractAdds.auction, auctionAbi);
-        const currentAuctionId = Number(await contract?.auctionId());
-        setAuctionId(currentAuctionId);
-        setConstAuctionId(currentAuctionId);
+//   // Modify the bid fetching logic
+//   useEffect(() => {
+  
+//     const fetchAuctionData = async () => {
+//       try {
+//         const contract = await getContract(contractAdds.auction, auctionAbi);
+//         const currentAuctionId = Number(await contract?.auctionId());
+//         setAuctionId(currentAuctionId);
+//         setConstAuctionId(currentAuctionId);
 
-        const fetchedBidders = [];
+//         const fetchedBidders = [];
 
-        for (let i = currentAuctionId; i >= 1; i--) { // Ensure we fetch all auctions from current to Auction #1
-          const bids = await contract?.getBidders(i);
+//         let lastAuctionId = Math.max(1, currentAuctionId - 5);
 
-          if (bids && Array.isArray(bids)) {
-            const fids = bids.map((bid) => Number(bid.fid));
+//         for (let i = currentAuctionId; i >= lastAuctionId; i--) { // Ensure we fetch all auctions from current to Auction #1
+//           const bids = await contract?.getBidders(i);
 
-            const res = await fetch(
-              `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
-              {
-                headers: {
-                  "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152",
-                },
-              }
-            );
+//           if (bids && Array.isArray(bids) && bids.length > 0) {
+//             const fids = bids.map((bid) => Number(bid.fid));
 
-            if (!res.ok) {
-              console.error("Error fetching user data from Neynar API");
-              continue;
-            }
+//             const res = await fetch(
+//               `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
+//               {
+//                 headers: {
+//                   "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152",
+//                 },
+//               }
+//             );
 
-            const jsonRes = await res.json();
-            const users = jsonRes.users || [];
+//             if (!res.ok) {
+//               console.error("Error fetching user data from Neynar API");
+//               continue;
+//             }
 
-            const enrichedBidders = bids.map((bid) => {
-              const user = users.find((u: any) => u.fid === Number(bid.fid));
+//             const jsonRes = await res.json();
+//             const users = jsonRes.users || [];
 
-              return {
-                username: user?.username || "Unknown",
-                pfp_url: user?.pfp_url || "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/2e7cd5a1-e72f-4709-1757-c49a71e56b00/original",
-                bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
-              };
-            });
+//             const enrichedBidders = bids.map((bid) => {
+//               const user = users.find((u: any) => u.fid === Number(bid.fid));
 
-            fetchedBidders.push({ auctionId: i, data: enrichedBidders });
-          } else {
-            fetchedBidders.push({ auctionId: i, data: [] }); // Ensure empty auctions are included
-          }
-        }
+//               return {
+//                 username: user?.username || "Unknown",
+//                 pfp_url: user?.pfp_url || "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/2e7cd5a1-e72f-4709-1757-c49a71e56b00/original",
+//                 bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
+//               };
+//             });
 
-        setBidders(fetchedBidders.reverse()); // Reverse to show most recent first
-      } catch (error) {
-        console.error("Error fetching auction data:", error);
-      }
-    };
+//             console.log(`Enriched Bidders ${i} :`, enrichedBidders);
 
-    fetchAuctionData();
-  }, []);
+//             const sortedBidders = enrichedBidders.sort(
+//             (a: any, b: any) => b.bidAmount - a.bidAmount
+//           );
+
+//             fetchedBidders.push({ auctionId: i, data: sortedBidders });
+//           }
+//           else {
+//             console.log(`No Bidders Found for Auction ${i}`);
+//             fetchedBidders.push({ auctionId: i, data: [] });
+//           }
+//         }
+
+//         setBidders(fetchedBidders); // Reverse to show most recent first
+//         setHighestBidder(fetchedBidders[0]?.data[0]);
+//       } catch (error) {
+//         console.error("Error fetching auction data:", error);
+//       }
+//     };
+// if(bidders.length == 0){
+//     fetchAuctionData();  
+//     }
+    
+//   }, []);
 
   if (address)
     return (
@@ -550,136 +568,52 @@ const handleSend = async () => {
           </div>
         </div>
 
-        
-          <div className="mt-6 text-white">
-            {auctionId && constAuctionId && <div className="flex items-center">
-              <div className="w-[70%] flex gap-2">
-                <h3 className="text-xl font-bold">Auction #{auctionId}</h3>
-                <button className="flex bg-white/10 disabled:bg-transparent disabled:text-white/40 w-8 text-sm aspect-video rounded-full text-white items-center justify-center" onClick={() => handleNavigation("left")} disabled={auctionId <= 1}>
-                  <IoIosArrowBack />
-                </button>
-                <button className="flex disabled:bg-transparent disabled:text-white/40 bg-white/10 w-8 text-sm aspect-video rotate-180 rounded-full text-white items-center justify-center" onClick={() => handleNavigation("right")} disabled={auctionId >= constAuctionId}>
-                  <IoIosArrowBack />
-                </button>
-
-              </div>
+        <div className="mt-6 text-white">
+            <div className="flex items-center">
+              <h3 className="text-xl font-bold w-[70%]">Auction {auctionId && `#${auctionId}`}</h3>
               <div className="w-[30%] flex justify-end">
                 <button onClick={() => setIsModalOpen(true)} className=" bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"><RiAuctionFill className=" text-white text-xl"/> Bid</button>
               </div>
               
-            </div>}
+            </div>
             {isFetchingBidders ? (
               <div className="flex justify-center items-center h-20">
                 <RiLoader5Fill className="animate-spin text-white text-3xl" />
               </div>
             ) : bidders.length > 0 ? (
-            <div className="mt-4">
-              {bidders.length > 0 && (
-                bidders.map((auction) => (
-                  <div key={auction.auctionId} className={auction.auctionId === auctionId ? "block" : "hidden"}>
-                  
-                    { auction.data.length === 0 ? (
-                      <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
-                        <p className="text-white/70">No bids placed yet.</p>
-                      </div>
-                    ) : (
-                      <table className="w-full text-left border-collapse mt-4">
-                        <thead>
-                          <tr className="border-b border-white/30 text-red-300">
-                            <th className="py-2">Profile</th>
-                            <th className="py-2 text-right">Bid Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {auction.data.map((bidder: any, idx: number) => (
-                            <tr key={idx} className="border-b border-white/10">
-                              <td className="py-2 flex items-center gap-2">
-                                {bidder.pfp_url ? (
-                                  <img
-                                    src={bidder.pfp_url}
-                                    alt={bidder.username}
-                                    className="w-8 h-8 rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-8 h-8 rounded-full bg-white/40"></div>
-                                )}
-                                <span className="truncate">{bidder.username}</span>
-                              </td>
-                              <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          ) : (
+            <table className="w-full text-left border-collapse mt-4">
+              <thead>
+                <tr className="border-b border-white/30 text-red-300">
+                  <th className="py-2 ">Profile</th>
+                  <th className="py-2 text-right ">Bid Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bidders.map((bidder, index) => (
+                  <tr key={index} className="border-b border-white/10">
+                    <td className="py-2 flex items-center gap-2">
+                      {bidder.pfp_url ? (
+                        <img
+                          src={bidder.pfp_url}
+                          alt={bidder.username}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-white/40"></div>
+                      )}
+                      <span className="truncate">{bidder.username}</span>
+                    </td>
+                    <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            ) : (
           <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
             <p className="text-white/70">No bids placed yet.</p>
           </div>
         )}
           </div>
-          {/* History Section */}
-          {/* <div className="mt-6 text-white">
-            <h3 className="text-xl font-bold">Auction History</h3>
-            {history.length > 0 ? (
-              <div className="mt-4">
-                {history.map((auctionHistory, index) => (
-                  <div key={index} className="mt-2">
-                    <button
-                      onClick={() => {
-                        setHistory((prev) =>
-                          prev.map((item, i) =>
-                            i === index
-                              ? { ...item, isOpen: !item.isOpen }
-                              : { ...item, isOpen: false }
-                          )
-                        );
-                      }}
-                      className="bg-gradient-to-br from-blue-600 to-blue-800 text-white px-4 py-2 rounded-lg w-full text-left"
-                    >
-                      Auction #{index + 1}
-                    </button>
-                    {auctionHistory.isOpen && (
-                      <table className="w-full text-left border-collapse mt-2">
-                        <thead>
-                          <tr className="border-b border-white/30 text-red-300">
-                            <th className="py-2">Profile</th>
-                            <th className="py-2 text-right">Bid Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {auctionHistory.bidders.map((bidder: any, idx: number) => (
-                            <tr key={idx} className="border-b border-white/10">
-                              <td className="py-2 flex items-center gap-2">
-                                {bidder.pfp_url ? (
-                                  <img
-                                    src={bidder.pfp_url}
-                                    alt={bidder.username}
-                                    className="w-8 h-8 rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-8 h-8 rounded-full bg-white/40"></div>
-                                )}
-                                <span className="truncate">{bidder.username}</span>
-                              </td>
-                              <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
-                <p className="text-white/70">No historical auctions available.</p>
-              </div>
-            )}
-          </div> */}
-        </div>
+      </div>
     );
 }
