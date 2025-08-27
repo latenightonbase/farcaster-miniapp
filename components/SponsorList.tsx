@@ -247,7 +247,7 @@ export default function AddBanner() {
 
 const handleSend = async () => {
   try {
-    if(usdcAmount === 0){
+    if (usdcAmount === 0) {
       return;
     }
     const usdc = await getContract(USDC_ADDRESS, usdcAbi);
@@ -312,10 +312,9 @@ const handleSend = async () => {
 
     // getAuctionBids()
     window.location.reload();
-
   } catch (error) {
     console.error("Error sending transaction:", error);
-    // setIsDropdownOpen(false);
+    setError("Transaction failed. Please try again."); // Display error message in the frontend
     throw error;
   } finally {
     setIsLoading(false);
@@ -391,6 +390,7 @@ const handleSend = async () => {
         }
 
         setBidders(fetchedBidders); // Reverse to show most recent first
+        setHighestBidder(fetchedBidders[0]?.data[0]);
       } catch (error) {
         console.error("Error fetching auction data:", error);
       }
