@@ -301,7 +301,7 @@ const handleSend = async () => {
     const { v, r, s } = splitSignature(signature);
 
 
-    const args = [usdcToSend, user|| 1129842, deadline, v, r, s];
+    const args = [usdcToSend, user, deadline, v, r, s];
 
     console.log("Args:", args);
 
@@ -315,7 +315,7 @@ const handleSend = async () => {
     //add a 5 second delay here
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    // getAuctionBids()
+    getAuctionBids()
     window.location.reload();
   } catch (error) {
     console.error("Error sending transaction:", error);
