@@ -12,27 +12,28 @@ struct Bidders {
 }
 
 contract LNOBAuction is Ownable {
-    IERC20 public immutable usdc;          // For transfers
-    IERC20Permit public immutable usdcPermit; // For permit signatures
+    IERC20 public immutable usdc;               // For transfers
+    IERC20Permit public immutable usdcPermit;   // For permit signatures
 
-    bool public auctionEnded;
+    // GLOBAL auction state (reset between auctions)
     address public highestBidder;
     uint256 public highestBid;
 
-    mapping(address => uint256) public bids;  // track total bids per address
-    mapping(uint256 => Bidders[]) public biddersByAuctionId;
-    mapping(uint256 => mapping(address => bool)) private hasBid;  // track if someone is already in bidders[]
+    uint256 public auctionId = 1;
+
+    // 👉 Per-auction accounting
+    mapping(uint256 => mapping(address => uint256)) public bids;                    // bids[auctionId][user]
+    mapping(uint256 => Bidders[]) public biddersByAuctionId;                        // list per auction
+    mapping(uint256 => mapping(address => bool)) private hasBid;                    // presence per auction
 
     event BidPlaced(address indexed bidder, uint256 amount, uint256 fid);
-    event AuctionEnded(address winner, uint256 amount);
+    event AuctionEnded(uint256 indexed auctionId, address winner, uint256 amount);
 
     constructor(address _owner) Ownable(_owner) {
         address _usdc = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
         usdc = IERC20(_usdc);
         usdcPermit = IERC20Permit(_usdc);
     }
-
-    uint256 public auctionId = 1;
 
     /// @notice Place a bid using EIP-2612 permit signature
     function bidWithPermit(
@@ -51,15 +52,15 @@ contract LNOBAuction is Ownable {
         // Pull tokens from bidder
         require(usdc.transferFrom(msg.sender, address(this), amount), "USDC transfer failed");
 
-        // Update bid data
-        bids[msg.sender] += amount;
+        // Update bid data (per-auction)
+        bids[auctionId][msg.sender] += amount;
 
         Bidders[] storage bidders = biddersByAuctionId[auctionId];
 
         if (!hasBid[auctionId][msg.sender]) {
             bidders.push(Bidders({
                 bidder: msg.sender,
-                bidAmount: bids[msg.sender],
+                bidAmount: bids[auctionId][msg.sender],
                 fid: fid
             }));
             hasBid[auctionId][msg.sender] = true;
@@ -67,16 +68,16 @@ contract LNOBAuction is Ownable {
             // update their bidAmount inside struct
             for (uint256 i = 0; i < bidders.length; i++) {
                 if (bidders[i].bidder == msg.sender) {
-                    bidders[i].bidAmount = bids[msg.sender];
+                    bidders[i].bidAmount = bids[auctionId][msg.sender];
                     bidders[i].fid = fid; // optional: overwrite fid on re-bid
                     break;
                 }
             }
         }
 
-        // Update highest bid
-        if (bids[msg.sender] > highestBid) {
-            highestBid = bids[msg.sender];
+        // Update highest bid (per current auction)
+        if (bids[auctionId][msg.sender] > highestBid) {
+            highestBid = bids[auctionId][msg.sender];
             highestBidder = msg.sender;
         }
 
@@ -85,32 +86,41 @@ contract LNOBAuction is Ownable {
 
     /// @notice Ends the auction, pays owner, refunds others
     function endAuction() external onlyOwner {
+        uint256 currentAuctionId = auctionId;
+        Bidders[] storage bidders = biddersByAuctionId[currentAuctionId];
 
-        // Transfer highest bid to owner
+        // Pay owner the highest bid
         if (highestBid > 0 && highestBidder != address(0)) {
             require(usdc.transfer(owner(), highestBid), "USDC transfer to owner failed");
+            // reset winner's per-auction bid to zero
+            bids[currentAuctionId][highestBidder] = 0;
         }
-
-        Bidders[] storage bidders = biddersByAuctionId[auctionId];
 
         // Refund all other bidders
         for (uint256 i = 0; i < bidders.length; i++) {
             Bidders memory b = bidders[i];
-            if (b.bidder != highestBidder && bids[b.bidder] > 0) {
-                uint256 refund = bids[b.bidder];
-                bids[b.bidder] = 0;
-                require(usdc.transfer(b.bidder, refund), "Refund failed");
+            if (b.bidder != highestBidder) {
+                uint256 refund = bids[currentAuctionId][b.bidder];
+                if (refund > 0) {
+                    bids[currentAuctionId][b.bidder] = 0;
+                    require(usdc.transfer(b.bidder, refund), "Refund failed");
+                }
             }
-            // reset their hasBid flag too
-            hasBid[auctionId][b.bidder] = false;
+            // reset their hasBid flag for this auction
+            hasBid[currentAuctionId][b.bidder] = false;
         }
 
-        auctionId +=1;
+        emit AuctionEnded(currentAuctionId, highestBidder, highestBid);
 
+        // Cleanup bidders array for the finished auction
+        delete biddersByAuctionId[currentAuctionId];
 
-        emit AuctionEnded(highestBidder, highestBid);
+        // Reset global highest for the next auction
         highestBidder = address(0);
         highestBid = 0;
+
+        // Start next auction
+        auctionId = currentAuctionId + 1;
     }
 
     /// @notice Get list of bidders
