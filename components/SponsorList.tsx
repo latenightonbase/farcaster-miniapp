@@ -344,10 +344,9 @@ const handleSend = async () => {
         setAuctionId(currentAuctionId);
         setConstAuctionId(currentAuctionId);
 
-        const recentAuctions = Math.max(0, currentAuctionId - 5);
         const fetchedBidders = [];
 
-        for (let i = currentAuctionId; i > recentAuctions; i--) {
+        for (let i = currentAuctionId; i >= 1; i--) { // Ensure we fetch all auctions from current to Auction #1
           const bids = await contract?.getBidders(i);
 
           if (bids && Array.isArray(bids)) {
@@ -371,19 +370,21 @@ const handleSend = async () => {
             const users = jsonRes.users || [];
 
             const enrichedBidders = bids.map((bid) => {
-              const user = users.find((u:any) => u.fid === Number(bid.fid));
+              const user = users.find((u: any) => u.fid === Number(bid.fid));
 
               return {
                 username: user?.username || "Unknown",
                 pfp_url: user?.pfp_url || "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/2e7cd5a1-e72f-4709-1757-c49a71e56b00/original",
-                bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6), // Ensure bidAmount is formatted as a string
+                bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
               };
             });
-            console.log("Enriched Bidders:", enrichedBidders);
+
             fetchedBidders.push({ auctionId: i, data: enrichedBidders });
+          } else {
+            fetchedBidders.push({ auctionId: i, data: [] }); // Ensure empty auctions are included
           }
         }
-        console.log(fetchedBidders)
+
         setBidders(fetchedBidders.reverse()); // Reverse to show most recent first
       } catch (error) {
         console.error("Error fetching auction data:", error);
@@ -577,20 +578,20 @@ const handleSend = async () => {
                 bidders.map((auction) => (
                   <div key={auction.auctionId} className={auction.auctionId === auctionId ? "block" : "hidden"}>
                   
-                    {auction.data.length === 0 ? <>
-                        <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
-            <p className="text-white/70">No bids placed yet.</p>
-          </div>
-                        </> :<table className="w-full text-left border-collapse mt-4">
-                      <thead>
-                        <tr className="border-b border-white/30 text-red-300">
-                          <th className="py-2">Profile</th>
-                          <th className="py-2 text-right">Bid Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                         <>
-                          {auction.data.map((bidder:any, idx:any) => (
+                    { auction.data.length === 0 ? (
+                      <div className="mt-4 bg-white/10 rounded-lg flex items-center justify-center h-20">
+                        <p className="text-white/70">No bids placed yet.</p>
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse mt-4">
+                        <thead>
+                          <tr className="border-b border-white/30 text-red-300">
+                            <th className="py-2">Profile</th>
+                            <th className="py-2 text-right">Bid Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {auction.data.map((bidder: any, idx: number) => (
                             <tr key={idx} className="border-b border-white/10">
                               <td className="py-2 flex items-center gap-2">
                                 {bidder.pfp_url ? (
@@ -607,10 +608,9 @@ const handleSend = async () => {
                               <td className="py-2 text-right font-bold">{bidder.bidAmount} USDC</td>
                             </tr>
                           ))}
-                        </>
-                        
-                      </tbody>
-                    </table>}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
                 ))
               )}
