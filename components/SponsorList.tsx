@@ -346,7 +346,9 @@ const handleSend = async () => {
 
         const fetchedBidders = [];
 
-        for (let i = currentAuctionId; i >= 1; i--) { // Ensure we fetch all auctions from current to Auction #1
+        let lastAuctionId = Math.max(1, currentAuctionId - 5);
+
+        for (let i = currentAuctionId; i >= lastAuctionId; i--) { // Ensure we fetch all auctions from current to Auction #1
           const bids = await contract?.getBidders(i);
 
           if (bids && Array.isArray(bids) && bids.length > 0) {
