@@ -562,12 +562,15 @@ if(bidders.length == 0){
             {auctionId && constAuctionId && <div className="flex items-center">
               <div className="w-[70%] flex gap-2">
                 <h3 className="text-xl font-bold">Auction #{auctionId}</h3>
-                <button className="flex bg-white/10 disabled:bg-transparent disabled:text-white/40 w-8 text-sm aspect-video rounded-full text-white items-center justify-center" onClick={() => handleNavigation("left")} disabled={auctionId <= 1}>
+                { bidders.length > 0 &&
+                  <>
+                  <button className="flex bg-white/10 disabled:bg-transparent disabled:text-white/40 w-8 text-sm aspect-video rounded-full text-white items-center justify-center" onClick={() => handleNavigation("left")} disabled={auctionId <= 1}>
                   <IoIosArrowBack />
                 </button>
                 <button className="flex disabled:bg-transparent disabled:text-white/40 bg-white/10 w-8 text-sm aspect-video rotate-180 rounded-full text-white items-center justify-center" onClick={() => handleNavigation("right")} disabled={auctionId >= constAuctionId}>
                   <IoIosArrowBack />
                 </button>
+                  </>}
 
               </div>
               <div className="w-[30%] flex justify-end">
