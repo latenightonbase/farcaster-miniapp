@@ -121,18 +121,7 @@ export const auctionAbi = [
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "start",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "count",
-				"type": "uint256"
-			}
-		],
+		"inputs": [],
 		"name": "emergencyRefund",
 		"outputs": [],
 		"stateMutability": "nonpayable",
