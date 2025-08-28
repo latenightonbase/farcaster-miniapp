@@ -112,9 +112,6 @@ contract LNOBAuction is Ownable {
 
         emit AuctionEnded(currentAuctionId, highestBidder, highestBid);
 
-        // Cleanup bidders array for the finished auction
-        delete biddersByAuctionId[currentAuctionId];
-
         // Reset global highest for the next auction
         highestBidder = address(0);
         highestBid = 0;
@@ -127,4 +124,23 @@ contract LNOBAuction is Ownable {
     function getBidders(uint256 _auctionId) external view returns (Bidders[] memory) {
         return biddersByAuctionId[_auctionId];
     }
+
+                /// @notice Emergency escape hatch - transfers all USDC to owner and resets current auction
+    function emergencyRefund() external onlyOwner {
+        uint256 currentAuctionId = auctionId;
+
+        // Transfer all USDC from contract to owner
+        uint256 balance = usdc.balanceOf(address(this));
+        require(balance > 0, "No USDC to withdraw");
+        require(usdc.transfer(owner(), balance), "USDC transfer failed");
+
+        // Reset global auction state
+        highestBidder = address(0);
+        highestBid = 0;
+
+        // Start next auction fresh
+        auctionId = currentAuctionId + 1;
+    }
+
+
 }
