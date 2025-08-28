@@ -88,7 +88,10 @@ export default function AuctionDisplay( ) {
               };
             });
 
-            const sortedBidders = enrichedBidders.sort(
+            // Filter out bidders with bidAmount = 0
+            const filteredBidders = enrichedBidders.filter((bidder) => Number(bidder.bidAmount) > 0);
+
+            const sortedBidders = filteredBidders.sort(
               (a: any, b: any) => b.bidAmount - a.bidAmount
             );
 

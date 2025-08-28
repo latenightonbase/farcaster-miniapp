@@ -122,6 +122,13 @@ export const auctionAbi = [
 	},
 	{
 		"inputs": [],
+		"name": "emergencyRefund",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "endAuction",
 		"outputs": [],
 		"stateMutability": "nonpayable",
