@@ -7,6 +7,7 @@ import Image from "next/image";
 import { contractAdds } from "@/utils/contract/contractAdds";
 import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useAccount } from "wagmi";
+import { set } from "mongoose";
 
 export default function AuctionDisplay( ) {
   const [bidders, setBidders] = useState<any[]>([]);
@@ -14,6 +15,7 @@ export default function AuctionDisplay( ) {
   const [auctionId, setAuctionId] = useState<number | null>(null);
   const [constAuctionId, setConstAuctionId] = useState<number | null>(null);
   const [isFetchingBidders, setIsFetchingBidders] = useState(false);
+  const [currency, setCurrency] = useState<`0x${string}` | null>(null);
 
   const {address} = useAccount()
 
@@ -46,6 +48,9 @@ export default function AuctionDisplay( ) {
         setIsFetchingBidders(true); // Start loader
         const contract = await getContract(contractAdds.auction, auctionAbi);
         const currentAuctionId = Number(await contract?.auctionId());
+        const currencyInUse = await contract?.currencyUsed(currentAuctionId);
+        setCurrency(currencyInUse);
+        
         setAuctionId(currentAuctionId);
         setConstAuctionId(currentAuctionId);
 
@@ -185,7 +190,7 @@ export default function AuctionDisplay( ) {
                               : ""
                           }`}
                         >
-                          {bidder.bidAmount} USDC
+                          {bidder.bidAmount} {currency}
                         </td>
                       </tr>
                     ))}

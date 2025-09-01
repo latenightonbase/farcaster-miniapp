@@ -53,7 +53,8 @@ export default function AddBanner() {
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
   const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
-  const [constAuctionId, setConstAuctionId] = useState<number | null>(null); // State to store constant auction ID
+  const [caInUse, setCaInUse] = useState<`0x${string}` | null>(null);
+
   useEffect(() => {
     const fetchSponsorImage = async () => {
       try {
@@ -74,31 +75,9 @@ export default function AddBanner() {
       }
     };
 
-    // const fetchMetaValue = async () => {
-    //   try {
-    //     const response = await axios.get("/api/getPrice");
-
-    //     if (response.status === 200 && response.data.meta) {
-    //       setMetaValue(response.data.meta.meta_value);
-    //     } else {
-    //       setMetaValue(0);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error fetching meta value:", error);
-    //     setMetaValue(0);
-    //   }
-    // };
-
     fetchSponsorImage();
-    // fetchMetaValue();
-    // getAuctionId();
+    
   }, []);
-
-  // useEffect(() => {
-  //   getAuctionId();
-  // }, []);
-
-  const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC address
 
   async function getContract(address: string, abi: any) {
     try {
@@ -118,6 +97,8 @@ export default function AddBanner() {
     try {
       const contract = await getContract(contractAdds.auction, auctionAbi);
       const auctionId = await contract?.auctionId();
+      const contractAddress = await contract?.tokenToUse();
+      setCaInUse(contractAddress);
       setAuctionId(auctionId);
     } catch (error) {
       console.error("Error getting auction ID:", error);
@@ -255,21 +236,24 @@ export default function AddBanner() {
 
 const handleSend = async () => {
   try {
+    if(!caInUse){
+      return;
+    }
     if (usdcAmount === 0) {
       return;
     }
-    const usdc = await getContract(USDC_ADDRESS, usdcAbi);
+    const token = await getContract(caInUse, usdcAbi);
 
     // Correct way
-    const tokenName = "USD Coin";
-    const tokenVersion = "2";
-    const nonce = BigInt(await usdc?.nonces(address));
+    const tokenName = await token?.name();
+    const tokenVersion = await token?.version() || 1;
+    const nonce = BigInt(await token?.nonces(address));
 
     const domain = {
       name: tokenName,
-      version: tokenVersion,
+      version: tokenVersion || 1,
       chainId: 8453,
-      verifyingContract: USDC_ADDRESS,
+      verifyingContract: caInUse,
       primaryType: "Permit",
     } as const;
 
@@ -283,13 +267,20 @@ const handleSend = async () => {
       ],
     } as const;
 
-    const usdcToSend = BigInt(Math.round(usdcAmount) * 1e6); // safe bigint
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+    let sendingAmount:bigint;
 
+    if(caInUse == "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"){
+      sendingAmount = BigInt(Math.round(usdcAmount) * 1e6); // safe bigint
+    }
+    else{
+      sendingAmount = BigInt(Math.round(usdcAmount) * 1e18); // safe bigint
+    }
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+    
     const message = {
       owner: address as `0x${string}`,
       spender: contractAdds.auction as `0x${string}`,
-      value: usdcToSend,
+      value: sendingAmount,
       nonce,
       deadline,
     };
@@ -304,7 +295,7 @@ const handleSend = async () => {
     const { v, r, s } = splitSignature(signature);
 
 
-    const args = [usdcToSend, user, deadline, v, r, s];
+    const args = [sendingAmount, user || 1129842, deadline, v, r, s];
 
     console.log("Args:", args);
 
