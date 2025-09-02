@@ -98,6 +98,7 @@ export default function AddBanner() {
       const contract = await getContract(contractAdds.auction, auctionAbi);
       const auctionId = await contract?.auctionId();
       const contractAddress = await contract?.tokenToUse();
+      const currency = await contract?.
       setCaInUse(contractAddress);
       setAuctionId(auctionId);
     } catch (error) {
@@ -269,12 +270,15 @@ const handleSend = async () => {
 
     let sendingAmount:bigint;
 
-    if(caInUse == "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"){
+    if(caInUse.toUpperCase() === "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toUpperCase()){
       sendingAmount = BigInt(Math.round(usdcAmount) * 1e6); // safe bigint
     }
     else{
       sendingAmount = BigInt(Math.round(usdcAmount) * 1e18); // safe bigint
     }
+
+    console.log("Sending Amount:", sendingAmount, caInUse);
+
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
     
     const message = {

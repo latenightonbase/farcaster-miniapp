@@ -11,6 +11,13 @@ struct Bidders {
     uint256 fid;
 }
 
+struct AuctionMeta {
+    address caInUse;
+    string tokenName;
+    uint256 deadline;
+    uint256 auctionId;
+}
+
 contract LNOBAuction is Ownable {
     IERC20 public erc20;               
     IERC20Permit public tokenPermit;   
@@ -18,14 +25,12 @@ contract LNOBAuction is Ownable {
     address public highestBidder;
     uint256 public highestBid;
 
-    address public tokenToUse = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
-    string public tokenName = "USDC";
-
     uint256 public auctionId = 2;
 
     mapping(uint256 => mapping(address => uint256)) public bids;
     mapping(uint256 => Bidders[]) public biddersByAuctionId;
     mapping(uint256 => string) public currencyUsed;
+    mapping(uint256 => address) public caInUse;
     mapping(uint256 => mapping(address => bool)) private hasBid;
     mapping(uint256 => uint256) public auctionDeadline;   // <--- NEW: deadline timestamp
 
@@ -36,10 +41,32 @@ contract LNOBAuction is Ownable {
 
     function tokenForAuction(address _token, string calldata _tokenName) public onlyOwner {
         currencyUsed[auctionId] = _tokenName;
-        tokenName = _tokenName;
+        caInUse[auctionId] = _token;
         erc20 = IERC20(_token);
         tokenPermit = IERC20Permit(_token);
     }
+
+        /// @notice Returns metadata of the current auction
+    function getCurrentAuctionMeta() external view returns (AuctionMeta memory) {
+        return AuctionMeta({
+            caInUse: caInUse[auctionId],
+            tokenName: currencyUsed[auctionId],
+            deadline: auctionDeadline[auctionId],
+            auctionId: auctionId
+        });
+    }
+
+    /// @notice Returns metadata of any auction by ID
+    /// @param _auctionId The auction ID to fetch metadata for
+    function getAuctionMetaById(uint256 _auctionId) external view returns (AuctionMeta memory) {
+        return AuctionMeta({
+            caInUse: caInUse[_auctionId],
+            tokenName: currencyUsed[_auctionId],
+            deadline: auctionDeadline[_auctionId],
+            auctionId: _auctionId
+        });
+    }
+
 
     /// @notice Place a bid using EIP-2612 permit signature
     function bidWithPermit(
