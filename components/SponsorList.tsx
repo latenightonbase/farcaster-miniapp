@@ -24,6 +24,7 @@ import { parseUnits } from "viem";
 import Image from "next/image";
 import { IoIosArrowBack } from "react-icons/io";
 import AuctionDisplay from "./AuctionDisplay";
+import { erc20abi } from "@/utils/contract/abis/erc20abi";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,7 +54,7 @@ export default function AddBanner() {
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
   const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
-  const [caInUse, setCaInUse] = useState<`0x${string}` | null>(null);
+  const [caInUse, setCaInUse] = useState<string | null>(null);
 
   // New state variables
   const [auctionDeadline, setAuctionDeadline] = useState<number | null>(null); // State to store auction deadline
@@ -303,34 +304,87 @@ export default function AddBanner() {
     try {
       console.log("Sending transaction...", caInUse, usdcAmount);
       if (!caInUse) {
+        setError("Token address not available");
         return;
       }
-      if (usdcAmount === 0) {
+      if (usdcAmount <= 0) {
+        setError("Amount must be greater than 0");
         return;
       }
-      const token = await getContract(caInUse, usdcAbi);
 
-      // Correct way
-
+      setIsLoading(true);
+      
+      // Get contract and prepare domain data
+      let nonce: bigint;
       let domain: any = {};
 
-      if (currency == "USDC") {
-        const tokenName = await token?.name();
-        const tokenVersion = (await token?.version()) || 1;
+      try {
+        // First check if the user has enough tokens
+        let tokenContract;
+        if (currency === "USDC") {
+          tokenContract = await getContract(caInUse, [...usdcAbi, "function balanceOf(address) view returns (uint256)"]);
+        } else {
+          tokenContract = await getContract(caInUse, erc20abi);
+        }
+        
+        // Check balance
+        const balance = await tokenContract?.balanceOf(address);
+        const formattedBalance = currency === "USDC" 
+          ? Number(balance) / 1e6 
+          : Number(balance) / 1e18;
+        
+        console.log(`User ${currency} balance:`, formattedBalance);
+        
+        if (Number(balance) < Number(usdcAmount * (currency === "USDC" ? 1e6 : 1e18))) {
+          setError(`Insufficient ${currency} balance. You have ${formattedBalance} ${currency}`);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Get token information for permit signature
+        if (currency === "USDC") {
+          const token = await getContract(caInUse, usdcAbi);
+          const tokenName = await token?.name();
+          const tokenVersion = (await token?.version()) || '1';
+          nonce = BigInt(await token?.nonces(address));
 
-        domain = {
-          name: tokenName,
-          version: tokenVersion || 1,
-          chainId: 8453,
-          verifyingContract: caInUse,
-          primaryType: "Permit",
-        } as const;
-      } else {
-        domain = await token?.eip712Domain();
+          domain = {
+            name: tokenName,
+            version: tokenVersion,
+            chainId: 8453,
+            verifyingContract: caInUse,
+          } as const;
+          
+          console.log("USDC Token details:", { tokenName, tokenVersion, nonce: nonce.toString() });
+        } else {
+          const token = await getContract(caInUse, erc20abi);
+          nonce = BigInt(await token?.nonces(address));
+          const fromContract = await token?.eip712Domain();
+          
+          domain = {
+            name: fromContract.name,
+            version: fromContract.version,
+            chainId: 8453,
+            verifyingContract: fromContract.verifyingContract,
+          } as const;
+          
+          console.log("ERC20 Token details:", { 
+            name: fromContract.name, 
+            version: fromContract.version, 
+            nonce: nonce.toString(),
+            verifyingContract: fromContract.verifyingContract
+          });
+        }
+      } catch (err) {
+        console.error("Error getting token contract information:", err);
+        setError("Failed to get token information. Please try again.");
+        setIsLoading(false);
+        return;
       }
 
-      console.log("generated domain:", domain);
+      console.log("Generated domain:", domain);
 
+      // Define EIP-2612 types
       const types = {
         Permit: [
           { name: "owner", type: "address" },
@@ -341,24 +395,25 @@ export default function AddBanner() {
         ],
       } as const;
 
-      const nonce = BigInt(await token?.nonces(address));
-
+      // Calculate amount based on token decimals
       let sendingAmount: bigint;
-
       if (
-        caInUse.toUpperCase() ===
-        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toUpperCase()
+        caInUse.toLowerCase() ===
+        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()
       ) {
-        sendingAmount = BigInt(Math.round(usdcAmount) * 1e6); // safe bigint
+        // USDC on Base has 6 decimals
+        sendingAmount = BigInt(Math.round(usdcAmount * 1e6)); 
       } else {
-        console.log("Sending as LNOB");
-        sendingAmount = BigInt(Math.round(usdcAmount) * 1e18); // safe bigint
+        // Default to 18 decimals for other tokens
+        sendingAmount = BigInt(Math.round(usdcAmount * 1e18)); 
       }
 
-      console.log("Sending Amount:", sendingAmount, caInUse);
+      console.log("Sending Amount:", sendingAmount.toString(), "to contract:", contractAdds.auction);
 
+      // Set permit deadline to 1 hour from now
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
 
+      // Prepare the permit message
       const message = {
         owner: address as `0x${string}`,
         spender: contractAdds.auction as `0x${string}`,
@@ -367,35 +422,106 @@ export default function AddBanner() {
         deadline,
       };
 
-      const signature = await signTypedDataAsync({
-        domain,
-        primaryType: "Permit",
-        types,
-        message,
-      });
+      console.log("Preparing to sign message:", message);
 
-      const { v, r, s } = splitSignature(signature);
+      // Sign the message with the wallet
+      try {
+        // First let's try to get the current highest bid to make sure our bid is higher
+        const auctionContract = await getContract(contractAdds.auction, auctionAbi);
+        const currentHighestBid = await auctionContract?.highestBid();
+        console.log("Current highest bid from contract:", currentHighestBid.toString());
+        
+        if (sendingAmount <= currentHighestBid) {
+          const formattedHighestBid = currency === "USDC" 
+            ? Number(currentHighestBid) / 1e6 
+            : Number(currentHighestBid) / 1e18;
+          setError(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`);
+          setIsLoading(false);
+          return;
+        }
 
-      const args = [sendingAmount, user || 1129842, deadline, v, r, s];
+        // Sign the typed data for the permit function
+        console.log("Requesting signature from wallet...");
+        const signature = await signTypedDataAsync({
+          domain,
+          primaryType: "Permit",
+          types,
+          message,
+        });
+        
+        const { v, r, s } = splitSignature(signature);
+        console.log("Signature received successfully!");
+        
+        // Debug information - truncate the hex strings for readability
+        console.log("Signature details:", { 
+          v, 
+          r: `${r.substring(0, 10)}...${r.substring(r.length - 8)}`, 
+          s: `${s.substring(0, 10)}...${s.substring(s.length - 8)}`
+        });
 
-      console.log("Args:", args);
+        // Prepare arguments for the contract call
+        const bidPermitArgs = [sendingAmount, user || 1129842, deadline, v, r, s];
+        console.log("Preparing transaction with args:", [
+          `Amount: ${sendingAmount.toString()}`, 
+          `FID: ${user || 1129842}`, 
+          `Deadline: ${deadline.toString()}`,
+          `v: ${v}`, 
+          `r: ${r.substring(0, 10)}...`, 
+          `s: ${s.substring(0, 10)}...`
+        ]);
 
-      await writeContract(config, {
-        abi: auctionAbi,
-        address: contractAdds.auction as `0x${string}`,
-        functionName: "bidWithPermit",
-        args,
-      });
-
-      //add a 5 second delay here
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
-      getAuctionBids();
-      window.location.reload();
+        // Add a small delay before sending the transaction
+        // This can help with some wallets that need time to process the signature
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log("Submitting transaction to contract:", contractAdds.auction);
+        
+        // Call contract with signed data - with explicit gas settings
+        const tx = await writeContract(config, {
+          abi: auctionAbi,
+          address: contractAdds.auction as `0x${string}`,
+          functionName: "bidWithPermit",
+          args: bidPermitArgs,
+          // Add gas settings to avoid transaction hanging
+          gas: BigInt(500000), // Explicit gas limit
+        });
+        
+        console.log("Transaction submitted:", tx);
+        
+        // Wait for transaction confirmation
+        console.log("Waiting for transaction confirmation...");
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        
+        // Refresh auction bids
+        await getAuctionBids();
+        window.location.reload();
+      } catch (err: any) {
+        console.error("Error in signing or sending transaction:", err);
+        
+        // Provide more specific error messages based on the error
+        if (err.message && err.message.includes("user rejected")) {
+          setError("Transaction was rejected in your wallet");
+        } else if (err.message && err.message.includes("deadline")) {
+          setError("Transaction deadline has passed");
+        } else if (err.message && err.message.includes("Bid not high enough")) {
+          setError("Your bid is not high enough");
+        } else if (err.message && err.message.includes("Auction has ended")) {
+          setError("This auction has already ended");
+        } else if (err.message && err.message.includes("insufficient funds")) {
+          setError("You don't have enough funds for this transaction");
+        } else if (err.message && err.message.includes("gas")) {
+          setError("Gas estimation failed. Try a higher amount or check your wallet settings");
+        } else {
+          setError("Failed to sign or send transaction. Please try again.");
+        }
+        
+        setIsLoading(false);
+        return; // Stop execution here to prevent the finally block from closing the modal
+      }
     } catch (error) {
       console.error("Error sending transaction:", error);
-      setError("Transaction failed. Please try again."); // Display error message in the frontend
-      throw error;
+      setError("Transaction failed. Please try again.");
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
       setIsModalOpen(false);
