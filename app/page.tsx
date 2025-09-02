@@ -17,12 +17,16 @@ import axios from "axios";
 import SponsorList from "@/components/SponsorList";
 import { useRouter } from "next/navigation";
 import { IoMdTrophy } from "react-icons/io";
+import { useGlobalContext } from "@/utils/globalContext";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
   const sendNotification = useNotification();
 
   const [error, setError] = useState<string | null>(null);
+
+    const globalContext = useGlobalContext();
+  const user = globalContext?.user;
 
   const {
     setFrameReady,
@@ -155,7 +159,8 @@ export default function Home() {
 
         <div className="relative z-1 min-h-screen">
           <ProfileSection />
-          <SponsorList />       
+          <SponsorList />
+          <h2 className="text-red-400 text-lg font-bold">Welcome <span className="text-white">{user?.username}</span></h2>
           <DailyUpdate selected={activeTab} />
           {/* Conditional Rendering */}
           <div className="mt-6">

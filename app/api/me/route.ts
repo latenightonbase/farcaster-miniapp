@@ -46,7 +46,20 @@ jwt = authorization?.split(" ")[1] as string;
     );
   }
 
+  const res = await fetch(
+				`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
+				{
+					headers: {
+						"x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
+					},
+				}
+			);
+
+      const jsonRes = await res.json();
+			const neynarRes = jsonRes.users?.[0];
+
+
   
-      return NextResponse.json({ user : fid })
+      return NextResponse.json({ user : {fid: fid, username: neynarRes?.display_name} })
     
 }

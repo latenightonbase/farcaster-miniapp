@@ -406,7 +406,7 @@ export default function AddBanner() {
         });
 
         // Prepare arguments for the contract call
-        const bidPermitArgs = [sendingAmount, user || 1129842, deadline, v, r, s];
+        const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
         console.log("Preparing transaction with args:", [
           `Amount: ${sendingAmount.toString()}`, 
           `FID: ${user || 1129842}`, 
@@ -571,8 +571,8 @@ export default function AddBanner() {
                       />
                       {highestBidder.username}
                     </span>
-                    <h4 className="font-bold w-[30%] text-right">
-                      {highestBidder.bidAmount} {currency}
+                    <h4 className="font-bold w-[30%] text-right text-sm">
+                      {Math.round(highestBidder.bidAmount).toLocaleString()} {currency}
                     </h4>
                   </div>
                   {/* {auctionDeadline && (
@@ -702,7 +702,7 @@ export default function AddBanner() {
                 <div className="bg-black/50 p-2 rounded">
                   <div className="text-xl font-bold">{timeRemaining.hours}</div>
                   <div className="text-xs text-gray-400">Hours</div>
-                </div>
+                </div> 
                 <div className="bg-black/50 p-2 rounded">
                   <div className="text-xl font-bold">
                     {timeRemaining.minutes}
@@ -750,8 +750,8 @@ export default function AddBanner() {
                       )}
                       <span className="truncate">{bidder.username}</span>
                     </td>
-                    <td className="py-2 text-right font-bold">
-                      {bidder.bidAmount} {currency}
+                    <td className="py-2 text-right font-bold text-sm">
+                      {Math.round(bidder.bidAmount).toLocaleString()} {currency}
                     </td>
                   </tr>
                 ))}

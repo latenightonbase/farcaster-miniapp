@@ -305,13 +305,13 @@ export default function AuctionDisplay( ) {
                           <span className="truncate">{bidder.username}</span>
                         </td>
                         <td
-                          className={`py-2 text-right font-bold ${
+                          className={`py-2 text-right text-sm font-bold ${
                             idx === 0
                               ? "bg-gradient-to-br from-yellow-600 to-yellow-400 via-yellow-500 bg-clip-text text-transparent"
                               : ""
                           }`}
                         >
-                          {bidder.bidAmount} {bidder.currency}
+                          {Math.round(bidder.bidAmount).toLocaleString()} {bidder.currency}
                         </td>
                       </tr>
                     ))}
