@@ -159,7 +159,7 @@ export default function Home() {
 
         <div className="relative z-1 min-h-screen">
           <ProfileSection />
-          <h2 className="text-white text-2xl font-bold my-4">Welcome <span className="text-red-400">{user?.username.split(0,16)}{user?.username.length > 16 && "..."}</span></h2>
+          <h2 className="text-white text-2xl font-bold my-4 px-3">Welcome <span className="text-red-400">{user?.username.split(0,16)}{user?.username.length > 16 && "..."}</span></h2>
           <SponsorList />
           
           <DailyUpdate selected={activeTab} />
