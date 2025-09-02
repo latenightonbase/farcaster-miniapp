@@ -7,6 +7,7 @@ import Image from "next/image";
 import { contractAdds } from "@/utils/contract/contractAdds";
 import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useAccount } from "wagmi";
+import { set } from "mongoose";
 
 export default function AuctionDisplay( ) {
   const [bidders, setBidders] = useState<any[]>([]);
@@ -14,6 +15,10 @@ export default function AuctionDisplay( ) {
   const [auctionId, setAuctionId] = useState<number | null>(null);
   const [constAuctionId, setConstAuctionId] = useState<number | null>(null);
   const [isFetchingBidders, setIsFetchingBidders] = useState(false);
+  const [isChangingAuction, setIsChangingAuction] = useState(false);
+  const [auctionMetadata, setAuctionMetadata] = useState<{[id: number]: {currency: string, deadline: number}}>({});
+  const [currentCurrency, setCurrentCurrency] = useState<string | null>(null);
+  const [currentDeadline, setCurrentDeadline] = useState<number | null>(null);
 
   const {address} = useAccount()
 
@@ -33,10 +38,96 @@ export default function AuctionDisplay( ) {
   const handleNavigation = (direction: string) => {
     if (!auctionId || !constAuctionId) return;
 
+    setIsChangingAuction(true);
+    
+    let newAuctionId;
     if (direction === "left" && auctionId > 1) {
-      setAuctionId((prev: any) => prev - 1);
+      newAuctionId = auctionId - 1;
+      setAuctionId(newAuctionId);
+      
+      // Set the current metadata from our preloaded data
+      if (auctionMetadata[newAuctionId]) {
+        setCurrentCurrency(auctionMetadata[newAuctionId].currency);
+        setCurrentDeadline(auctionMetadata[newAuctionId].deadline);
+      }
     } else if (direction === "right" && auctionId < constAuctionId) {
-      setAuctionId((prev: any) => prev + 1);
+      newAuctionId = auctionId + 1;
+      setAuctionId(newAuctionId);
+      
+      // Set the current metadata from our preloaded data
+      if (auctionMetadata[newAuctionId]) {
+        setCurrentCurrency(auctionMetadata[newAuctionId].currency);
+        setCurrentDeadline(auctionMetadata[newAuctionId].deadline);
+      }
+    }
+    
+    setTimeout(() => {
+      setIsChangingAuction(false);
+    }, 100);
+  };
+
+  const getAuctionMetaById = async (id: number) => {
+    try {
+      const contract = await getContract(contractAdds.auction, auctionAbi);
+      
+      // First try to get metadata using getAuctionMetaById if it exists
+      try {
+        const auctionMeta = await contract?.getAuctionMetaById(id);
+        const currencyInUse = auctionMeta.tokenName;
+        const deadline = auctionMeta.deadline;
+        
+        const deadlineMs = Number(deadline) * 1000; // Convert to milliseconds for JS Date
+        
+        // Store in our metadata object
+        setAuctionMetadata(prev => ({
+          ...prev,
+          [id]: {
+            currency: currencyInUse,
+            deadline: deadlineMs
+          }
+        }));
+        
+        // If this is the currently displayed auction, update the current values
+        if (id === auctionId) {
+          setCurrentCurrency(currencyInUse);
+          setCurrentDeadline(deadlineMs);
+        }
+        
+        return {
+          currency: currencyInUse,
+          deadline: deadlineMs
+        };
+      } catch (error) {
+        // If getAuctionMetaById fails, fall back to individual calls
+        console.log("Falling back to individual metadata calls for auction", id);
+        const currencyInUse = await contract?.currencyUsed(id);
+        const deadline = await contract?.auctionDeadline(id);
+        
+        const deadlineMs = Number(deadline) * 1000; // Convert to milliseconds for JS Date
+        
+        // Store in our metadata object
+        setAuctionMetadata(prev => ({
+          ...prev,
+          [id]: {
+            currency: currencyInUse,
+            deadline: deadlineMs
+          }
+        }));
+        
+        // If this is the currently displayed auction, update the current values
+        if (id === auctionId) {
+          setCurrentCurrency(currencyInUse);
+          setCurrentDeadline(deadlineMs);
+        }
+        
+        return {
+          currency: currencyInUse,
+          deadline: deadlineMs
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching auction metadata:", error);
+      return null;
     }
   };
 
@@ -46,18 +137,33 @@ export default function AuctionDisplay( ) {
         setIsFetchingBidders(true); // Start loader
         const contract = await getContract(contractAdds.auction, auctionAbi);
         const currentAuctionId = Number(await contract?.auctionId());
+        
         setAuctionId(currentAuctionId);
         setConstAuctionId(currentAuctionId);
+        
+        const lastAuctionId = Math.max(1, currentAuctionId - 5);
+        
+        // Fetch metadata for all auctions we'll display
+        const metadataPromises = [];
+        for (let i = lastAuctionId; i <= currentAuctionId; i++) {
+          metadataPromises.push(getAuctionMetaById(i));
+        }
+        
+        // Wait for all metadata to be fetched
+        await Promise.all(metadataPromises);
+
+        console.log("Fetched auction metadata:", auctionMetadata, metadataPromises);
 
         const fetchedBidders = [];
-
-        let lastAuctionId = Math.max(1, currentAuctionId - 5);
 
         for (let i = currentAuctionId; i >= lastAuctionId; i--) {
           const bids = await contract?.getBidders(i);
 
           if (bids && Array.isArray(bids) && bids.length > 0) {
             const fids = bids.map((bid) => Number(bid.fid));
+            
+            // Get the currency used for this auction
+            const currencyInUse = await contract?.currencyUsed(i);
 
             const res = await fetch(
               `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
@@ -79,12 +185,16 @@ export default function AuctionDisplay( ) {
             const enrichedBidders = bids.map((bid) => {
               const user = users.find((u: any) => u.fid === Number(bid.fid));
 
+              // Default to 6 decimals for USDC, 18 for others
+              const formatDecimals = currencyInUse === "USDC" ? 6 : 18;
+              
               return {
                 username: user?.username || "Unknown",
                 pfp_url:
                   user?.pfp_url ||
                   "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/2e7cd5a1-e72f-4709-1757-c49a71e56b00/original",
-                bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
+                bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), formatDecimals),
+                currency: currencyInUse // Store currency with each bid for display
               };
             });
 
@@ -140,6 +250,22 @@ export default function AuctionDisplay( ) {
           </div>
         </div>
       )}
+      
+      {!isChangingAuction && currentDeadline && (
+        <div className="mt-2 text-white/70 text-sm">
+          <div className="flex items-center gap-2">
+            <RiAuctionFill />
+            <span>
+              {auctionId === constAuctionId ? 'Ends' : 'Ended'}: {new Date(currentDeadline).toLocaleString()}
+            </span>
+          </div>
+          {currentCurrency && (
+            <div className="mt-1">
+              Currency: {currentCurrency}
+            </div>
+          )}
+        </div>
+      )}
       {isFetchingBidders ? (
         <div className="flex justify-center items-center h-20">
           <RiLoader5Fill className="animate-spin text-white text-3xl" />
@@ -179,13 +305,13 @@ export default function AuctionDisplay( ) {
                           <span className="truncate">{bidder.username}</span>
                         </td>
                         <td
-                          className={`py-2 text-right font-bold ${
+                          className={`py-2 text-right text-sm font-bold ${
                             idx === 0
                               ? "bg-gradient-to-br from-yellow-600 to-yellow-400 via-yellow-500 bg-clip-text text-transparent"
                               : ""
                           }`}
                         >
-                          {bidder.bidAmount} USDC
+                          {Math.round(bidder.bidAmount).toLocaleString()} {bidder.currency}
                         </td>
                       </tr>
                     ))}

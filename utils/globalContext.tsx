@@ -9,10 +9,10 @@ import { sdk } from "@farcaster/miniapp-sdk"; // Corrected import
 import { generateNonce } from "@farcaster/auth-client";
 
 // Create a context with a default value matching the expected structure
-const GlobalContext = createContext<{ user: number | null } | null>(null);
+const GlobalContext = createContext<{ user: any | null } | null>(null);
 
 export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<number | null>(null);
+  const [user, setUser] = useState<any | null>(null);
 
   useEffect(() => {
     (async () => {
