@@ -156,7 +156,7 @@ export default function AuctionDisplay( ) {
 
         const fetchedBidders = [];
 
-        for (let i = currentAuctionId-1; i >= lastAuctionId; i--) {
+        for (let i = currentAuctionId; i >= lastAuctionId; i--) {
           const bids = await contract?.getBidders(i);
 
           if (bids && Array.isArray(bids) && bids.length > 0) {
