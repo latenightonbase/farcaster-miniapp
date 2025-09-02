@@ -147,7 +147,7 @@ export default function AddBanner() {
           `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
           {
             headers: {
-              "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
+              "x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
             },
           }
         );
@@ -174,7 +174,7 @@ export default function AddBanner() {
           return {
             username: user?.username || "Unknown",
             pfp_url: user?.pfp_url || "",
-            bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
+            bidAmount: currency == "USDC" ? ethers.utils.formatUnits(String(bid.bidAmount), 6) : ethers.utils.formatUnits(String(bid.bidAmount), 18),
           };
         });
 
@@ -245,60 +245,6 @@ export default function AddBanner() {
       // getHistoricalBids();
     }
   }, [address, auctionId]);
-
-  // async function getHistoricalBids() {
-  //   if (!auctionId) return;
-  //   try {
-  //     const contract = await getContract(contractAdds.auction, auctionAbi);
-
-  //     for (let i = 0; i < auctionId; i++) {
-  //       const bids = await contract?.getBidders(i);
-
-  //       if (bids && Array.isArray(bids)) {
-  //         const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
-
-  //         const res = await fetch(
-  //           `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
-  //           {
-  //             headers: {
-  //               "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152" as string,
-  //             },
-  //           }
-  //         );
-
-  //         if (!res.ok) {
-  //           console.error("Error fetching user data from Neynar API");
-  //           continue;
-  //         }
-
-  //         const jsonRes = await res.json();
-
-  //         const users = jsonRes.users || [];
-
-  //         const enrichedBidders = bids.map((bid: any) => {
-  //           const user = users.find((u: any) => u.fid === Number(bid.fid));
-
-  //           return {
-  //             username: user?.username || "Unknown",
-  //             pfp_url: user?.pfp_url || "",
-  //             bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
-  //           };
-  //         });
-
-  //         const sortedBidders = enrichedBidders.sort(
-  //           (a: any, b: any) => b.bidAmount - a.bidAmount
-  //         );
-
-  //         setHistory((prev) => [
-  //           ...prev,
-  //           { isOpen: false, bidders: sortedBidders },
-  //         ]);
-  //       }
-  //     }
-  //   } catch (err) {
-  //     console.error("Error fetching historical bids:", err);
-  //   }
-  // }
 
   const handleSend = async () => {
     try {
@@ -528,90 +474,6 @@ export default function AddBanner() {
     }
   };
 
-  //   const handleNavigation = (direction:string) => {
-
-  //     if(!auctionId || !constAuctionId) return;
-
-  //     if (direction === "left" && auctionId > 1) {
-  //       setAuctionId((prev:any) => prev - 1);
-  //     } else if (direction === "right" && auctionId < constAuctionId) {
-  //       setAuctionId((prev:any) => prev + 1);
-  //     }
-  //   };
-
-  //   // Modify the bid fetching logic
-  //   useEffect(() => {
-
-  //     const fetchAuctionData = async () => {
-  //       try {
-  //         const contract = await getContract(contractAdds.auction, auctionAbi);
-  //         const currentAuctionId = Number(await contract?.auctionId());
-  //         setAuctionId(currentAuctionId);
-  //         setConstAuctionId(currentAuctionId);
-
-  //         const fetchedBidders = [];
-
-  //         let lastAuctionId = Math.max(1, currentAuctionId - 5);
-
-  //         for (let i = currentAuctionId; i >= lastAuctionId; i--) { // Ensure we fetch all auctions from current to Auction #1
-  //           const bids = await contract?.getBidders(i);
-
-  //           if (bids && Array.isArray(bids) && bids.length > 0) {
-  //             const fids = bids.map((bid) => Number(bid.fid));
-
-  //             const res = await fetch(
-  //               `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
-  //               {
-  //                 headers: {
-  //                   "x-api-key": "F3FC9EA3-AD1C-4136-9494-EBBF5AFEE152",
-  //                 },
-  //               }
-  //             );
-
-  //             if (!res.ok) {
-  //               console.error("Error fetching user data from Neynar API");
-  //               continue;
-  //             }
-
-  //             const jsonRes = await res.json();
-  //             const users = jsonRes.users || [];
-
-  //             const enrichedBidders = bids.map((bid) => {
-  //               const user = users.find((u: any) => u.fid === Number(bid.fid));
-
-  //               return {
-  //                 username: user?.username || "Unknown",
-  //                 pfp_url: user?.pfp_url || "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/2e7cd5a1-e72f-4709-1757-c49a71e56b00/original",
-  //                 bidAmount: ethers.utils.formatUnits(String(bid.bidAmount), 6),
-  //               };
-  //             });
-
-  //             console.log(`Enriched Bidders ${i} :`, enrichedBidders);
-
-  //             const sortedBidders = enrichedBidders.sort(
-  //             (a: any, b: any) => b.bidAmount - a.bidAmount
-  //           );
-
-  //             fetchedBidders.push({ auctionId: i, data: sortedBidders });
-  //           }
-  //           else {
-  //             console.log(`No Bidders Found for Auction ${i}`);
-  //             fetchedBidders.push({ auctionId: i, data: [] });
-  //           }
-  //         }
-
-  //         setBidders(fetchedBidders); // Reverse to show most recent first
-  //         setHighestBidder(fetchedBidders[0]?.data[0]);
-  //       } catch (error) {
-  //         console.error("Error fetching auction data:", error);
-  //       }
-  //     };
-  // if(bidders.length == 0){
-  //     fetchAuctionData();
-  //     }
-
-  //   }, []);
-
   if (address)
     return (
       <div className="mx-3 text-white">
@@ -827,7 +689,7 @@ export default function AddBanner() {
 
           {/* Countdown Timer for Mobile View */}
           {isAuctionActive && auctionDeadline && !isFetchingBidders && (
-            <div className="mt-4 bg-black/30 p-3 rounded-lg">
+            <div className="mt-4 bg-black/30 rounded-lg">
               <div className="flex items-center gap-1 text-sm font-medium mb-2">
                 <RiTimerLine className="text-orange-400" />
                 <span>Auction ends in:</span>
