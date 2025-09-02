@@ -159,8 +159,9 @@ export default function Home() {
 
         <div className="relative z-1 min-h-screen">
           <ProfileSection />
+          <h2 className="text-white text-2xl font-bold my-4">Welcome <span className="text-red-400">{user?.username.split(0,16)}{user.username.length > 16 && "..."}</span></h2>
           <SponsorList />
-          <h2 className="text-red-400 text-lg font-bold">Welcome <span className="text-white">{user?.username}</span></h2>
+          
           <DailyUpdate selected={activeTab} />
           {/* Conditional Rendering */}
           <div className="mt-6">

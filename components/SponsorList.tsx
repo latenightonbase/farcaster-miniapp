@@ -561,17 +561,17 @@ export default function AddBanner() {
                     Current Highest Bid:
                   </label>
                   <div className=" my-4 px-2 py-4 bg-white/10 rounded-sm flex gap-2">
-                    <span className="flex gap-1 w-[70%] truncate">
+                    <span className="flex gap-1 w-[70%] truncate text-sm">
                       <Image
                         alt={highestBidder.username}
                         src={highestBidder.pfp_url}
                         width={24}
                         height={24}
-                        className="rounded-full w-6 aspect-square"
+                        className="rounded-full w-4 aspect-square"
                       />
                       {highestBidder.username}
                     </span>
-                    <h4 className="font-bold w-[30%] text-right text-sm">
+                    <h4 className="font-bold w-[30%] text-right text-xs">
                       {Math.round(highestBidder.bidAmount).toLocaleString()} {currency}
                     </h4>
                   </div>
