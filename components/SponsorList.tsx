@@ -40,6 +40,8 @@ export default function AddBanner() {
   const { signTypedDataAsync } = useSignTypedData();
 
   const [usdcAmount, setUsdcAmount] = useState<number>(0);
+  const [tokenPrice, setTokenPrice] = useState<number | null>(null);
+  const [tokenPriceLoading, setTokenPriceLoading] = useState<boolean>(false);
 
   const { address } = useAccount();
   const globalContext = useGlobalContext();
@@ -113,8 +115,6 @@ export default function AddBanner() {
       const contract = await getContract(contractAdds.auction, auctionAbi);
       const auctionMeta = await contract?.getCurrentAuctionMeta();
 
-      console.log("Auction Meta:", auctionMeta);
-
       // Check if auction name exists
       if (!auctionMeta || !auctionMeta.tokenName) {
         console.log("No active auction found");
@@ -128,12 +128,39 @@ export default function AddBanner() {
       setAuctionDeadline(Number(auctionMeta.deadline));
       setIsAuctionActive(true);
 
-      console.log("Auction meta:", auctionMeta);
+      // Fetch token price after getting the contract address
+      if (auctionMeta.caInUse) {
+        fetchTokenPrice(auctionMeta.caInUse);
+      }
     } catch (error) {
       console.error("Error getting auction ID:", error);
       setIsAuctionActive(false);
     }
   }
+
+  // Function to fetch token price using Alchemy's Token Prices API
+  const fetchTokenPrice = async (contractAddress: string) => {
+    try {
+      setTokenPriceLoading(true);
+
+      // Using Alchemy Token Prices API 
+      // https://www.alchemy.com/docs/data/prices-api/prices-api-endpoints/prices-api-endpoints/get-token-prices-by-address
+
+      const apiUrl = `https://api.dexscreener.com/tokens/v1/base/${contractAddress}`;
+
+      const response = await fetch(apiUrl);
+
+      const usableResponse = await response.json();
+      console.log(Number(usableResponse[0].priceUsd))
+      setTokenPrice(Number(usableResponse[0].priceUsd))
+
+    } catch (error) {
+      console.error("Error fetching token price:", error);
+
+    } finally {
+      setTokenPriceLoading(false);
+    }
+  };
   async function getAuctionBids() {
     try {
       setIsFetchingBidders(true); // Start loader
@@ -206,6 +233,13 @@ export default function AddBanner() {
     getAuctionId();
   }, []);
 
+  // Refresh token price when modal is opened
+  useEffect(() => {
+    if (isModalOpen && caInUse) {
+      fetchTokenPrice(caInUse);
+    }
+  }, [isModalOpen, caInUse]);
+
   // Countdown timer effect
   useEffect(() => {
     if (!auctionDeadline) return;
@@ -259,7 +293,7 @@ export default function AddBanner() {
       }
 
       setIsLoading(true);
-      
+
       // Get contract and prepare domain data
       let nonce: bigint;
       let domain: any = {};
@@ -272,21 +306,21 @@ export default function AddBanner() {
         } else {
           tokenContract = await getContract(caInUse, erc20abi);
         }
-        
+
         // Check balance
         const balance = await tokenContract?.balanceOf(address);
-        const formattedBalance = currency === "USDC" 
-          ? Number(balance) / 1e6 
+        const formattedBalance = currency === "USDC"
+          ? Number(balance) / 1e6
           : Number(balance) / 1e18;
-        
+
         console.log(`User ${currency} balance:`, formattedBalance);
-        
+
         if (Number(balance) < Number(usdcAmount * (currency === "USDC" ? 1e6 : 1e18))) {
           setError(`Insufficient ${currency} balance. You have ${formattedBalance} ${currency}`);
           setIsLoading(false);
           return;
         }
-        
+
         // Get token information for permit signature
         if (currency === "USDC") {
           const token = await getContract(caInUse, usdcAbi);
@@ -300,23 +334,23 @@ export default function AddBanner() {
             chainId: 8453,
             verifyingContract: caInUse,
           } as const;
-          
+
           console.log("USDC Token details:", { tokenName, tokenVersion, nonce: nonce.toString() });
         } else {
           const token = await getContract(caInUse, erc20abi);
           nonce = BigInt(await token?.nonces(address));
           const fromContract = await token?.eip712Domain();
-          
+
           domain = {
             name: fromContract.name,
             version: fromContract.version,
             chainId: 8453,
             verifyingContract: fromContract.verifyingContract,
           } as const;
-          
-          console.log("ERC20 Token details:", { 
-            name: fromContract.name, 
-            version: fromContract.version, 
+
+          console.log("ERC20 Token details:", {
+            name: fromContract.name,
+            version: fromContract.version,
             nonce: nonce.toString(),
             verifyingContract: fromContract.verifyingContract
           });
@@ -348,10 +382,10 @@ export default function AddBanner() {
         "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()
       ) {
         // USDC on Base has 6 decimals
-        sendingAmount = BigInt(Math.round(usdcAmount * 1e6)); 
+        sendingAmount = BigInt(Math.round(usdcAmount * 1e6));
       } else {
         // Default to 18 decimals for other tokens
-        sendingAmount = BigInt(Math.round(usdcAmount * 1e18)); 
+        sendingAmount = BigInt(Math.round(usdcAmount * 1e18));
       }
 
       console.log("Sending Amount:", sendingAmount.toString(), "to contract:", contractAdds.auction);
@@ -376,10 +410,10 @@ export default function AddBanner() {
         const auctionContract = await getContract(contractAdds.auction, auctionAbi);
         const currentHighestBid = await auctionContract?.highestBid();
         console.log("Current highest bid from contract:", currentHighestBid.toString());
-        
+
         if (sendingAmount <= currentHighestBid) {
-          const formattedHighestBid = currency === "USDC" 
-            ? Number(currentHighestBid) / 1e6 
+          const formattedHighestBid = currency === "USDC"
+            ? Number(currentHighestBid) / 1e6
             : Number(currentHighestBid) / 1e18;
           setError(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`);
           setIsLoading(false);
@@ -394,34 +428,34 @@ export default function AddBanner() {
           types,
           message,
         });
-        
+
         const { v, r, s } = splitSignature(signature);
         console.log("Signature received successfully!");
-        
+
         // Debug information - truncate the hex strings for readability
-        console.log("Signature details:", { 
-          v, 
-          r: `${r.substring(0, 10)}...${r.substring(r.length - 8)}`, 
+        console.log("Signature details:", {
+          v,
+          r: `${r.substring(0, 10)}...${r.substring(r.length - 8)}`,
           s: `${s.substring(0, 10)}...${s.substring(s.length - 8)}`
         });
 
         // Prepare arguments for the contract call
         const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
         console.log("Preparing transaction with args:", [
-          `Amount: ${sendingAmount.toString()}`, 
-          `FID: ${user || 1129842}`, 
+          `Amount: ${sendingAmount.toString()}`,
+          `FID: ${user || 1129842}`,
           `Deadline: ${deadline.toString()}`,
-          `v: ${v}`, 
-          `r: ${r.substring(0, 10)}...`, 
+          `v: ${v}`,
+          `r: ${r.substring(0, 10)}...`,
           `s: ${s.substring(0, 10)}...`
         ]);
 
         // Add a small delay before sending the transaction
         // This can help with some wallets that need time to process the signature
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         console.log("Submitting transaction to contract:", contractAdds.auction);
-        
+
         // Call contract with signed data - with explicit gas settings
         const tx = await writeContract(config, {
           abi: auctionAbi,
@@ -431,19 +465,19 @@ export default function AddBanner() {
           // Add gas settings to avoid transaction hanging
           gas: BigInt(500000), // Explicit gas limit
         });
-        
+
         console.log("Transaction submitted:", tx);
-        
+
         // Wait for transaction confirmation
         console.log("Waiting for transaction confirmation...");
         await new Promise((resolve) => setTimeout(resolve, 5000));
-        
+
         // Refresh auction bids
         await getAuctionBids();
         window.location.reload();
       } catch (err: any) {
         console.error("Error in signing or sending transaction:", err);
-        
+
         // Provide more specific error messages based on the error
         if (err.message && err.message.includes("user rejected")) {
           setError("Transaction was rejected in your wallet");
@@ -460,7 +494,7 @@ export default function AddBanner() {
         } else {
           setError("Failed to sign or send transaction. Please try again.");
         }
-        
+
         setIsLoading(false);
         return; // Stop execution here to prevent the finally block from closing the modal
       }
@@ -480,35 +514,34 @@ export default function AddBanner() {
         {loading
           ? null
           : uploadedImage && (
-              <a href={url || "#"} target="_blank" rel="noopener noreferrer">
-                <div className="relative">
-                  <img
-                    src={`${uploadedImage}?v=${Date.now()}`}
-                    alt="Sponsor Banner"
-                    className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
-                  />
-                  {url !== "#" && (
-                    <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
-                      <PiCursorClickFill /> Click for more info
-                    </span>
-                  )}
-                </div>
+            <a href={url || "#"} target="_blank" rel="noopener noreferrer">
+              <div className="relative">
+                <img
+                  src={`${uploadedImage}?v=${Date.now()}`}
+                  alt="Sponsor Banner"
+                  className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
+                />
+                {url !== "#" && (
+                  <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
+                    <PiCursorClickFill /> Click for more info
+                  </span>
+                )}
+              </div>
 
-                <div className="flex flex-col mt-2">
-                  <span className="text-white/80 text-sm">
-                    Today&apos;s Highlighted Project:
-                  </span>
-                  <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">
-                    {name}
-                  </span>
-                </div>
-              </a>
-            )}
+              <div className="flex flex-col mt-2">
+                <span className="text-white/80 text-sm">
+                  Today&apos;s Highlighted Project:
+                </span>
+                <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">
+                  {name}
+                </span>
+              </div>
+            </a>
+          )}
 
         <div
-          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${
-            isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
         >
           <div className="bg-gradient-to-b mx-2 from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
             <button
@@ -561,17 +594,17 @@ export default function AddBanner() {
                     Current Highest Bid:
                   </label>
                   <div className=" my-4 px-2 py-4 bg-white/10 rounded-sm flex gap-2">
-                    <span className="flex gap-1 w-[70%] truncate text-sm">
+                    <span className="flex gap-3 w-[60%] items-center truncate text-xs">
                       <Image
                         alt={highestBidder.username}
                         src={highestBidder.pfp_url}
                         width={24}
                         height={24}
-                        className="rounded-full w-4 aspect-square"
+                        className="rounded-full w-6 aspect-square"
                       />
                       {highestBidder.username}
                     </span>
-                    <h4 className="font-bold w-[30%] text-right text-xs">
+                    <h4 className="font-bold w-[40%] my-auto text-right text-xs">
                       {Math.round(highestBidder.bidAmount).toLocaleString()} {currency}
                     </h4>
                   </div>
@@ -601,23 +634,59 @@ export default function AddBanner() {
                     </div>
                   </div>
                 )} */}
-                  <div></div>
+
                 </div>
               )}
 
               {inputVisible ? (
-                <div className="mt-4">
-                  <input
-                    type="number"
-                    className="w-full px-4 py-2 border rounded-lg"
-                    placeholder={`Enter ${currency} Amount`}
-                    value={usdcAmount === 0 ? "" : usdcAmount} // Ensure initial 0 is not displayed
-                    onChange={(e) => {
-                      const value = Math.floor(Number(e.target.value)); // Ensure whole number
-                      setUsdcAmount(value);
-                      setError("");
-                    }}
-                  />
+                <div className="mt-2">
+                  <div className="relative">
+                    
+                    <input
+                      type="number"
+                      className="w-full px-4 py-2 border rounded-lg"
+                      placeholder={`Enter ${currency} Amount`}
+                      value={usdcAmount === 0 ? "" : usdcAmount} // Ensure initial 0 is not displayed
+                      onChange={(e) => {
+                        const value = Math.floor(Number(e.target.value)); // Ensure whole number
+                        setUsdcAmount(value);
+                        setError("");
+                      }}
+                    />
+                    {tokenPrice && <span className="text-xs text-gray-400 mb-2">
+                    ≈ {(usdcAmount * tokenPrice).toFixed(8)} USD
+                    </span>}
+                    {/* {tokenPrice !== null && (
+                      <div className="absolute right-3 top-2 text-xs bg-black/70 px-2 py-1 rounded text-white/80">
+                        {tokenPriceLoading ? (
+                          <span className="flex items-center">
+                            <RiLoader5Fill className="animate-spin mr-1" />
+                            Loading...
+                          </span>
+                        ) : (
+                          <div>
+                            <span className="flex items-center">
+                              1 {currency} ≈ ${tokenPrice.toFixed(8)} USD
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (caInUse) fetchTokenPrice(caInUse);
+                                }}
+                                className="ml-1 text-blue-400 hover:text-blue-300"
+                              >
+                                ↻
+                              </button>
+                            </span>
+                            {usdcAmount > 0 && (
+                              <span className="block text-green-400">
+                                ≈ ${(usdcAmount * tokenPrice).toFixed(2)} USD
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )} */}
+                  </div>
                   {error && (
                     <p className="text-red-500 text-sm mt-2">{error}</p>
                   )}
@@ -673,6 +742,18 @@ export default function AddBanner() {
               {isAuctionActive
                 ? `Auction ${auctionId && `#${auctionId}`} - ${currency}`
                 : "No Active Auction"}
+              {/* {tokenPrice !== null && isAuctionActive && (
+                <div className="text-xs font-normal text-gray-400 mt-1">
+                  {tokenPriceLoading ? (
+                    <span className="flex items-center">
+                      <RiLoader5Fill className="animate-spin mr-1" />
+                      Loading price...
+                    </span>
+                  ) : (
+                    <span>Current rate: 1 {currency} ≈ ${tokenPrice.toFixed(2)} USD</span>
+                  )}
+                </div>
+              )} */}
             </h3>
             <div className="w-[30%] flex justify-end">
               {isAuctionActive && (
@@ -702,7 +783,7 @@ export default function AddBanner() {
                 <div className="bg-black/50 p-2 rounded">
                   <div className="text-xl font-bold">{timeRemaining.hours}</div>
                   <div className="text-xs text-gray-400">Hours</div>
-                </div> 
+                </div>
                 <div className="bg-black/50 p-2 rounded">
                   <div className="text-xl font-bold">
                     {timeRemaining.minutes}
