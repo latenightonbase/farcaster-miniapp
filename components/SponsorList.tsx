@@ -40,6 +40,8 @@ export default function AddBanner() {
   const { signTypedDataAsync } = useSignTypedData();
 
   const [usdcAmount, setUsdcAmount] = useState<number>(0);
+  const [tokenPrice, setTokenPrice] = useState<number | null>(null);
+  const [tokenPriceLoading, setTokenPriceLoading] = useState<boolean>(false);
 
   const { address } = useAccount();
   const globalContext = useGlobalContext();
@@ -129,11 +131,58 @@ export default function AddBanner() {
       setIsAuctionActive(true);
 
       console.log("Auction meta:", auctionMeta);
+      
+      // Fetch token price after getting the contract address
+      if (auctionMeta.caInUse) {
+        fetchTokenPrice(auctionMeta.caInUse);
+      }
     } catch (error) {
       console.error("Error getting auction ID:", error);
       setIsAuctionActive(false);
     }
   }
+  
+  // Function to fetch token price from CoinGecko
+  const fetchTokenPrice = async (contractAddress: string) => {
+    try {
+      setTokenPriceLoading(true);
+      
+      // Handle known token addresses (fallback in case CoinGecko doesn't recognize the address)
+      let tokenId = '';
+      let fallbackPrice = 0;
+      
+      // Always use the Base chain endpoint for contract address
+      const apiUrl = `https://api.coingecko.com/api/v3/coins/base/contract/${contractAddress}`;
+      
+      const response = await axios.get(apiUrl);
+      
+      if (response.data && response.data.market_data && response.data.market_data.current_price) {
+        setTokenPrice(response.data.market_data.current_price.usd);
+        console.log(`${currency} price:`, response.data.market_data.current_price.usd);
+      } else {
+        console.log("Price data not available from API, using fallback price");
+        // Use fallback price if API doesn't return price data
+        if (fallbackPrice > 0) {
+          setTokenPrice(fallbackPrice);
+        } else {
+          setTokenPrice(null);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching token price:", error);
+      
+      // Use fallback prices for known tokens if API call fails
+      if (currency === "USDC") {
+        setTokenPrice(1.0);
+      } else if (currency === "WETH" || currency === "ETH") {
+        setTokenPrice(3500); // Approximate ETH price
+      } else {
+        setTokenPrice(null);
+      }
+    } finally {
+      setTokenPriceLoading(false);
+    }
+  };
   async function getAuctionBids() {
     try {
       setIsFetchingBidders(true); // Start loader
@@ -205,6 +254,13 @@ export default function AddBanner() {
   useEffect(() => {
     getAuctionId();
   }, []);
+
+  // Refresh token price when modal is opened
+  useEffect(() => {
+    if (isModalOpen && caInUse) {
+      fetchTokenPrice(caInUse);
+    }
+  }, [isModalOpen, caInUse]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -601,23 +657,55 @@ export default function AddBanner() {
                     </div>
                   </div>
                 )} */}
-                  <div></div>
+
                 </div>
               )}
 
               {inputVisible ? (
                 <div className="mt-4">
-                  <input
-                    type="number"
-                    className="w-full px-4 py-2 border rounded-lg"
-                    placeholder={`Enter ${currency} Amount`}
-                    value={usdcAmount === 0 ? "" : usdcAmount} // Ensure initial 0 is not displayed
-                    onChange={(e) => {
-                      const value = Math.floor(Number(e.target.value)); // Ensure whole number
-                      setUsdcAmount(value);
-                      setError("");
-                    }}
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      className="w-full px-4 py-2 border rounded-lg"
+                      placeholder={`Enter ${currency} Amount`}
+                      value={usdcAmount === 0 ? "" : usdcAmount} // Ensure initial 0 is not displayed
+                      onChange={(e) => {
+                        const value = Math.floor(Number(e.target.value)); // Ensure whole number
+                        setUsdcAmount(value);
+                        setError("");
+                      }}
+                    />
+                    {tokenPrice !== null && (
+                      <div className="absolute right-3 top-2 text-xs bg-black/70 px-2 py-1 rounded text-white/80">
+                        {tokenPriceLoading ? (
+                          <span className="flex items-center">
+                            <RiLoader5Fill className="animate-spin mr-1" />
+                            Loading...
+                          </span>
+                        ) : (
+                          <div>
+                            <span className="flex items-center">
+                              1 {currency} ≈ ${tokenPrice.toFixed(2)} USD
+                              <button 
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (caInUse) fetchTokenPrice(caInUse);
+                                }}
+                                className="ml-1 text-blue-400 hover:text-blue-300"
+                              >
+                                ↻
+                              </button>
+                            </span>
+                            {usdcAmount > 0 && (
+                              <span className="block text-green-400">
+                                ≈ ${(usdcAmount * tokenPrice).toFixed(2)} USD
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   {error && (
                     <p className="text-red-500 text-sm mt-2">{error}</p>
                   )}
@@ -673,6 +761,18 @@ export default function AddBanner() {
               {isAuctionActive
                 ? `Auction ${auctionId && `#${auctionId}`} - ${currency}`
                 : "No Active Auction"}
+              {tokenPrice !== null && isAuctionActive && (
+                <div className="text-xs font-normal text-gray-400 mt-1">
+                  {tokenPriceLoading ? (
+                    <span className="flex items-center">
+                      <RiLoader5Fill className="animate-spin mr-1" />
+                      Loading price...
+                    </span>
+                  ) : (
+                    <span>Current rate: 1 {currency} ≈ ${tokenPrice.toFixed(2)} USD</span>
+                  )}
+                </div>
+              )}
             </h3>
             <div className="w-[30%] flex justify-end">
               {isAuctionActive && (
