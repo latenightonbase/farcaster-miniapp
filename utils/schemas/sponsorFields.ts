@@ -16,7 +16,7 @@ const sponsorFieldsSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 86400, // TTL of 24 hours in seconds
+    expires: 86400*5, // TTL of 5 days in seconds
   },
 });
 
