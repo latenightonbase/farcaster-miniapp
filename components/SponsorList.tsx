@@ -513,16 +513,16 @@ export default function AddBanner() {
           } as const;
 
           // Calculate amount based on token decimals
-          let sendingAmount: bigint;
+          let sendingAmount: any;
           if (
             caInUse.toLowerCase() ===
             "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()
           ) {
             // USDC on Base has 6 decimals
-            sendingAmount = BigInt(Math.round(usdcAmount * 1e6));
+            sendingAmount = ethers.utils.parseUnits(Math.round(usdcAmount).toString(), 6);
           } else {
             // Default to 18 decimals for other tokens
-            sendingAmount = BigInt(Math.round(usdcAmount * 1e18));
+            sendingAmount = ethers.utils.parseEther(Math.round(usdcAmount).toString());
           }
 
           addLog(`Preparing to send ${sendingAmount.toString()} to contract: ${contractAdds.auction}`);
