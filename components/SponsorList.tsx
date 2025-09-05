@@ -580,6 +580,18 @@ export default function AddBanner() {
           const { v, r, s } = splitSignature(signature as `0x${string}`);
           addLog(`Signature details - v: ${v}, r: ${r}, s: ${s}`);
 
+                    const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
+
+
+          const tx = await writeContract(config, {
+            abi: auctionAbi,
+            address: contractAdds.auction as `0x${string}`,
+            functionName: "bidWithPermit",
+            args: bidPermitArgs,
+            // Add gas settings to avoid transaction hanging
+            gas: BigInt(500000), // Explicit gas limit
+          });
+
           await new Promise(resolve => setTimeout(resolve, 1000));
 
           addLog("Submitting transaction to contract...");
