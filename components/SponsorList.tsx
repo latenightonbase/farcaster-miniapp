@@ -20,17 +20,16 @@ import { usdcAbi } from "@/utils/contract/abis/usdcabi";
 import { contractAdds } from "@/utils/contract/contractAdds";
 import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useGlobalContext } from "@/utils/globalContext";
-import { parseUnits } from "viem";
+import { createPublicClient, http, parseUnits } from "viem";
 import Image from "next/image";
 import { IoIosArrowBack } from "react-icons/io";
 import AuctionDisplay from "./AuctionDisplay";
 import { erc20abi } from "@/utils/contract/abis/erc20abi";
 import { createBaseAccountSDK } from "@base-org/account";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import { base } from "viem/chains";
 
 export default function AddBanner() {
-
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -84,7 +83,7 @@ export default function AddBanner() {
   // Function to add logs to both console and UI
   const addLog = (message: string, isError: boolean = false) => {
     console.log(message);
-    setLogs(prev => [...prev, message]);
+    setLogs((prev) => [...prev, message]);
     if (isError) {
       setError(message);
     }
@@ -159,7 +158,7 @@ export default function AddBanner() {
     try {
       setTokenPriceLoading(true);
 
-      // Using Alchemy Token Prices API 
+      // Using Alchemy Token Prices API
       // https://www.alchemy.com/docs/data/prices-api/prices-api-endpoints/prices-api-endpoints/get-token-prices-by-address
 
       const apiUrl = `https://api.dexscreener.com/tokens/v1/base/${contractAddress}`;
@@ -167,12 +166,10 @@ export default function AddBanner() {
       const response = await fetch(apiUrl);
 
       const usableResponse = await response.json();
-      console.log(Number(usableResponse[0].priceUsd))
-      setTokenPrice(Number(usableResponse[0].priceUsd))
-
+      console.log(Number(usableResponse[0].priceUsd));
+      setTokenPrice(Number(usableResponse[0].priceUsd));
     } catch (error) {
       console.error("Error fetching token price:", error);
-
     } finally {
       setTokenPriceLoading(false);
     }
@@ -217,7 +214,10 @@ export default function AddBanner() {
           return {
             username: user?.username || "Unknown",
             pfp_url: user?.pfp_url || "",
-            bidAmount: currency == "USDC" ? ethers.utils.formatUnits(String(bid.bidAmount), 6) : ethers.utils.formatUnits(String(bid.bidAmount), 18),
+            bidAmount:
+              currency == "USDC"
+                ? ethers.utils.formatUnits(String(bid.bidAmount), 6)
+                : ethers.utils.formatUnits(String(bid.bidAmount), 18),
           };
         });
 
@@ -298,10 +298,14 @@ export default function AddBanner() {
 
   const handleSend = async () => {
     try {
-
       const provider = createBaseAccountSDK({
         appChainIds: [8453], // Base Mainnet chain ID
       }).getProvider();
+
+      const client = createPublicClient({
+        chain: base,
+        transport: http(),
+      });
       // Clear previous logs
       setLogs([]);
 
@@ -325,7 +329,10 @@ export default function AddBanner() {
         // First check if the user has enough tokens
         let tokenContract;
         if (currency === "USDC") {
-          tokenContract = await getContract(caInUse, [...usdcAbi, "function balanceOf(address) view returns (uint256)"]);
+          tokenContract = await getContract(caInUse, [
+            ...usdcAbi,
+            "function balanceOf(address) view returns (uint256)",
+          ]);
         } else {
           tokenContract = await getContract(caInUse, erc20abi);
         }
@@ -348,18 +355,20 @@ export default function AddBanner() {
         if (currency === "USDC") {
           const token = await getContract(caInUse, usdcAbi);
           const tokenName = await token?.name();
-          const tokenVersion = (await token?.version()) || '1';
+          const tokenVersion = (await token?.version()) || "1";
           nonce = Number(await token?.nonces(address));
 
           // Set up domain following EIP-712 best practices for domain separation
           domain = {
-            name: tokenName,            // Unique token identifier
-            version: tokenVersion,      // Version from the token contract
-            chainId: 8453,              // Base mainnet chain ID
+            name: tokenName, // Unique token identifier
+            version: tokenVersion, // Version from the token contract
+            chainId: 8453, // Base mainnet chain ID
             verifyingContract: caInUse, // Contract that will verify the signature
           } as const;
 
-          addLog(`USDC Token details: ${tokenName}, version ${tokenVersion}, nonce: ${nonce.toString()}`);
+          addLog(
+            `USDC Token details: ${tokenName}, version ${tokenVersion}, nonce: ${nonce.toString()}`
+          );
         } else {
           const token = await getContract(caInUse, erc20abi);
           nonce = Number(await token?.nonces(address));
@@ -367,13 +376,17 @@ export default function AddBanner() {
 
           // Set up domain following EIP-712 best practices for domain separation
           domain = {
-            name: fromContract.name,                 // Unique token identifier
-            version: fromContract.version,           // Version from the token contract
-            chainId: 8453,                           // Base mainnet chain ID
+            name: fromContract.name, // Unique token identifier
+            version: fromContract.version, // Version from the token contract
+            chainId: 8453, // Base mainnet chain ID
             verifyingContract: fromContract.verifyingContract, // Contract that will verify
           } as const;
 
-          addLog(`ERC20 Token details: ${fromContract.name}, version ${fromContract.version}, nonce: ${nonce.toString()}`);
+          addLog(
+            `ERC20 Token details: ${fromContract.name}, version ${
+              fromContract.version
+            }, nonce: ${nonce.toString()}`
+          );
         }
       } catch (err) {
         console.error("Error getting token contract information:", err);
@@ -384,7 +397,6 @@ export default function AddBanner() {
 
       addLog("Domain data generated successfully");
       try {
-
         if (context?.client.clientFid !== 309857) {
           const types = {
             Permit: [
@@ -409,7 +421,12 @@ export default function AddBanner() {
             sendingAmount = BigInt(Math.round(usdcAmount * 1e18));
           }
 
-          console.log("Sending Amount:", sendingAmount.toString(), "to contract:", contractAdds.auction);
+          console.log(
+            "Sending Amount:",
+            sendingAmount.toString(),
+            "to contract:",
+            contractAdds.auction
+          );
 
           // Set permit deadline to 1 hour from now
           const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
@@ -423,15 +440,24 @@ export default function AddBanner() {
             deadline,
           };
 
-          const auctionContract = await getContract(contractAdds.auction, auctionAbi);
+          const auctionContract = await getContract(
+            contractAdds.auction,
+            auctionAbi
+          );
           const currentHighestBid = await auctionContract?.highestBid();
-          console.log("Current highest bid from contract:", currentHighestBid.toString());
+          console.log(
+            "Current highest bid from contract:",
+            currentHighestBid.toString()
+          );
 
           if (sendingAmount <= currentHighestBid) {
-            const formattedHighestBid = currency === "USDC"
-              ? Number(currentHighestBid) / 1e6
-              : Number(currentHighestBid) / 1e18;
-            setError(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`);
+            const formattedHighestBid =
+              currency === "USDC"
+                ? Number(currentHighestBid) / 1e6
+                : Number(currentHighestBid) / 1e18;
+            setError(
+              `Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`
+            );
             setIsLoading(false);
             return;
           }
@@ -445,7 +471,7 @@ export default function AddBanner() {
             message,
           });
 
-          addLog("Signature request completed"+ signature);
+          addLog("Signature request completed" + signature);
 
           const { v, r, s } = splitSignature(signature);
           console.log("Signature received successfully!");
@@ -454,7 +480,7 @@ export default function AddBanner() {
           console.log("Signature details:", {
             v,
             r: `${r.substring(0, 10)}...${r.substring(r.length - 8)}`,
-            s: `${s.substring(0, 10)}...${s.substring(s.length - 8)}`
+            s: `${s.substring(0, 10)}...${s.substring(s.length - 8)}`,
           });
 
           // Prepare arguments for the contract call
@@ -465,14 +491,17 @@ export default function AddBanner() {
             `Deadline: ${deadline.toString()}`,
             `v: ${v}`,
             `r: ${r.substring(0, 10)}...`,
-            `s: ${s.substring(0, 10)}...`
+            `s: ${s.substring(0, 10)}...`,
           ]);
 
           // Add a small delay before sending the transaction
           // This can help with some wallets that need time to process the signature
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          console.log("Submitting transaction to contract:", contractAdds.auction);
+          console.log(
+            "Submitting transaction to contract:",
+            contractAdds.auction
+          );
 
           // Call contract with signed data - with explicit gas settings
           const tx = await writeContract(config, {
@@ -493,10 +522,7 @@ export default function AddBanner() {
           // Refresh auction bids
           await getAuctionBids();
           window.location.reload();
-        }
-
-        else {
-
+        } else {
           // Define EIP-2612 types following EIP-712 standard
           const types = {
             EIP712Domain: [
@@ -521,13 +547,23 @@ export default function AddBanner() {
             "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()
           ) {
             // USDC on Base has 6 decimals
-            sendingAmount = ethers.utils.parseUnits(Math.round(usdcAmount).toString(), 6);
+            sendingAmount = ethers.utils.parseUnits(
+              Math.round(usdcAmount).toString(),
+              6
+            );
           } else {
             // Default to 18 decimals for other tokens
-            sendingAmount = ethers.utils.parseUnits(Math.round(usdcAmount).toString(), 18);
+            sendingAmount = ethers.utils.parseUnits(
+              Math.round(usdcAmount).toString(),
+              18
+            );
           }
 
-          addLog(`Preparing to send ${sendingAmount.toString()} to contract: ${contractAdds.auction}`);
+          addLog(
+            `Preparing to send ${sendingAmount.toString()} to contract: ${
+              contractAdds.auction
+            }`
+          );
 
           // Set permit deadline to 1 hour from now - following best practices for time-bound signatures
           const deadline = Number(Math.floor(Date.now() / 1000) + 3600);
@@ -567,25 +603,33 @@ export default function AddBanner() {
           addLog("Requesting signature from wallet...");
 
           const accounts: any = await provider.request({
-            method: 'eth_requestAccounts'
+            method: "eth_requestAccounts",
           });
 
           addLog(`Account connected: ${accounts[0]}`);
 
-          const signature:any = await provider.request({
-            method: 'eth_signTypedData_v4',
-            params: [accounts[0], JSON.stringify(typedData)]
+          const signature: any = await provider.request({
+            method: "eth_signTypedData_v4",
+            params: [accounts[0], JSON.stringify(typedData)],
           });
 
-          addLog("Signature received successfully!" + signature);
+          const valid = await client.verifyTypedData({
+      address: accounts[0],
+      domain: typedData.domain,
+      types: typedData.types,
+      primaryType: typedData.primaryType,
+      message: typedData.message,
+      signature
+    });
 
-const r = signature.slice(0, 66);
-const s = '0x' + signature.slice(66, 130);
-const v = '0x' + signature.slice(130, 132);
+          addLog("Signature received successfully!"+ " "+ valid + " " + signature);
+
+          const r = signature.slice(0, 66);
+          const s = "0x" + signature.slice(66, 130);
+          const v = "0x" + signature.slice(130, 132);
           addLog(`Signature details - v: ${v}, r: ${r}, s: ${s}`);
 
-                    const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
-
+          const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
 
           const tx = await writeContract(config, {
             abi: auctionAbi,
@@ -596,7 +640,7 @@ const v = '0x' + signature.slice(130, 132);
             gas: BigInt(500000), // Explicit gas limit
           });
 
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
 
           addLog("Submitting transaction to contract...");
 
@@ -605,7 +649,6 @@ const v = '0x' + signature.slice(130, 132);
 
           // window.location.reload();
         }
-
 
         // Sign the message with the wallet
 
@@ -625,14 +668,22 @@ const v = '0x' + signature.slice(130, 132);
         } else if (err.message && err.message.includes("insufficient funds")) {
           addLog("You don't have enough funds for this transaction", true);
         } else if (err.message && err.message.includes("gas")) {
-          addLog("Gas estimation failed. Try a higher amount or check your wallet settings", true);
+          addLog(
+            "Gas estimation failed. Try a higher amount or check your wallet settings",
+            true
+          );
         } else if (err.message && err.message.includes("signature")) {
           addLog("Error with signature. Please try again.", true);
         } else if (err.message && err.message.includes("EIP-1271")) {
           // Handle smart contract wallet verification errors (EIP-1271)
           addLog("Smart wallet signature verification failed", true);
         } else {
-          addLog(`Failed to sign or send transaction: ${err.message || "Unknown error"}`, true);
+          addLog(
+            `Failed to sign or send transaction: ${
+              err.message || "Unknown error"
+            }`,
+            true
+          );
         }
 
         setIsLoading(false);
@@ -654,34 +705,35 @@ const v = '0x' + signature.slice(130, 132);
         {loading
           ? null
           : uploadedImage && (
-            <a href={url || "#"} target="_blank" rel="noopener noreferrer">
-              <div className="relative">
-                <img
-                  src={`${uploadedImage}?v=${Date.now()}`}
-                  alt="Sponsor Banner"
-                  className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
-                />
-                {url !== "#" && (
-                  <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
-                    <PiCursorClickFill /> Click for more info
-                  </span>
-                )}
-              </div>
+              <a href={url || "#"} target="_blank" rel="noopener noreferrer">
+                <div className="relative">
+                  <img
+                    src={`${uploadedImage}?v=${Date.now()}`}
+                    alt="Sponsor Banner"
+                    className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
+                  />
+                  {url !== "#" && (
+                    <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
+                      <PiCursorClickFill /> Click for more info
+                    </span>
+                  )}
+                </div>
 
-              <div className="flex flex-col mt-2">
-                <span className="text-white/80 text-sm">
-                  Today&apos;s Highlighted Project:
-                </span>
-                <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">
-                  {name}
-                </span>
-              </div>
-            </a>
-          )}
+                <div className="flex flex-col mt-2">
+                  <span className="text-white/80 text-sm">
+                    Today&apos;s Highlighted Project:
+                  </span>
+                  <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">
+                    {name}
+                  </span>
+                </div>
+              </a>
+            )}
 
         <div
-          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
+          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${
+            isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         >
           <div className="bg-gradient-to-b mx-2 from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
             <button
@@ -745,7 +797,8 @@ const v = '0x' + signature.slice(130, 132);
                       {highestBidder.username}
                     </span>
                     <h4 className="font-bold w-[40%] my-auto text-right text-xs">
-                      {Math.round(highestBidder.bidAmount).toLocaleString()} {currency}
+                      {Math.round(highestBidder.bidAmount).toLocaleString()}{" "}
+                      {currency}
                     </h4>
                   </div>
                   {/* {auctionDeadline && (
@@ -774,14 +827,12 @@ const v = '0x' + signature.slice(130, 132);
                     </div>
                   </div>
                 )} */}
-
                 </div>
               )}
 
               {inputVisible ? (
                 <div className="mt-2">
                   <div className="relative">
-
                     <input
                       type="number"
                       className="w-full px-4 py-2 border rounded-lg"
@@ -793,9 +844,11 @@ const v = '0x' + signature.slice(130, 132);
                         setError("");
                       }}
                     />
-                    {tokenPrice && <span className="text-xs text-gray-400 mb-2">
-                      ≈ {(usdcAmount * tokenPrice).toFixed(8)} USD
-                    </span>}
+                    {tokenPrice && (
+                      <span className="text-xs text-gray-400 mb-2">
+                        ≈ {(usdcAmount * tokenPrice).toFixed(8)} USD
+                      </span>
+                    )}
                     {/* {tokenPrice !== null && (
                       <div className="absolute right-3 top-2 text-xs bg-black/70 px-2 py-1 rounded text-white/80">
                         {tokenPriceLoading ? (
@@ -834,7 +887,9 @@ const v = '0x' + signature.slice(130, 132);
                   {/* Display logs */}
                   {logs.length > 0 && (
                     <div className="mt-2 mb-3 bg-black/30 p-2 rounded-md max-h-32 overflow-y-auto">
-                      <p className="text-xs font-semibold text-gray-400 mb-1">Transaction Logs:</p>
+                      <p className="text-xs font-semibold text-gray-400 mb-1">
+                        Transaction Logs:
+                      </p>
                       {logs.map((log, index) => (
                         <p key={index} className="text-xs text-gray-300 mb-1">
                           {log}
