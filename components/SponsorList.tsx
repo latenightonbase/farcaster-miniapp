@@ -570,14 +570,16 @@ export default function AddBanner() {
 
           addLog(`Account connected: ${accounts[0]}`);
 
-          const signature = await provider.request({
+          const signature:any = await provider.request({
             method: 'eth_signTypedData_v4',
             params: [accounts[0], JSON.stringify(typedData)]
           });
 
           addLog("Signature received successfully!" + signature);
 
-          const { v, r, s } = splitSignature(signature as `0x${string}`);
+const r = signature.slice(0, 66);
+const s = '0x' + signature.slice(66, 130);
+const v = '0x' + signature.slice(130, 132);
           addLog(`Signature details - v: ${v}, r: ${r}, s: ${s}`);
 
                     const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
