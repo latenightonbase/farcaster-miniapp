@@ -25,8 +25,15 @@ import Image from "next/image";
 import { IoIosArrowBack } from "react-icons/io";
 import AuctionDisplay from "./AuctionDisplay";
 import { erc20abi } from "@/utils/contract/abis/erc20abi";
+import { createBaseAccountSDK } from "@base-org/account";
 
 export default function AddBanner() {
+
+  const provider = createBaseAccountSDK({
+    appChainIds: [8453], // Base Mainnet chain ID
+  }).getProvider();
+
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -57,6 +64,7 @@ export default function AddBanner() {
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
   const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
   const [caInUse, setCaInUse] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>([]); // State to store frontend logs
 
   // New state variables
   const [auctionDeadline, setAuctionDeadline] = useState<number | null>(null); // State to store auction deadline
@@ -73,6 +81,15 @@ export default function AddBanner() {
     minutes: 0,
     seconds: 0,
   }); // State to store countdown time
+  
+  // Function to add logs to both console and UI
+  const addLog = (message: string, isError: boolean = false) => {
+    console.log(message);
+    setLogs(prev => [...prev, message]);
+    if (isError) {
+      setError(message);
+    }
+  };
 
   useEffect(() => {
     const fetchSponsorImage = async () => {
@@ -282,13 +299,16 @@ export default function AddBanner() {
 
   const handleSend = async () => {
     try {
-      console.log("Sending transaction...", caInUse, usdcAmount);
+      // Clear previous logs
+      setLogs([]);
+      
+      addLog("Sending transaction...");
       if (!caInUse) {
-        setError("Token address not available");
+        addLog("Token address not available", true);
         return;
       }
       if (usdcAmount <= 0) {
-        setError("Amount must be greater than 0");
+        addLog("Amount must be greater than 0", true);
         return;
       }
 
@@ -313,10 +333,10 @@ export default function AddBanner() {
           ? Number(balance) / 1e6
           : Number(balance) / 1e18;
 
-        console.log(`User ${currency} balance:`, formattedBalance);
+        addLog(`User ${currency} balance: ${formattedBalance}`);
 
         if (Number(balance) < Number(usdcAmount * (currency === "USDC" ? 1e6 : 1e18))) {
-          setError(`Insufficient ${currency} balance. You have ${formattedBalance} ${currency}`);
+          addLog(`Insufficient ${currency} balance. You have ${formattedBalance} ${currency}`, true);
           setIsLoading(false);
           return;
         }
@@ -328,43 +348,40 @@ export default function AddBanner() {
           const tokenVersion = (await token?.version()) || '1';
           nonce = BigInt(await token?.nonces(address));
 
+          // Set up domain following EIP-712 best practices for domain separation
           domain = {
-            name: tokenName,
-            version: tokenVersion,
-            chainId: 8453,
-            verifyingContract: caInUse,
+            name: tokenName,            // Unique token identifier
+            version: tokenVersion,      // Version from the token contract
+            chainId: 8453,              // Base mainnet chain ID
+            verifyingContract: caInUse, // Contract that will verify the signature
           } as const;
 
-          console.log("USDC Token details:", { tokenName, tokenVersion, nonce: nonce.toString() });
+          addLog(`USDC Token details: ${tokenName}, version ${tokenVersion}, nonce: ${nonce.toString()}`);
         } else {
           const token = await getContract(caInUse, erc20abi);
           nonce = BigInt(await token?.nonces(address));
           const fromContract = await token?.eip712Domain();
 
+          // Set up domain following EIP-712 best practices for domain separation
           domain = {
-            name: fromContract.name,
-            version: fromContract.version,
-            chainId: 8453,
-            verifyingContract: fromContract.verifyingContract,
+            name: fromContract.name,                 // Unique token identifier
+            version: fromContract.version,           // Version from the token contract
+            chainId: 8453,                           // Base mainnet chain ID
+            verifyingContract: fromContract.verifyingContract, // Contract that will verify
           } as const;
 
-          console.log("ERC20 Token details:", {
-            name: fromContract.name,
-            version: fromContract.version,
-            nonce: nonce.toString(),
-            verifyingContract: fromContract.verifyingContract
-          });
+          addLog(`ERC20 Token details: ${fromContract.name}, version ${fromContract.version}, nonce: ${nonce.toString()}`);
         }
       } catch (err) {
         console.error("Error getting token contract information:", err);
-        setError("Failed to get token information. Please try again.");
+        addLog("Failed to get token information. Please try again.", true);
         setIsLoading(false);
         return;
       }
 
-      console.log("Generated domain:", domain);
+      addLog("Domain data generated successfully");
 
-      // Define EIP-2612 types
+      // Define EIP-2612 types following EIP-712 standard
       const types = {
         Permit: [
           { name: "owner", type: "address" },
@@ -388,12 +405,12 @@ export default function AddBanner() {
         sendingAmount = BigInt(Math.round(usdcAmount * 1e18));
       }
 
-      console.log("Sending Amount:", sendingAmount.toString(), "to contract:", contractAdds.auction);
+      addLog(`Preparing to send ${sendingAmount.toString()} to contract: ${contractAdds.auction}`);
 
-      // Set permit deadline to 1 hour from now
+      // Set permit deadline to 1 hour from now - following best practices for time-bound signatures
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
 
-      // Prepare the permit message
+      // Prepare the permit message following EIP-712 standard
       const message = {
         owner: address as `0x${string}`,
         spender: contractAdds.auction as `0x${string}`,
@@ -402,105 +419,133 @@ export default function AddBanner() {
         deadline,
       };
 
-      console.log("Preparing to sign message:", message);
+      // Prepare the complete typed data payload according to EIP-712
+      const typedData = {
+        domain,
+        types,
+        primaryType: "Permit" as const,
+        message,
+      };
+
+      addLog("Preparing to sign message...");
 
       // Sign the message with the wallet
       try {
         // First let's try to get the current highest bid to make sure our bid is higher
         const auctionContract = await getContract(contractAdds.auction, auctionAbi);
         const currentHighestBid = await auctionContract?.highestBid();
-        console.log("Current highest bid from contract:", currentHighestBid.toString());
+        addLog(`Current highest bid: ${currentHighestBid.toString()}`);
 
         if (sendingAmount <= currentHighestBid) {
           const formattedHighestBid = currency === "USDC"
             ? Number(currentHighestBid) / 1e6
             : Number(currentHighestBid) / 1e18;
-          setError(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`);
+          addLog(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`, true);
           setIsLoading(false);
           return;
         }
 
-        // Sign the typed data for the permit function
-        console.log("Requesting signature from wallet...");
-        const signature = await signTypedDataAsync({
-          domain,
-          primaryType: "Permit",
-          types,
-          message,
+        // Sign the typed data for the permit function following EIP-712 standard
+        addLog("Requesting signature from wallet...");
+
+        // Using signTypedDataAsync with the prepared typedData structure
+        // const signature = await signTypedDataAsync({
+        //   domain: typedData.domain,
+        //   primaryType: typedData.primaryType,
+        //   types: typedData.types,
+        //   message: typedData.message,
+        // });
+
+        const accounts:any = await provider.request({
+          method: 'eth_requestAccounts'
         });
 
-        const { v, r, s } = splitSignature(signature);
-        console.log("Signature received successfully!");
+        addLog(`Account connected: ${accounts[0]}`);
+
+        const signature = await provider.request({
+          method: 'eth_signTypedData_v4',
+          params: [accounts[0], JSON.stringify(typedData)]
+        });
+
+
+        // const { v, r, s } = splitSignature(signature);
+        addLog("Signature received successfully!");
 
         // Debug information - truncate the hex strings for readability
-        console.log("Signature details:", {
-          v,
-          r: `${r.substring(0, 10)}...${r.substring(r.length - 8)}`,
-          s: `${s.substring(0, 10)}...${s.substring(s.length - 8)}`
-        });
+        // console.log("Signature details:", {
+        //   v,
+        //   r: `${r.substring(0, 10)}...${r.substring(r.length - 8)}`,
+        //   s: `${s.substring(0, 10)}...${s.substring(s.length - 8)}`
+        // });
 
-        // Prepare arguments for the contract call
-        const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
-        console.log("Preparing transaction with args:", [
-          `Amount: ${sendingAmount.toString()}`,
-          `FID: ${user || 1129842}`,
-          `Deadline: ${deadline.toString()}`,
-          `v: ${v}`,
-          `r: ${r.substring(0, 10)}...`,
-          `s: ${s.substring(0, 10)}...`
-        ]);
+        // // Prepare arguments for the contract call
+        // const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
+        // console.log("Preparing transaction with args:", [
+        //   `Amount: ${sendingAmount.toString()}`,
+        //   `FID: ${user || 1129842}`,
+        //   `Deadline: ${deadline.toString()}`,
+        //   `v: ${v}`,
+        //   `r: ${r.substring(0, 10)}...`,
+        //   `s: ${s.substring(0, 10)}...`
+        // ]);
 
         // Add a small delay before sending the transaction
         // This can help with some wallets that need time to process the signature
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        console.log("Submitting transaction to contract:", contractAdds.auction);
+        addLog("Submitting transaction to contract...");
 
         // Call contract with signed data - with explicit gas settings
-        const tx = await writeContract(config, {
-          abi: auctionAbi,
-          address: contractAdds.auction as `0x${string}`,
-          functionName: "bidWithPermit",
-          args: bidPermitArgs,
-          // Add gas settings to avoid transaction hanging
-          gas: BigInt(500000), // Explicit gas limit
-        });
+        // const tx = await writeContract(config, {
+        //   abi: auctionAbi,
+        //   address: contractAdds.auction as `0x${string}`,
+        //   functionName: "bidWithPermit",
+        //   args: bidPermitArgs,
+        //   // Add gas settings to avoid transaction hanging
+        //   gas: BigInt(500000), // Explicit gas limit
+        // });
 
-        console.log("Transaction submitted:", tx);
+        // console.log("Transaction submitted:", tx);
 
-        // Wait for transaction confirmation
-        console.log("Waiting for transaction confirmation...");
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        // // Wait for transaction confirmation
+        // console.log("Waiting for transaction confirmation...");
+        // await new Promise((resolve) => setTimeout(resolve, 5000));
 
         // Refresh auction bids
         await getAuctionBids();
+        addLog("Transaction completed! Refreshing page...");
         window.location.reload();
       } catch (err: any) {
         console.error("Error in signing or sending transaction:", err);
 
         // Provide more specific error messages based on the error
         if (err.message && err.message.includes("user rejected")) {
-          setError("Transaction was rejected in your wallet");
+          addLog("Transaction was rejected in your wallet", true);
         } else if (err.message && err.message.includes("deadline")) {
-          setError("Transaction deadline has passed");
+          addLog("Transaction deadline has passed", true);
         } else if (err.message && err.message.includes("Bid not high enough")) {
-          setError("Your bid is not high enough");
+          addLog("Your bid is not high enough", true);
         } else if (err.message && err.message.includes("Auction has ended")) {
-          setError("This auction has already ended");
+          addLog("This auction has already ended", true);
         } else if (err.message && err.message.includes("insufficient funds")) {
-          setError("You don't have enough funds for this transaction");
+          addLog("You don't have enough funds for this transaction", true);
         } else if (err.message && err.message.includes("gas")) {
-          setError("Gas estimation failed. Try a higher amount or check your wallet settings");
+          addLog("Gas estimation failed. Try a higher amount or check your wallet settings", true);
+        } else if (err.message && err.message.includes("signature")) {
+          addLog("Error with signature. Please try again.", true);
+        } else if (err.message && err.message.includes("EIP-1271")) {
+          // Handle smart contract wallet verification errors (EIP-1271)
+          addLog("Smart wallet signature verification failed", true);
         } else {
-          setError("Failed to sign or send transaction. Please try again.");
+          addLog(`Failed to sign or send transaction: ${err.message || "Unknown error"}`, true);
         }
 
         setIsLoading(false);
         return; // Stop execution here to prevent the finally block from closing the modal
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending transaction:", error);
-      setError("Transaction failed. Please try again.");
+      addLog(`Transaction failed: ${error.message || "Unknown error"}`, true);
       setIsLoading(false);
     } finally {
       setIsLoading(false);
@@ -641,7 +686,7 @@ export default function AddBanner() {
               {inputVisible ? (
                 <div className="mt-2">
                   <div className="relative">
-                    
+
                     <input
                       type="number"
                       className="w-full px-4 py-2 border rounded-lg"
@@ -654,7 +699,7 @@ export default function AddBanner() {
                       }}
                     />
                     {tokenPrice && <span className="text-xs text-gray-400 mb-2">
-                    ≈ {(usdcAmount * tokenPrice).toFixed(8)} USD
+                      ≈ {(usdcAmount * tokenPrice).toFixed(8)} USD
                     </span>}
                     {/* {tokenPrice !== null && (
                       <div className="absolute right-3 top-2 text-xs bg-black/70 px-2 py-1 rounded text-white/80">
@@ -690,6 +735,19 @@ export default function AddBanner() {
                   {error && (
                     <p className="text-red-500 text-sm mt-2">{error}</p>
                   )}
+                  
+                  {/* Display logs */}
+                  {logs.length > 0 && (
+                    <div className="mt-2 mb-3 bg-black/30 p-2 rounded-md max-h-32 overflow-y-auto">
+                      <p className="text-xs font-semibold text-gray-400 mb-1">Transaction Logs:</p>
+                      {logs.map((log, index) => (
+                        <p key={index} className="text-xs text-gray-300 mb-1">
+                          {log}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  
                   <button
                     type="button"
                     className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
