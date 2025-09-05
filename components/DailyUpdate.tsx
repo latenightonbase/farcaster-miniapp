@@ -54,6 +54,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
                 <ReactPlayer
                   src={videos+"?v="+Date.now()}
                   controls
+                  light={true}
                   width="100%"
                   height="100%"
                   className={`absolute top-0 left-0 rounded-lg duration-200 object-cover transition-all ${
