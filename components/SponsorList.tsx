@@ -328,18 +328,18 @@ export default function AddBanner() {
         }
 
         // Check balance
-        const balance = await tokenContract?.balanceOf(address);
-        const formattedBalance = currency === "USDC"
-          ? Number(balance) / 1e6
-          : Number(balance) / 1e18;
+        // const balance = await tokenContract?.balanceOf(address);
+        // const formattedBalance = currency === "USDC"
+        //   ? Number(balance) / 1e6
+        //   : Number(balance) / 1e18;
 
-        addLog(`User ${currency} balance: ${formattedBalance}`);
+        // addLog(`User ${currency} balance: ${formattedBalance}`);
 
-        if (Number(balance) < Number(usdcAmount * (currency === "USDC" ? 1e6 : 1e18))) {
-          addLog(`Insufficient ${currency} balance. You have ${formattedBalance} ${currency}`, true);
-          setIsLoading(false);
-          return;
-        }
+        // if (Number(balance) < Number(usdcAmount * (currency === "USDC" ? 1e6 : 1e18))) {
+        //   addLog(`Insufficient ${currency} balance. You have ${formattedBalance} ${currency}`, true);
+        //   setIsLoading(false);
+        //   return;
+        // }
 
         // Get token information for permit signature
         if (currency === "USDC") {
