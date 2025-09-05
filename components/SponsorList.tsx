@@ -29,10 +29,6 @@ import { createBaseAccountSDK } from "@base-org/account";
 
 export default function AddBanner() {
 
-  const provider = createBaseAccountSDK({
-    appChainIds: [8453], // Base Mainnet chain ID
-  }).getProvider();
-
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -299,6 +295,10 @@ export default function AddBanner() {
 
   const handleSend = async () => {
     try {
+
+      const provider = createBaseAccountSDK({
+    appChainIds: [8453], // Base Mainnet chain ID
+  }).getProvider();
       // Clear previous logs
       setLogs([]);
       
