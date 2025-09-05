@@ -507,7 +507,7 @@ export default function AddBanner() {
               { name: "owner", type: "address" },
               { name: "spender", type: "address" },
               // { name: "value", type: "uint256" },
-              // { name: "nonce", type: "uint256" },
+              { name: "nonce", type: "uint256" },
               // { name: "deadline", type: "uint256" },
             ],
           } as const;
@@ -535,7 +535,7 @@ export default function AddBanner() {
             owner: address as `0x${string}`,
             spender: contractAdds.auction as `0x${string}`,
             // value: sendingAmount,
-            // nonce,
+            nonce,
             // deadline,
           };
 
@@ -577,6 +577,9 @@ export default function AddBanner() {
 
           addLog("Signature received successfully!" + signature);
 
+          const { v, r, s } = splitSignature(signature as `0x${string}`);
+          addLog(`Signature details - v: ${v}, r: ${r}, s: ${s}`);
+
           await new Promise(resolve => setTimeout(resolve, 1000));
 
           addLog("Submitting transaction to contract...");
@@ -584,7 +587,7 @@ export default function AddBanner() {
           // Refresh auction bids
           await getAuctionBids();
 
-          window.location.reload();
+          // window.location.reload();
         }
 
 
