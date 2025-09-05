@@ -383,6 +383,12 @@ export default function AddBanner() {
 
       // Define EIP-2612 types following EIP-712 standard
       const types = {
+        EIP712Domain: [
+          { name: "name", type: "string" },
+          { name: "version", type: "string" },
+          { name: "chainId", type: "uint256" },
+          { name: "verifyingContract", type: "address" },
+        ],
         Permit: [
           { name: "owner", type: "address" },
           { name: "spender", type: "address" },
