@@ -315,7 +315,7 @@ export default function AddBanner() {
       setIsLoading(true);
 
       // Get contract and prepare domain data
-      let nonce: bigint;
+      let nonce: number;
       let domain: any = {};
 
       try {
@@ -346,7 +346,7 @@ export default function AddBanner() {
           const token = await getContract(caInUse, usdcAbi);
           const tokenName = await token?.name();
           const tokenVersion = (await token?.version()) || '1';
-          nonce = BigInt(await token?.nonces(address));
+          nonce = Number(await token?.nonces(address));
 
           // Set up domain following EIP-712 best practices for domain separation
           domain = {
@@ -359,7 +359,7 @@ export default function AddBanner() {
           addLog(`USDC Token details: ${tokenName}, version ${tokenVersion}, nonce: ${nonce.toString()}`);
         } else {
           const token = await getContract(caInUse, erc20abi);
-          nonce = BigInt(await token?.nonces(address));
+          nonce = Number(await token?.nonces(address));
           const fromContract = await token?.eip712Domain();
 
           // Set up domain following EIP-712 best practices for domain separation
@@ -408,7 +408,7 @@ export default function AddBanner() {
       addLog(`Preparing to send ${sendingAmount.toString()} to contract: ${contractAdds.auction}`);
 
       // Set permit deadline to 1 hour from now - following best practices for time-bound signatures
-      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+      const deadline = Number(Math.floor(Date.now() / 1000) + 3600);
 
       // Prepare the permit message following EIP-712 standard
       const message = {
@@ -469,7 +469,7 @@ export default function AddBanner() {
 
 
         // const { v, r, s } = splitSignature(signature);
-        addLog("Signature received successfully!");
+        addLog("Signature received successfully!" + signature);
 
         // Debug information - truncate the hex strings for readability
         // console.log("Signature details:", {
