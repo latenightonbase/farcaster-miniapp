@@ -524,7 +524,7 @@ export default function AddBanner() {
             sendingAmount = ethers.utils.parseUnits(Math.round(usdcAmount).toString(), 6);
           } else {
             // Default to 18 decimals for other tokens
-            sendingAmount = Math.round(usdcAmount);
+            sendingAmount = ethers.utils.parseUnits(Math.round(usdcAmount).toString(), 18);
           }
 
           addLog(`Preparing to send ${sendingAmount.toString()} to contract: ${contractAdds.auction}`);
@@ -536,7 +536,7 @@ export default function AddBanner() {
           const message = {
             owner: address as `0x${string}`,
             spender: contractAdds.auction as `0x${string}`,
-            value: sendingAmount,
+            value: String(sendingAmount),
             nonce,
             deadline,
           };
