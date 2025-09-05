@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { FaBullhorn } from "react-icons/fa";
 import { X } from "lucide-react";
 import axios from "axios";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 
 import { HiSpeakerphone } from "react-icons/hi";
 import { useSignTypedData } from "wagmi";
@@ -513,7 +513,7 @@ export default function AddBanner() {
           } as const;
 
           // Calculate amount based on token decimals
-          let sendingAmount: any;
+          let sendingAmount: number | BigNumber;
           if (
             caInUse.toLowerCase() ===
             "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()
@@ -522,7 +522,7 @@ export default function AddBanner() {
             sendingAmount = ethers.utils.parseUnits(Math.round(usdcAmount).toString(), 6);
           } else {
             // Default to 18 decimals for other tokens
-            sendingAmount = ethers.utils.parseEther(Math.round(usdcAmount).toString());
+            sendingAmount = Math.round(usdcAmount);
           }
 
           addLog(`Preparing to send ${sendingAmount.toString()} to contract: ${contractAdds.auction}`);
