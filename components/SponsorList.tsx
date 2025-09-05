@@ -26,6 +26,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import AuctionDisplay from "./AuctionDisplay";
 import { erc20abi } from "@/utils/contract/abis/erc20abi";
 import { createBaseAccountSDK } from "@base-org/account";
+import { useMiniKit } from "@coinbase/onchainkit/minikit";
 
 export default function AddBanner() {
 
@@ -62,6 +63,8 @@ export default function AddBanner() {
   const [caInUse, setCaInUse] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]); // State to store frontend logs
 
+  const { context, isFrameReady } = useMiniKit();
+
   // New state variables
   const [auctionDeadline, setAuctionDeadline] = useState<number | null>(null); // State to store auction deadline
   const [currency, setCurrency] = useState<string>("USDC"); // State to store currency
@@ -77,7 +80,7 @@ export default function AddBanner() {
     minutes: 0,
     seconds: 0,
   }); // State to store countdown time
-  
+
   // Function to add logs to both console and UI
   const addLog = (message: string, isError: boolean = false) => {
     console.log(message);
@@ -297,11 +300,11 @@ export default function AddBanner() {
     try {
 
       const provider = createBaseAccountSDK({
-    appChainIds: [8453], // Base Mainnet chain ID
-  }).getProvider();
+        appChainIds: [8453], // Base Mainnet chain ID
+      }).getProvider();
       // Clear previous logs
       setLogs([]);
-      
+
       addLog("Sending transaction...");
       if (!caInUse) {
         addLog("Token address not available", true);
@@ -380,147 +383,214 @@ export default function AddBanner() {
       }
 
       addLog("Domain data generated successfully");
-
-      // Define EIP-2612 types following EIP-712 standard
-      const types = {
-        EIP712Domain: [
-          { name: "name", type: "string" },
-          { name: "version", type: "string" },
-          { name: "chainId", type: "uint256" },
-          { name: "verifyingContract", type: "address" },
-        ],
-        Permit: [
-          { name: "owner", type: "address" },
-          { name: "spender", type: "address" },
-          // { name: "value", type: "uint256" },
-          // { name: "nonce", type: "uint256" },
-          // { name: "deadline", type: "uint256" },
-        ],
-      } as const;
-
-      // Calculate amount based on token decimals
-      let sendingAmount: bigint;
-      if (
-        caInUse.toLowerCase() ===
-        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()
-      ) {
-        // USDC on Base has 6 decimals
-        sendingAmount = BigInt(Math.round(usdcAmount * 1e6));
-      } else {
-        // Default to 18 decimals for other tokens
-        sendingAmount = BigInt(Math.round(usdcAmount * 1e18));
-      }
-
-      addLog(`Preparing to send ${sendingAmount.toString()} to contract: ${contractAdds.auction}`);
-
-      // Set permit deadline to 1 hour from now - following best practices for time-bound signatures
-      const deadline = Number(Math.floor(Date.now() / 1000) + 3600);
-
-      // Prepare the permit message following EIP-712 standard
-      const message = {
-        owner: address as `0x${string}`,
-        spender: contractAdds.auction as `0x${string}`,
-        // value: sendingAmount,
-        // nonce,
-        // deadline,
-      };
-
-      // Prepare the complete typed data payload according to EIP-712
-      const typedData = {
-        domain,
-        types,
-        primaryType: "Permit" as const,
-        message,
-      };
-
-      addLog("Preparing to sign message...");
-
-      // Sign the message with the wallet
       try {
-        // First let's try to get the current highest bid to make sure our bid is higher
-        const auctionContract = await getContract(contractAdds.auction, auctionAbi);
-        const currentHighestBid = await auctionContract?.highestBid();
-        addLog(`Current highest bid: ${currentHighestBid.toString()}`);
 
-        if (sendingAmount <= currentHighestBid) {
-          const formattedHighestBid = currency === "USDC"
-            ? Number(currentHighestBid) / 1e6
-            : Number(currentHighestBid) / 1e18;
-          addLog(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`, true);
-          setIsLoading(false);
-          return;
+        if (context?.client.clientFid !== 309857) {
+          const types = {
+            Permit: [
+              { name: "owner", type: "address" },
+              { name: "spender", type: "address" },
+              { name: "value", type: "uint256" },
+              { name: "nonce", type: "uint256" },
+              { name: "deadline", type: "uint256" },
+            ],
+          } as const;
+
+          // Calculate amount based on token decimals
+          let sendingAmount: bigint;
+          if (
+            caInUse.toLowerCase() ===
+            "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()
+          ) {
+            // USDC on Base has 6 decimals
+            sendingAmount = BigInt(Math.round(usdcAmount * 1e6));
+          } else {
+            // Default to 18 decimals for other tokens
+            sendingAmount = BigInt(Math.round(usdcAmount * 1e18));
+          }
+
+          console.log("Sending Amount:", sendingAmount.toString(), "to contract:", contractAdds.auction);
+
+          // Set permit deadline to 1 hour from now
+          const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+          // Prepare the permit message
+          const message = {
+            owner: address as `0x${string}`,
+            spender: contractAdds.auction as `0x${string}`,
+            value: sendingAmount,
+            nonce: BigInt(nonce),
+            deadline,
+          };
+
+          const auctionContract = await getContract(contractAdds.auction, auctionAbi);
+          const currentHighestBid = await auctionContract?.highestBid();
+          console.log("Current highest bid from contract:", currentHighestBid.toString());
+
+          if (sendingAmount <= currentHighestBid) {
+            const formattedHighestBid = currency === "USDC"
+              ? Number(currentHighestBid) / 1e6
+              : Number(currentHighestBid) / 1e18;
+            setError(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`);
+            setIsLoading(false);
+            return;
+          }
+
+          // Sign the typed data for the permit function
+          console.log("Requesting signature from wallet...");
+          const signature = await signTypedDataAsync({
+            domain,
+            primaryType: "Permit",
+            types,
+            message,
+          });
+
+          const { v, r, s } = splitSignature(signature);
+          console.log("Signature received successfully!");
+
+          // Debug information - truncate the hex strings for readability
+          console.log("Signature details:", {
+            v,
+            r: `${r.substring(0, 10)}...${r.substring(r.length - 8)}`,
+            s: `${s.substring(0, 10)}...${s.substring(s.length - 8)}`
+          });
+
+          // Prepare arguments for the contract call
+          const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
+          console.log("Preparing transaction with args:", [
+            `Amount: ${sendingAmount.toString()}`,
+            `FID: ${user || 1129842}`,
+            `Deadline: ${deadline.toString()}`,
+            `v: ${v}`,
+            `r: ${r.substring(0, 10)}...`,
+            `s: ${s.substring(0, 10)}...`
+          ]);
+
+          // Add a small delay before sending the transaction
+          // This can help with some wallets that need time to process the signature
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          console.log("Submitting transaction to contract:", contractAdds.auction);
+
+          // Call contract with signed data - with explicit gas settings
+          const tx = await writeContract(config, {
+            abi: auctionAbi,
+            address: contractAdds.auction as `0x${string}`,
+            functionName: "bidWithPermit",
+            args: bidPermitArgs,
+            // Add gas settings to avoid transaction hanging
+            gas: BigInt(500000), // Explicit gas limit
+          });
+
+          console.log("Transaction submitted:", tx);
+
+          // Wait for transaction confirmation
+          console.log("Waiting for transaction confirmation...");
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+
+          // Refresh auction bids
+          await getAuctionBids();
+          window.location.reload();
         }
 
-        // Sign the typed data for the permit function following EIP-712 standard
-        addLog("Requesting signature from wallet...");
+        else {
 
-        // Using signTypedDataAsync with the prepared typedData structure
-        // const signature = await signTypedDataAsync({
-        //   domain: typedData.domain,
-        //   primaryType: typedData.primaryType,
-        //   types: typedData.types,
-        //   message: typedData.message,
-        // });
+          // Define EIP-2612 types following EIP-712 standard
+          const types = {
+            EIP712Domain: [
+              { name: "name", type: "string" },
+              { name: "version", type: "string" },
+              { name: "chainId", type: "uint256" },
+              { name: "verifyingContract", type: "address" },
+            ],
+            Permit: [
+              { name: "owner", type: "address" },
+              { name: "spender", type: "address" },
+              // { name: "value", type: "uint256" },
+              // { name: "nonce", type: "uint256" },
+              // { name: "deadline", type: "uint256" },
+            ],
+          } as const;
 
-        const accounts:any = await provider.request({
-          method: 'eth_requestAccounts'
-        });
+          // Calculate amount based on token decimals
+          let sendingAmount: bigint;
+          if (
+            caInUse.toLowerCase() ===
+            "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()
+          ) {
+            // USDC on Base has 6 decimals
+            sendingAmount = BigInt(Math.round(usdcAmount * 1e6));
+          } else {
+            // Default to 18 decimals for other tokens
+            sendingAmount = BigInt(Math.round(usdcAmount * 1e18));
+          }
 
-        addLog(`Account connected: ${accounts[0]}`);
+          addLog(`Preparing to send ${sendingAmount.toString()} to contract: ${contractAdds.auction}`);
 
-        const signature = await provider.request({
-          method: 'eth_signTypedData_v4',
-          params: [accounts[0], JSON.stringify(typedData)]
-        });
+          // Set permit deadline to 1 hour from now - following best practices for time-bound signatures
+          const deadline = Number(Math.floor(Date.now() / 1000) + 3600);
+
+          // Prepare the permit message following EIP-712 standard
+          const message = {
+            owner: address as `0x${string}`,
+            spender: contractAdds.auction as `0x${string}`,
+            // value: sendingAmount,
+            // nonce,
+            // deadline,
+          };
+
+          // Prepare the complete typed data payload according to EIP-712
+          const typedData = {
+            domain,
+            types,
+            primaryType: "Permit" as const,
+            message,
+          };
+
+          addLog("Preparing to sign message...");
+          const auctionContract = await getContract(contractAdds.auction, auctionAbi);
+          const currentHighestBid = await auctionContract?.highestBid();
+          addLog(`Current highest bid: ${currentHighestBid.toString()}`);
+
+          if (sendingAmount <= currentHighestBid) {
+            const formattedHighestBid = currency === "USDC"
+              ? Number(currentHighestBid) / 1e6
+              : Number(currentHighestBid) / 1e18;
+            addLog(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`, true);
+            setIsLoading(false);
+            return;
+          }
+
+          // Sign the typed data for the permit function following EIP-712 standard
+          addLog("Requesting signature from wallet...");
+
+          const accounts: any = await provider.request({
+            method: 'eth_requestAccounts'
+          });
+
+          addLog(`Account connected: ${accounts[0]}`);
+
+          const signature = await provider.request({
+            method: 'eth_signTypedData_v4',
+            params: [accounts[0], JSON.stringify(typedData)]
+          });
+
+          addLog("Signature received successfully!" + signature);
+
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          addLog("Submitting transaction to contract...");
+
+          // Refresh auction bids
+          await getAuctionBids();
+
+          window.location.reload();
+        }
 
 
-        // const { v, r, s } = splitSignature(signature);
-        addLog("Signature received successfully!" + signature);
+        // Sign the message with the wallet
 
-        // Debug information - truncate the hex strings for readability
-        // console.log("Signature details:", {
-        //   v,
-        //   r: `${r.substring(0, 10)}...${r.substring(r.length - 8)}`,
-        //   s: `${s.substring(0, 10)}...${s.substring(s.length - 8)}`
-        // });
-
-        // // Prepare arguments for the contract call
-        // const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
-        // console.log("Preparing transaction with args:", [
-        //   `Amount: ${sendingAmount.toString()}`,
-        //   `FID: ${user || 1129842}`,
-        //   `Deadline: ${deadline.toString()}`,
-        //   `v: ${v}`,
-        //   `r: ${r.substring(0, 10)}...`,
-        //   `s: ${s.substring(0, 10)}...`
-        // ]);
-
-        // Add a small delay before sending the transaction
-        // This can help with some wallets that need time to process the signature
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        addLog("Submitting transaction to contract...");
-
-        // Call contract with signed data - with explicit gas settings
-        // const tx = await writeContract(config, {
-        //   abi: auctionAbi,
-        //   address: contractAdds.auction as `0x${string}`,
-        //   functionName: "bidWithPermit",
-        //   args: bidPermitArgs,
-        //   // Add gas settings to avoid transaction hanging
-        //   gas: BigInt(500000), // Explicit gas limit
-        // });
-
-        // console.log("Transaction submitted:", tx);
-
-        // // Wait for transaction confirmation
-        // console.log("Waiting for transaction confirmation...");
-        // await new Promise((resolve) => setTimeout(resolve, 5000));
-
-        // Refresh auction bids
-        await getAuctionBids();
-        addLog("Transaction completed! Refreshing page...");
-        window.location.reload();
+        // First let's try to get the current highest bid to make sure our bid is higher
       } catch (err: any) {
         console.error("Error in signing or sending transaction:", err);
 
@@ -741,7 +811,7 @@ export default function AddBanner() {
                   {error && (
                     <p className="text-red-500 text-sm mt-2">{error}</p>
                   )}
-                  
+
                   {/* Display logs */}
                   {logs.length > 0 && (
                     <div className="mt-2 mb-3 bg-black/30 p-2 rounded-md max-h-32 overflow-y-auto">
@@ -753,7 +823,7 @@ export default function AddBanner() {
                       ))}
                     </div>
                   )}
-                  
+
                   <button
                     type="button"
                     className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
