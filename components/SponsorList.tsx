@@ -534,7 +534,7 @@ export default function AddBanner() {
           const message = {
             owner: address as `0x${string}`,
             spender: contractAdds.auction as `0x${string}`,
-            // value: sendingAmount,
+            value: sendingAmount,
             nonce,
             deadline,
           };
