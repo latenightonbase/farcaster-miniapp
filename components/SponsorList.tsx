@@ -508,7 +508,7 @@ export default function AddBanner() {
               { name: "spender", type: "address" },
               // { name: "value", type: "uint256" },
               { name: "nonce", type: "uint256" },
-              // { name: "deadline", type: "uint256" },
+              { name: "deadline", type: "uint256" },
             ],
           } as const;
 
@@ -536,7 +536,7 @@ export default function AddBanner() {
             spender: contractAdds.auction as `0x${string}`,
             // value: sendingAmount,
             nonce,
-            // deadline,
+            deadline,
           };
 
           // Prepare the complete typed data payload according to EIP-712
