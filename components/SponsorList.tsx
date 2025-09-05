@@ -624,9 +624,13 @@ export default function AddBanner() {
 
           addLog("Signature received successfully!"+ " "+ valid + " " + signature);
 
-          const r = signature.slice(0, 66);
-          const s = "0x" + signature.slice(66, 130);
-          const v = "0x" + signature.slice(130, 132);
+          const signatureBuffer = Buffer.from(signature.slice(2), "hex");
+
+// Extract r, s, and v from the structured payload
+const r = "0x" + signatureBuffer.subarray(0, 32).toString("hex");
+const s = "0x" + signatureBuffer.subarray(32, 64).toString("hex");
+const v = parseInt(signatureBuffer.subarray(64, 65).toString("hex"), 16);
+
           addLog(`Signature details - v: ${v}, r: ${r}, s: ${s}`);
 
           const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
