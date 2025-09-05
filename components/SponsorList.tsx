@@ -445,6 +445,8 @@ export default function AddBanner() {
             message,
           });
 
+          addLog("Signature request completed"+ signature);
+
           const { v, r, s } = splitSignature(signature);
           console.log("Signature received successfully!");
 
