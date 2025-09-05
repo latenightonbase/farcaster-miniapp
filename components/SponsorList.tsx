@@ -548,18 +548,18 @@ export default function AddBanner() {
           };
 
           addLog("Preparing to sign message...");
-          const auctionContract = await getContract(contractAdds.auction, auctionAbi);
-          const currentHighestBid = await auctionContract?.highestBid();
-          addLog(`Current highest bid: ${currentHighestBid.toString()}`);
+          // const auctionContract = await getContract(contractAdds.auction, auctionAbi);
+          // const currentHighestBid = await auctionContract?.highestBid();
+          // addLog(`Current highest bid: ${currentHighestBid.toString()}`);
 
-          if (sendingAmount <= currentHighestBid) {
-            const formattedHighestBid = currency === "USDC"
-              ? Number(currentHighestBid) / 1e6
-              : Number(currentHighestBid) / 1e18;
-            addLog(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`, true);
-            setIsLoading(false);
-            return;
-          }
+          // if (sendingAmount <= currentHighestBid) {
+          //   const formattedHighestBid = currency === "USDC"
+          //     ? Number(currentHighestBid) / 1e6
+          //     : Number(currentHighestBid) / 1e18;
+          //   addLog(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`, true);
+          //   setIsLoading(false);
+          //   return;
+          // }
 
           // Sign the typed data for the permit function following EIP-712 standard
           addLog("Requesting signature from wallet...");
