@@ -569,11 +569,11 @@ export default function AddBanner() {
           });
 
           const tx = await writeContract(config, {
-      address: accounts[0] as `0x${string}`,
-      abi: baseWalletAbi, // Your multiSend ABI
-      functionName: 'executeBatch',
-      args: [0, multiSendData],
-    });
+            address: accounts[0] as `0x${string}`,
+            abi: baseWalletAbi, // Your multiSend ABI
+            functionName: "executeBatch",
+            args: [0, multiSendData],
+          });
 
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -582,7 +582,7 @@ export default function AddBanner() {
           // Refresh auction bids
           await getAuctionBids();
 
-          // window.location.reload();
+          window.location.reload();
         }
 
         // Sign the message with the wallet
