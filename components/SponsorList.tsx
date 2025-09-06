@@ -58,7 +58,6 @@ export default function AddBanner() {
   const [auctionId, setAuctionId] = useState<number | null>(null); // State to store auction ID
   const [isFetchingBidders, setIsFetchingBidders] = useState(false); // State to track fetching bidders
   const [caInUse, setCaInUse] = useState<string | null>(null);
-  const [logs, setLogs] = useState<string[]>([]); // State to store frontend logs
 
   const { context, isFrameReady } = useMiniKit();
 
@@ -90,15 +89,6 @@ export default function AddBanner() {
     minutes: 0,
     seconds: 0,
   }); // State to store countdown time
-
-  // Function to add logs to both console and UI
-  const addLog = (message: string, isError: boolean = false) => {
-    console.log(message);
-    setLogs((prev) => [...prev, message]);
-    if (isError) {
-      setError(message);
-    }
-  };
 
   useEffect(() => {
     const fetchSponsorImage = async () => {
@@ -311,15 +301,12 @@ export default function AddBanner() {
     try {
       // Initial validation
       if (!caInUse) {
-        addLog("Token address not available", true);
         return;
       }
       if (usdcAmount <= 0) {
-        addLog("Amount must be greater than 0", true);
         return;
       }
 
-      addLog("Sending transaction...");
       setIsLoading(true);
 
       const provider = createBaseAccountSDK({
@@ -353,7 +340,6 @@ export default function AddBanner() {
                 verifyingContract: caInUse,
               } as const;
               
-              addLog(`USDC Token details: ${tokenName}, version ${tokenVersion}, nonce: ${nonce}`);
             } else {
               token = await getContract(caInUse, erc20Abi);
               nonce = Number(await token?.nonces(address));
@@ -366,16 +352,12 @@ export default function AddBanner() {
                 verifyingContract: fromContract.verifyingContract,
               } as const;
               
-              addLog(`ERC20 Token details: ${fromContract.name}, version ${fromContract.version}, nonce: ${nonce}`);
             }
           } catch (err) {
             console.error("Error getting token contract information:", err);
-            addLog("Failed to get token information. Please try again.", true);
             setIsLoading(false);
             return;
           }
-
-          addLog("Domain data generated successfully");
           
           // Prepare permit data
           const types = {
@@ -426,8 +408,6 @@ export default function AddBanner() {
             message,
           });
           
-          addLog("Signature request completed");
-          
           const { v, r, s } = splitSignature(signature);
           console.log("Signature received successfully!");
           
@@ -458,8 +438,7 @@ export default function AddBanner() {
             Math.round(usdcAmount).toString(),
             decimals
           );
-          
-          addLog(`Preparing multi-send transaction: Approve and Place Bid of ${usdcAmount} ${currency}`);
+        
           
           // Prepare multicall data
           const calls = [
@@ -485,8 +464,7 @@ export default function AddBanner() {
           
           const cryptoAccount = await getCryptoKeyAccount();
           const fromAddress = cryptoAccount?.account?.address;
-          
-          addLog(`Accounts from provider: ${fromAddress}`);
+        
           
           const result = await provider.request({
             method: "wallet_sendCalls",
@@ -502,7 +480,6 @@ export default function AddBanner() {
           });
           
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          addLog(`Submitting transaction to contract... ${result}`);
         }
         
         // Refresh auction bids and reload the page
@@ -529,18 +506,11 @@ export default function AddBanner() {
           err.message && err.message.includes(key)
         );
         
-        addLog(errorKey 
-          ? errorMessages[errorKey] 
-          : `Failed to sign or send transaction: ${err.message || "Unknown error"}`, 
-          true
-        );
-        
         setIsLoading(false);
         return; // Stop execution here to prevent the finally block from closing the modal
       }
     } catch (error: any) {
       console.error("Error sending transaction:", error);
-      addLog(`Transaction failed: ${error.message || "Unknown error"}`, true);
       setIsLoading(false);
     } finally {
       setIsLoading(false);
@@ -740,20 +710,6 @@ export default function AddBanner() {
                   </div>
                   {error && (
                     <p className="text-red-500 text-sm mt-2">{error}</p>
-                  )}
-
-                  {/* Display logs */}
-                  {logs.length > 0 && (
-                    <div className="mt-2 mb-3 bg-black/30 p-2 rounded-md max-h-32 overflow-y-auto">
-                      <p className="text-xs font-semibold text-gray-400 mb-1">
-                        Transaction Logs:
-                      </p>
-                      {logs.map((log, index) => (
-                        <p key={index} className="text-xs text-gray-300 mb-1">
-                          {log}
-                        </p>
-                      ))}
-                    </div>
                   )}
 
                   <button
