@@ -582,7 +582,7 @@ export default function AddBanner() {
             address: accounts[0] as `0x${string}`,
             abi: baseWalletAbi, // Your multiSend ABI
             functionName: "executeBatch",
-            args: [0, multiSendData],
+            args: [multiSendData],
           });
 
           await new Promise((resolve) => setTimeout(resolve, 1000));
