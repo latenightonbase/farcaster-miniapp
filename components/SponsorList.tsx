@@ -24,10 +24,11 @@ import { createPublicClient, http, parseUnits } from "viem";
 import Image from "next/image";
 import { IoIosArrowBack } from "react-icons/io";
 import AuctionDisplay from "./AuctionDisplay";
-import { erc20abi } from "@/utils/contract/abis/erc20abi";
+import { erc20Abi } from "@/utils/contract/abis/erc20abi";
 import { createBaseAccountSDK } from "@base-org/account";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { base } from "viem/chains";
+import { baseWalletAbi } from "@/utils/contract/abis/baseWalletAbi";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,6 +64,10 @@ export default function AddBanner() {
   const [logs, setLogs] = useState<string[]>([]); // State to store frontend logs
 
   const { context, isFrameReady } = useMiniKit();
+
+  const localerc20Abi = [
+    "function approve(address spender, uint256 amount) external returns (bool)",
+  ];
 
   // New state variables
   const [auctionDeadline, setAuctionDeadline] = useState<number | null>(null); // State to store auction deadline
@@ -334,7 +339,7 @@ export default function AddBanner() {
             "function balanceOf(address) view returns (uint256)",
           ]);
         } else {
-          tokenContract = await getContract(caInUse, erc20abi);
+          tokenContract = await getContract(caInUse, erc20Abi);
         }
 
         // Check balance
@@ -370,7 +375,7 @@ export default function AddBanner() {
             `USDC Token details: ${tokenName}, version ${tokenVersion}, nonce: ${nonce.toString()}`
           );
         } else {
-          const token = await getContract(caInUse, erc20abi);
+          const token = await getContract(caInUse, erc20Abi);
           nonce = Number(await token?.nonces(address));
           const fromContract = await token?.eip712Domain();
 
@@ -523,24 +528,6 @@ export default function AddBanner() {
           await getAuctionBids();
           window.location.reload();
         } else {
-          // Define EIP-2612 types following EIP-712 standard
-          const types = {
-            EIP712Domain: [
-              { name: "name", type: "string" },
-              { name: "version", type: "string" },
-              { name: "chainId", type: "uint256" },
-              { name: "verifyingContract", type: "address" },
-            ],
-            Permit: [
-              { name: "owner", type: "address" },
-              { name: "spender", type: "address" },
-              { name: "value", type: "uint256" },
-              { name: "nonce", type: "uint256" },
-              { name: "deadline", type: "uint256" },
-            ],
-          } as const;
-
-          // Calculate amount based on token decimals
           let sendingAmount: number | BigNumber;
           if (
             caInUse.toLowerCase() ===
@@ -559,90 +546,34 @@ export default function AddBanner() {
             );
           }
 
-          addLog(
-            `Preparing to send ${sendingAmount.toString()} to contract: ${
-              contractAdds.auction
-            }`
-          );
+          const erc20 = new ethers.utils.Interface(localerc20Abi);
+          const auction = new ethers.utils.Interface(auctionAbi);
 
-          // Set permit deadline to 1 hour from now - following best practices for time-bound signatures
-          const deadline = Number(Math.floor(Date.now() / 1000) + 3600);
+          const approveData = erc20.encodeFunctionData("approve", [
+            contractAdds.auction,
+            sendingAmount,
+          ]);
 
-          // Prepare the permit message following EIP-712 standard
-          const message = {
-            owner: address as `0x${string}`,
-            spender: contractAdds.auction as `0x${string}`,
-            value: String(sendingAmount),
-            nonce,
-            deadline,
-          };
+          const placeBid = auction.encodeFunctionData("placeBid", [
+            sendingAmount,
+            user?.fid || 1129842,
+          ]);
 
-          // Prepare the complete typed data payload according to EIP-712
-          const typedData = {
-            domain,
-            types,
-            primaryType: "Permit" as const,
-            message,
-          };
-
-          addLog("Preparing to sign message...");
-          // const auctionContract = await getContract(contractAdds.auction, auctionAbi);
-          // const currentHighestBid = await auctionContract?.highestBid();
-          // addLog(`Current highest bid: ${currentHighestBid.toString()}`);
-
-          // if (sendingAmount <= currentHighestBid) {
-          //   const formattedHighestBid = currency === "USDC"
-          //     ? Number(currentHighestBid) / 1e6
-          //     : Number(currentHighestBid) / 1e18;
-          //   addLog(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`, true);
-          //   setIsLoading(false);
-          //   return;
-          // }
-
-          // Sign the typed data for the permit function following EIP-712 standard
-          addLog("Requesting signature from wallet...");
+          const multiSendData = ethers.utils.hexConcat([
+            encodeSafeTx(caInUse, 0, approveData),
+            encodeSafeTx(contractAdds.auction, 0, placeBid),
+          ]);
 
           const accounts: any = await provider.request({
             method: "eth_requestAccounts",
           });
 
-          addLog(`Account connected: ${accounts[0]}`);
-
-          const signature: any = await provider.request({
-            method: "eth_signTypedData_v4",
-            params: [accounts[0], JSON.stringify(typedData)],
-          });
-
-          const valid = await client.verifyTypedData({
-      address: accounts[0],
-      domain: typedData.domain,
-      types: typedData.types,
-      primaryType: typedData.primaryType,
-      message: typedData.message,
-      signature
-    });
-
-          addLog("Signature received successfully!"+ " "+ valid + " " + signature);
-
-          const signatureBuffer = Buffer.from(signature.slice(2), "hex");
-
-// Extract r, s, and v from the structured payload
-const r = "0x" + signatureBuffer.subarray(0, 32).toString("hex");
-const s = "0x" + signatureBuffer.subarray(32, 64).toString("hex");
-const v = parseInt(signatureBuffer.subarray(64, 65).toString("hex"), 16);
-
-          addLog(`Signature details - v: ${v}, r: ${r}, s: ${s}`);
-
-          const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
-
           const tx = await writeContract(config, {
-            abi: auctionAbi,
-            address: contractAdds.auction as `0x${string}`,
-            functionName: "bidWithPermit",
-            args: bidPermitArgs,
-            // Add gas settings to avoid transaction hanging
-            gas: BigInt(500000), // Explicit gas limit
-          });
+      address: accounts[0] as `0x${string}`,
+      abi: baseWalletAbi, // Your multiSend ABI
+      functionName: 'executeBatch',
+      args: [0, multiSendData],
+    });
 
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -702,6 +633,15 @@ const v = parseInt(signatureBuffer.subarray(64, 65).toString("hex"), 16);
       setIsModalOpen(false);
     }
   };
+
+  function encodeSafeTx(to: string, value: number | string, data: string) {
+    const valueHex = ethers.utils.hexZeroPad(ethers.utils.hexlify(value), 32);
+    const dataLength = ethers.utils.hexZeroPad(
+      ethers.utils.hexlify(ethers.utils.arrayify(data).length),
+      32
+    );
+    return ethers.utils.hexConcat([to, valueHex, dataLength, data]);
+  }
 
   if (address)
     return (
