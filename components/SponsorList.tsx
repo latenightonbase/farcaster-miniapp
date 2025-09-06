@@ -11,7 +11,7 @@ import { useAccount, useSendTransaction } from "wagmi";
 import { withPaymentInterceptor } from "x402-axios";
 import { RiAuctionFill, RiLoader5Fill, RiTimerLine } from "react-icons/ri";
 import { PiCursorClickFill } from "react-icons/pi";
-import {encodeFunctionData, numberToHex } from 'viem';
+import { encodeFunctionData, numberToHex } from "viem";
 import { config } from "@/utils/rainbow";
 import { writeContract } from "@wagmi/core";
 import { usdcAbi } from "@/utils/contract/abis/usdcabi";
@@ -19,12 +19,13 @@ import { contractAdds } from "@/utils/contract/contractAdds";
 import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useGlobalContext } from "@/utils/globalContext";
 import Image from "next/image";
-import { IoIosArrowBack } from "react-icons/io";
-import AuctionDisplay from "./AuctionDisplay";
 import { erc20Abi } from "@/utils/contract/abis/erc20abi";
-import { createBaseAccountSDK, base } from "@base-org/account";
+import {
+  createBaseAccountSDK,
+  getCryptoKeyAccount,
+  base,
+} from "@base-org/account";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
-import { baseWalletAbi } from "@/utils/contract/abis/baseWalletAbi";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,7 +63,16 @@ export default function AddBanner() {
   const { context, isFrameReady } = useMiniKit();
 
   const localerc20Abi = [
-    "function approve(address spender, uint256 amount) external returns (bool)",
+    {
+      name: "approve",
+      type: "function",
+      stateMutability: "nonpayable",
+      inputs: [
+        { name: "spender", type: "address" },
+        { name: "amount", type: "uint256" },
+      ],
+      outputs: [{ name: "", type: "bool" }],
+    },
   ];
 
   // New state variables
@@ -300,7 +310,9 @@ export default function AddBanner() {
   const handleSend = async () => {
     try {
       const provider = createBaseAccountSDK({
-        appChainIds: [8453], // Base Mainnet chain ID
+        appName: "Bill test app",
+        appLogoUrl: "https://farcaster-miniapp-chi.vercel.app/pfp.jpg",
+        appChainIds: [base.constants.CHAIN_IDS.base],
       }).getProvider();
 
       addLog("Sending transaction...");
@@ -320,78 +332,53 @@ export default function AddBanner() {
       let domain: any = {};
 
       try {
-        // First check if the user has enough tokens
-        let tokenContract;
-        if (currency === "USDC") {
-          tokenContract = await getContract(caInUse, [
-            ...usdcAbi,
-            "function balanceOf(address) view returns (uint256)",
-          ]);
-        } else {
-          tokenContract = await getContract(caInUse, erc20Abi);
-        }
-
-        // Check balance
-        // const balance = await tokenContract?.balanceOf(address);
-        // const formattedBalance = currency === "USDC"
-        //   ? Number(balance) / 1e6
-        //   : Number(balance) / 1e18;
-
-        // addLog(`User ${currency} balance: ${formattedBalance}`);
-
-        // if (Number(balance) < Number(usdcAmount * (currency === "USDC" ? 1e6 : 1e18))) {
-        //   addLog(`Insufficient ${currency} balance. You have ${formattedBalance} ${currency}`, true);
-        //   setIsLoading(false);
-        //   return;
-        // }
-
-        // Get token information for permit signature
-        if (currency === "USDC") {
-          const token = await getContract(caInUse, usdcAbi);
-          const tokenName = await token?.name();
-          const tokenVersion = (await token?.version()) || "1";
-          nonce = Number(await token?.nonces(address));
-
-          // Set up domain following EIP-712 best practices for domain separation
-          domain = {
-            name: tokenName, // Unique token identifier
-            version: tokenVersion, // Version from the token contract
-            chainId: 8453, // Base mainnet chain ID
-            verifyingContract: caInUse, // Contract that will verify the signature
-          } as const;
-
-          addLog(
-            `USDC Token details: ${tokenName}, version ${tokenVersion}, nonce: ${nonce.toString()}`
-          );
-        } else {
-          const token = await getContract(caInUse, erc20Abi);
-          nonce = Number(await token?.nonces(address));
-          const fromContract = await token?.eip712Domain();
-
-          // Set up domain following EIP-712 best practices for domain separation
-          domain = {
-            name: fromContract.name, // Unique token identifier
-            version: fromContract.version, // Version from the token contract
-            chainId: 8453, // Base mainnet chain ID
-            verifyingContract: fromContract.verifyingContract, // Contract that will verify
-          } as const;
-
-          addLog(
-            `ERC20 Token details: ${fromContract.name}, version ${
-              fromContract.version
-            }, nonce: ${nonce.toString()}`
-          );
-        }
-      } catch (err) {
-        console.error("Error getting token contract information:", err);
-        addLog("Failed to get token information. Please try again.", true);
-        setIsLoading(false);
-        return;
-      }
-
-      addLog("Domain data generated successfully");
-      try {
         if (context?.client.clientFid !== 309857) {
+          try {
+            // Get token information for permit signature
+            if (currency === "USDC") {
+              const token = await getContract(caInUse, usdcAbi);
+              const tokenName = await token?.name();
+              const tokenVersion = (await token?.version()) || "1";
+              nonce = Number(await token?.nonces(address));
+
+              // Set up domain following EIP-712 best practices for domain separation
+              domain = {
+                name: tokenName, // Unique token identifier
+                version: tokenVersion, // Version from the token contract
+                chainId: 8453, // Base mainnet chain ID
+                verifyingContract: caInUse, // Contract that will verify the signature
+              } as const;
+
+              addLog(
+                `USDC Token details: ${tokenName}, version ${tokenVersion}, nonce: ${nonce.toString()}`
+              );
+            } else {
+              const token = await getContract(caInUse, erc20Abi);
+              nonce = Number(await token?.nonces(address));
+              const fromContract = await token?.eip712Domain();
+
+              // Set up domain following EIP-712 best practices for domain separation
+              domain = {
+                name: fromContract.name, // Unique token identifier
+                version: fromContract.version, // Version from the token contract
+                chainId: 8453, // Base mainnet chain ID
+                verifyingContract: fromContract.verifyingContract, // Contract that will verify
+              } as const;
+
+              addLog(
+                `ERC20 Token details: ${fromContract.name}, version ${
+                  fromContract.version
+                }, nonce: ${nonce.toString()}`
+              );
+            }
+          } catch (err) {
+            console.error("Error getting token contract information:", err);
+            addLog("Failed to get token information. Please try again.", true);
+            setIsLoading(false);
+            return;
+          }
+
+          addLog("Domain data generated successfully");
           const types = {
             Permit: [
               { name: "owner", type: "address" },
@@ -540,48 +527,48 @@ export default function AddBanner() {
           );
 
           const calls = [
-    {
-      to: caInUse,
-      value: '0x0',
-      data: encodeFunctionData({
-        abi: erc20Abi,
-        functionName: 'approve',
-        args: [contractAdds.auction, sendingAmount]
-      })
-    },
-    {
-      to: contractAdds.auction,
-      value: '0x0', 
-      data: encodeFunctionData({
-        abi: auctionAbi,
-        functionName: 'placeBid',
-        args: [sendingAmount, user?.fid || 1129842]
-      })
-    }
-  ];
+            {
+              to: caInUse,
+              value: "0x0",
+              data: encodeFunctionData({
+                abi: localerc20Abi,
+                functionName: "approve",
+                args: [contractAdds.auction, sendingAmount],
+              }),
+            },
+            {
+              to: contractAdds.auction,
+              value: "0x0",
+              data: encodeFunctionData({
+                abi: auctionAbi,
+                functionName: "placeBid",
+                args: [sendingAmount, user?.fid || 1129842],
+              }),
+            },
+          ];
 
           // addLog("Multi-send transaction data encoded");
+          const cryptoAccount = await getCryptoKeyAccount();
+          const fromAddress = cryptoAccount?.account?.address;
 
-          const accounts: any = await provider.request({
-            method: "eth_requestAccounts",
-          });
-
-          addLog(`Accounts from provider: ${accounts[0]}`);
+          addLog(`Accounts from provider: ${fromAddress}`);
 
           const result = await provider.request({
-    method: 'wallet_sendCalls',
-    params: [{
-      version: '2.0.0',
-      from: accounts[0],
-      chainId: numberToHex(base.constants.CHAIN_IDS.base),
-      atomicRequired: true,
-      calls: calls
-    }]
-  });
+            method: "wallet_sendCalls",
+            params: [
+              {
+                version: "2.0.0",
+                from: fromAddress,
+                chainId: numberToHex(base.constants.CHAIN_IDS.base),
+                atomicRequired: true,
+                calls: calls,
+              },
+            ],
+          });
 
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          addLog("Submitting transaction to contract...");
+          addLog(`Submitting transaction to contract... ${result}`);
 
           // Refresh auction bids
           await getAuctionBids();
