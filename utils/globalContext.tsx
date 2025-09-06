@@ -42,17 +42,17 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const handleSignIn = useCallback(async (): Promise<void> => {
+    if(user) return; // Prevent multiple sign-in attempts if user is already set
     try {
-      var token: any;
+      var token = (await sdk.quickAuth.getToken()).token;
 
-      if (process.env.NEXT_PUBLIC_ENV !== "DEV") {
+      if (process.env.NEXT_PUBLIC_ENV !== "DEV" && !token) {
         const nonce = await getNonce();
 
         await sdk.actions.signIn({ nonce });
 
         token = (await sdk.quickAuth.getToken()).token;
       }
-      console.log("Using token:", token);
 
       const response = await fetch("/api/me", {
         method: "GET",
