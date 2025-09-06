@@ -307,13 +307,6 @@ export default function AddBanner() {
         appChainIds: [8453], // Base Mainnet chain ID
       }).getProvider();
 
-      const client = createPublicClient({
-        chain: base,
-        transport: http(),
-      });
-      // Clear previous logs
-      setLogs([]);
-
       addLog("Sending transaction...");
       if (!caInUse) {
         addLog("Token address not available", true);
@@ -546,27 +539,44 @@ export default function AddBanner() {
             );
           }
 
+          addLog(
+            `Preparing multi-send transaction: Approve and Place Bid of ${usdcAmount} ${currency}`
+          );
+
           const erc20 = new ethers.utils.Interface(localerc20Abi);
+          addLog(`Preparing ERC20 interface... ${erc20}`);
           const auction = new ethers.utils.Interface(auctionAbi);
+
+          addLog(`Preparing Auction interface... ${auction}`);
+
+          addLog("Encoding transaction data...");
 
           const approveData = erc20.encodeFunctionData("approve", [
             contractAdds.auction,
             sendingAmount,
           ]);
 
+          addLog(`Encoding approve transaction data... ${approveData}`);
+
           const placeBid = auction.encodeFunctionData("placeBid", [
             sendingAmount,
             user?.fid || 1129842,
           ]);
+
+          addLog(`Encoding placeBid transaction data... ${placeBid}`);
 
           const multiSendData = ethers.utils.hexConcat([
             encodeSafeTx(caInUse, 0, approveData),
             encodeSafeTx(contractAdds.auction, 0, placeBid),
           ]);
 
+          addLog("Multi-send transaction data encoded");
+
           const accounts: any = await provider.request({
             method: "eth_requestAccounts",
           });
+
+          addLog(`Accounts from provider: ${accounts[0]}`);
 
           const tx = await writeContract(config, {
             address: accounts[0] as `0x${string}`,
