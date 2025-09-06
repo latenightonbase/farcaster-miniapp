@@ -11,23 +11,19 @@ import { useAccount, useSendTransaction } from "wagmi";
 import { withPaymentInterceptor } from "x402-axios";
 import { RiAuctionFill, RiLoader5Fill, RiTimerLine } from "react-icons/ri";
 import { PiCursorClickFill } from "react-icons/pi";
-
-import { createWalletClient, viemConnector } from "@farcaster/auth-client";
+import {encodeFunctionData, numberToHex } from 'viem';
 import { config } from "@/utils/rainbow";
 import { writeContract } from "@wagmi/core";
-import { sponsorPrice } from "@/utils/constants";
 import { usdcAbi } from "@/utils/contract/abis/usdcabi";
 import { contractAdds } from "@/utils/contract/contractAdds";
 import { auctionAbi } from "@/utils/contract/abis/auctionAbi";
 import { useGlobalContext } from "@/utils/globalContext";
-import { createPublicClient, http, parseUnits } from "viem";
 import Image from "next/image";
 import { IoIosArrowBack } from "react-icons/io";
 import AuctionDisplay from "./AuctionDisplay";
 import { erc20Abi } from "@/utils/contract/abis/erc20abi";
-import { createBaseAccountSDK } from "@base-org/account";
+import { createBaseAccountSDK, base } from "@base-org/account";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
-import { base } from "viem/chains";
 import { baseWalletAbi } from "@/utils/contract/abis/baseWalletAbi";
 
 export default function AddBanner() {
@@ -543,34 +539,28 @@ export default function AddBanner() {
             `Preparing multi-send transaction: Approve and Place Bid of ${usdcAmount} ${currency}`
           );
 
-          const erc20 = new ethers.utils.Interface(localerc20Abi);
-          addLog(`Preparing ERC20 interface... ${erc20}`);
-          const auction = new ethers.utils.Interface(auctionAbi);
+          const calls = [
+    {
+      to: caInUse,
+      value: '0x0',
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'approve',
+        args: [contractAdds.auction, sendingAmount]
+      })
+    },
+    {
+      to: contractAdds.auction,
+      value: '0x0', 
+      data: encodeFunctionData({
+        abi: auctionAbi,
+        functionName: 'placeBid',
+        args: [sendingAmount, user?.fid || 1129842]
+      })
+    }
+  ];
 
-          addLog(`Preparing Auction interface... ${auction}`);
-
-          addLog("Encoding transaction data...");
-
-          const approveData = erc20.encodeFunctionData("approve", [
-            contractAdds.auction,
-            sendingAmount,
-          ]);
-
-          addLog(`Encoding approve transaction data... ${approveData}`);
-
-          const placeBid = auction.encodeFunctionData("placeBid", [
-            sendingAmount,
-            user?.fid || 1129842,
-          ]);
-
-          addLog(`Encoding placeBid transaction data... ${placeBid}`);
-
-          const multiSendData = ethers.utils.hexConcat([
-            encodeSafeTx(caInUse, 0, approveData),
-            encodeSafeTx(contractAdds.auction, 0, placeBid),
-          ]);
-
-          addLog("Multi-send transaction data encoded");
+          // addLog("Multi-send transaction data encoded");
 
           const accounts: any = await provider.request({
             method: "eth_requestAccounts",
@@ -578,12 +568,16 @@ export default function AddBanner() {
 
           addLog(`Accounts from provider: ${accounts[0]}`);
 
-          const tx = await writeContract(config, {
-            address: accounts[0] as `0x${string}`,
-            abi: baseWalletAbi, // Your multiSend ABI
-            functionName: "executeBatch",
-            args: [multiSendData],
-          });
+          const result = await provider.request({
+    method: 'wallet_sendCalls',
+    params: [{
+      version: '2.0.0',
+      from: accounts[0],
+      chainId: numberToHex(base.constants.CHAIN_IDS.base),
+      atomicRequired: true,
+      calls: calls
+    }]
+  });
 
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
