@@ -1,15 +1,11 @@
 import { useAddFrame, useNotification } from '@coinbase/onchainkit/minikit';
 import React, { useState, useEffect, useRef } from 'react';
-import videojs from 'video.js';
-import Player from 'video.js/dist/types/player';
-import 'video.js/dist/video-js.css';
 
 export default function DailyUpdate({ selected }: { selected: string }) {
   const [videos, setVideos] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const videoNode = useRef<HTMLVideoElement | null>(null);
-  const playerRef = useRef<Player | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -31,30 +27,32 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   }, []);
 
   useEffect(() => {
-    if (videos && videoNode.current) {
-      // Initialize Video.js player
-      playerRef.current = videojs(videoNode.current, {
-        controls: true,
-        autoplay: true,
-        preload: 'auto',
-        sources: [
-          {
-            src: videos + "?v=" + Date.now(),
-            type: 'video/mp4',
-          },
-        ],
-      });
-
-      // Play and pause after 200ms
-      playerRef.current.ready(() => {
-        playerRef.current?.play();
-        setTimeout(() => {
-          playerRef.current?.pause();
-        }, 200);
-      });
-
+    if (videos && videoRef.current) {
+      const video = videoRef.current;
+      
+      // Setup play/pause sequence when video is ready
+      const handleCanPlay = () => {
+        video.play()
+          .then(() => {
+            // Pause after 200ms of playing
+            setTimeout(() => {
+              video.pause();
+            }, 200);
+          })
+          .catch(err => {
+            console.error("Failed to autoplay:", err);
+            // Mobile browsers often block autoplay, so we just load the video
+          });
+      };
+      
+      // Add event listener
+      video.addEventListener('canplay', handleCanPlay);
+      
+      // Load the video
+      video.load();
+      
       return () => {
-        playerRef.current?.dispose(); // Cleanup player instance
+        video.removeEventListener('canplay', handleCanPlay);
       };
     }
   }, [videos]);
@@ -80,8 +78,13 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               {videos && (
                 <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
                   <video
-                    ref={videoNode}
-                    className="video-js vjs-default-skin w-full h-full rounded-lg"
+                    ref={videoRef}
+                    src={videos + "?v=" + Date.now()}
+                    controls
+                    playsInline
+                    muted
+                    preload="auto"
+                    className="w-full h-full rounded-lg object-cover"
                   ></video>
                 </div>
               )}
