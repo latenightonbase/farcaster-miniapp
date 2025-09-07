@@ -21,7 +21,8 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const user = {
         username: context?.user.displayName,
-        pfp_url: context?.user.pfpUrl
+        pfp_url: context?.user.pfpUrl,
+        fid: context?.user.fid,
       };
       setUser(user);
     } catch (error) {

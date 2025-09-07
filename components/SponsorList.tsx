@@ -457,7 +457,7 @@ export default function AddBanner() {
               data: encodeFunctionData({
                 abi: auctionAbi,
                 functionName: "placeBid",
-                args: [sendingAmount, user?.fid || 1129842],
+                args: [sendingAmount, user?.fid],
               }),
             },
           ];
