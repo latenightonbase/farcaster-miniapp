@@ -159,7 +159,7 @@ export default function Home() {
 
         <div className="relative z-1 min-h-screen">
           <ProfileSection />
-          <h2 className="text-white text-2xl font-bold my-4 px-3 flex justify-start items-center gap-2">Welcome {user ? <span className="text-red-400">{user?.username.split(0,16)}{user?.username.length > 16 && "..."}</span> : <span className="w-32 h-10 bg-white/20 animate-pulse rounded-lg"></span>}</h2>
+          <h2 className="text-white text-2xl font-bold my-4 px-3 flex justify-start items-center gap-2">Welcome {user ? <span className="text-red-400">{user?.username.split(0,10)}{user?.username.length > 10 && "..."}</span> : <span className="w-32 h-10 bg-white/20 animate-pulse rounded-lg"></span>}</h2>
           <SponsorList />
           
           <DailyUpdate selected={activeTab} />
