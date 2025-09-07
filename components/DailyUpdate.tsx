@@ -1,11 +1,15 @@
 import { useAddFrame, useNotification } from '@coinbase/onchainkit/minikit';
-import React, { useState, useEffect } from 'react';
-import ReactPlayer from 'react-player';
+import React, { useState, useEffect, useRef } from 'react';
+import videojs from 'video.js';
+import Player from 'video.js/dist/types/player';
+import 'video.js/dist/video-js.css';
 
 export default function DailyUpdate({ selected }: { selected: string }) {
   const [videos, setVideos] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const videoNode = useRef<HTMLVideoElement | null>(null);
+  const playerRef = useRef<Player | null>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -27,8 +31,31 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   }, []);
 
   useEffect(() => {
-    if (videos) {
-      // No need for manual video element handling with ReactPlayer
+    if (videos && videoNode.current) {
+      // Initialize Video.js player
+      playerRef.current = videojs(videoNode.current, {
+        controls: true,
+        autoplay: true,
+        preload: 'auto',
+        sources: [
+          {
+            src: videos + "?v=" + Date.now(),
+            type: 'video/mp4',
+          },
+        ],
+      });
+
+      // Play and pause after 200ms
+      playerRef.current.ready(() => {
+        playerRef.current?.play();
+        setTimeout(() => {
+          playerRef.current?.pause();
+        }, 200);
+      });
+
+      return () => {
+        playerRef.current?.dispose(); // Cleanup player instance
+      };
     }
   }, [videos]);
 
@@ -50,18 +77,14 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               <h2 className="text-xl text-white font-poppins font-bold mb-2">Word from Our Sponsor</h2>
 
               {/* Enhanced Video Container */}
-              {videos && <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
-                <ReactPlayer
-                  src={videos+"?v="+Date.now()}
-                  controls
-                  light={true}
-                  width="100%"
-                  height="100%"
-                  className={`absolute top-0 left-0 rounded-lg duration-200 object-cover transition-all ${
-                    selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-red-500' : ''
-                  }`}
-                />
-              </div>}
+              {videos && (
+                <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
+                  <video
+                    ref={videoNode}
+                    className="video-js vjs-default-skin w-full h-full rounded-lg"
+                  ></video>
+                </div>
+              )}
 
               {/* Video Title Bar */}              
             </div>
@@ -77,4 +100,3 @@ export default function DailyUpdate({ selected }: { selected: string }) {
     </div>
   );
 };
-
