@@ -13,22 +13,8 @@ const GlobalContext = createContext<{ user: any | null } | null>(null);
 
 export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      // const sessionUser = sessionStorage.getItem("user");
-
-      // if (!sessionUser) {
-      //   await handleSignIn();
-      // } else {
-      //   setUser(JSON.parse(sessionUser));
-      // }
-      await handleSignIn();
-      if (process.env.NEXT_PUBLIC_ENV !== "DEV") {
-        sdk.actions.ready();
-      }
-    })();
-  }, []);
+  // Create a ref to track if sign-in has been attempted
+  const hasAttemptedSignIn = React.useRef(false);
 
   const getNonce = useCallback(async (): Promise<string> => {
     try {
@@ -69,10 +55,41 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       const data = await response.json();
       console.log("Fetched user data:", data);
       setUser(data.user);
+      // Save user to session storage to prevent repeated sign-ins
+      sessionStorage.setItem("user", JSON.stringify(data.user));
     } catch (error) {
       console.error("Sign in error:", error);
     }
   }, [getNonce]);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    (async () => {
+      // Only attempt sign-in once
+      if (!hasAttemptedSignIn.current && isMounted) {
+        hasAttemptedSignIn.current = true;
+        
+        // Check for existing user in session storage first
+        const sessionUser = sessionStorage.getItem("user");
+        
+        if (sessionUser && isMounted) {
+          setUser(JSON.parse(sessionUser));
+        } else if (isMounted) {
+          await handleSignIn();
+        }
+        
+        if (process.env.NEXT_PUBLIC_ENV !== "DEV" && isMounted) {
+          sdk.actions.ready();
+        }
+      }
+    })();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [handleSignIn]);
 
   return (
     <GlobalContext.Provider value={{ user }}>{children}</GlobalContext.Provider>
