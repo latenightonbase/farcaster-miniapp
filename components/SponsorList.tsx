@@ -267,7 +267,7 @@ export default function AddBanner() {
 
       if (remainingSeconds <= 0) {
         setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        setIsAuctionActive(false); // Auction has ended
+      
         return;
       }
 
