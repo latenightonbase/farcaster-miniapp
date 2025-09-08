@@ -1,11 +1,11 @@
 import { useAddFrame, useNotification } from '@coinbase/onchainkit/minikit';
-import React, { useState, useEffect } from 'react';
-import ReactPlayer from 'react-player';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function DailyUpdate({ selected }: { selected: string }) {
   const [videos, setVideos] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -27,8 +27,33 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   }, []);
 
   useEffect(() => {
-    if (videos) {
-      // No need for manual video element handling with ReactPlayer
+    if (videos && videoRef.current) {
+      const video = videoRef.current;
+      
+      // Setup play/pause sequence when video is ready
+      const handleCanPlay = () => {
+        video.play()
+          .then(() => {
+            // Pause after 200ms of playing
+            setTimeout(() => {
+              video.pause();
+            }, 200);
+          })
+          .catch(err => {
+            console.error("Failed to autoplay:", err);
+            // Mobile browsers often block autoplay, so we just load the video
+          });
+      };
+      
+      // Add event listener
+      video.addEventListener('canplay', handleCanPlay);
+      
+      // Load the video
+      video.load();
+      
+      return () => {
+        video.removeEventListener('canplay', handleCanPlay);
+      };
     }
   }, [videos]);
 
@@ -50,18 +75,19 @@ export default function DailyUpdate({ selected }: { selected: string }) {
               <h2 className="text-xl text-white font-poppins font-bold mb-2">Word from Our Sponsor</h2>
 
               {/* Enhanced Video Container */}
-              {videos && <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
-                <ReactPlayer
-                  src={videos+"?v="+Date.now()}
-                  controls
-                  light={true}
-                  width="100%"
-                  height="100%"
-                  className={`absolute top-0 left-0 rounded-lg duration-200 object-cover transition-all ${
-                    selected === 'youtube' ? 'border-red-500' : selected === 'twitch' ? 'border-red-500' : ''
-                  }`}
-                />
-              </div>}
+              {videos && (
+                <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
+                  <video
+                    ref={videoRef}
+                    src={videos + "?v=" + Date.now()}
+                    controls
+                    playsInline
+                    muted
+                    preload="auto"
+                    className="w-full h-full rounded-lg object-cover"
+                  ></video>
+                </div>
+              )}
 
               {/* Video Title Bar */}              
             </div>
@@ -77,4 +103,3 @@ export default function DailyUpdate({ selected }: { selected: string }) {
     </div>
   );
 };
-
