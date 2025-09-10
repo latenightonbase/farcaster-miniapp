@@ -14,10 +14,10 @@ export default function AuctionsPage() {
   const router = useRouter();
   
   return (
-    <div className="min-h-screen pb-20 bg-black font-[var(--font-geist-mono)]">
+    <div className="min-h-screen pb-20 bg-black font-[var(--font-geist-mono)] px-3 pt-6">
       <main className="relative h-full">
-         <button onClick={() => router.push("/leaderboard")} className="flex m-4 fixed text-yellow-500 text-2xl z-50 top-0 right-0 items-center justify-center bg-white/10 rounded-full w-10 aspect-square" >
-          <IoMdTrophy/>
+         <button onClick={() => router.push("/leaderboard")} className="flex w-full gap-2 text-white text-2xl items-center justify-center bg-white/30 rounded-lg py-2 " >
+          <IoMdTrophy className="text-yellow-500"/> View Past Auctions
         </button>
         <div className="relative z-1 min-h-screen">
           {/* <h2 className="text-white text-2xl font-bold pt-8 my-4 px-3 flex justify-start items-center gap-2">
