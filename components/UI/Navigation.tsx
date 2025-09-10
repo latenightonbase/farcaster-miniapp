@@ -12,6 +12,17 @@ export default function Navigation() {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState('');
 
+  // Use effect to initialize activeSection based on URL hash on mount
+  useEffect(() => {
+    if (window.location.hash) {
+      const hash = window.location.hash.substring(1); // Remove the # symbol
+      setActiveSection(hash);
+    } else if (pathname === '/') {
+      // Set to home when no hash is present on homepage
+      setActiveSection('home');
+    }
+  }, [pathname]);
+
   const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault();
     const section = document.getElementById(sectionId);
@@ -21,7 +32,7 @@ export default function Navigation() {
         behavior: 'smooth'
       });
       // Update URL without full page reload
-      window.history.pushState({}, '', `/#${sectionId}`);
+      window.history.pushState({}, '', sectionId === 'home' ? '/' : `/#${sectionId}`);
       setActiveSection(sectionId);
     }
   };
@@ -32,16 +43,33 @@ export default function Navigation() {
   return (
     <div className="fixed bottom-0 pb-5 left-0 w-full z-50 bg-black/80 backdrop-blur-md border-t border-red-500/50 py-2 px-4">
       <div className="flex justify-around items-center">
-        <Link 
-          href="/" 
-          prefetch={true} 
-          className={`flex flex-col items-center ${
-            pathname === '/' && !activeSection ? 'text-red-500' : 'text-gray-400'
-          }`}
-        >
-          <MdHome size={24} className="mb-1" />
-          <span className="text-xs">Home</span>
-        </Link>
+        {isHomePage ? (
+          <a 
+            href="/#home"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              window.history.pushState({}, '', '/');
+              setActiveSection('home');
+            }}
+            className={`flex flex-col items-center ${
+              activeSection === 'home' || (pathname === '/' && !activeSection) ? 'text-red-500' : 'text-gray-400'
+            }`}
+          >
+            <MdHome size={24} className="mb-1" />
+            <span className="text-xs">Home</span>
+          </a>
+        ) : (
+          <Link 
+            href="/" 
+            prefetch={true}
+            onClick={() => setActiveSection('home')}
+            className="flex flex-col items-center text-gray-400"
+          >
+            <MdHome size={24} className="mb-1" />
+            <span className="text-xs">Home</span>
+          </Link>
+        )}
         <Link 
           href="/auctions" 
           prefetch={true} 
