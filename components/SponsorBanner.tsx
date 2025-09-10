@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { PiCursorClickFill } from 'react-icons/pi';
+import { RiLoader5Fill } from 'react-icons/ri';
 
 export default function SponsorBanner() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSponsorImage = async () => {
@@ -24,19 +25,18 @@ export default function SponsorBanner() {
         console.error("Error fetching sponsor image:", error);
         setUploadedImage(null);
       } finally {
-        setLoading(false); // Set loading to false after API call
+        // setLoading(false); // Set loading to false after API call
       }
     };
 
     fetchSponsorImage();
   }, []);
 
+  if(uploadedImage)
   return (
-    <div className='p-3'>
-      {loading
-        ? null
-        : uploadedImage && (
-            <a href={url || "#"} target="_blank" rel="noopener noreferrer">
+    <div className=''>
+      {uploadedImage && (
+            <a href={url || "#"} target="_blank" rel="noopener noreferrer" className='px-3'>
               <div className="relative">
                 <img
                   src={`${uploadedImage}?v=${Date.now()}`}

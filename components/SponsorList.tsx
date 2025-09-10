@@ -529,7 +529,7 @@ export default function AddBanner() {
 
   if (address)
     return (
-      <div className="mx-3 text-white">
+      <div className=" text-white">
         {/* SponsorBanner component is now being used in page.tsx directly */}
 
         <div

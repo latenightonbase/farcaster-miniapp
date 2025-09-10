@@ -160,10 +160,20 @@ export default function Home() {
           <h2 className="text-white text-2xl font-bold my-4 px-3 flex justify-start items-center gap-2">Welcome {user ? <span className="text-red-400">{user?.username.split(0,10)}{user?.username.length > 10 && "..."}</span> : <span className="w-32 h-10 bg-white/20 animate-pulse rounded-lg"></span>}</h2>
           <SponsorBanner />
           
-          <DailyUpdate selected={activeTab} />
-          {/* Conditional Rendering */}
+          {/* Sponsor Message Section */}
+          <div id="sponsor-message" className="scroll-mt-16 pt-4">
+            {/* <h2 className="text-white text-2xl font-bold my-4 px-3">Message From Sponsor</h2> */}
+            <DailyUpdate selected={activeTab} />
+          </div>
+
+          {/* Past Streams Section */}
+          <div id="past-streams" className="scroll-mt-16 pt-4">
+            {/* <h2 className="text-white text-2xl font-bold my-4 px-3">Past Streams</h2> */}
+            <YouTubeLivestreamFetcher />
+          </div>
+          
+          {/* Conditional Rendering for other tabs */}
           <div className="mt-6">
-            {activeTab === "youtube" && <YouTubeLivestreamFetcher />}
             {activeTab === "twitch" && <TwitchStreamFetcher />}
           </div>
         </div>
