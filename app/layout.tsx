@@ -4,6 +4,7 @@ import  Montserrat from "next/font/local";
 import "./globals.css";
 import Rainbow from "@/utils/rainbow";
 import { MiniKitContextProvider } from "@/utils/MiniKitProvider";
+import Navigation from "@/components/UI/Navigation";
 
 import { Metadata } from 'next';
 
@@ -49,7 +50,10 @@ export default function RootLayout({
       <body
         className={` ${poppins.className} antialiased`}
       >
-        <MiniKitContextProvider>{children}</MiniKitContextProvider>
+        <MiniKitContextProvider>
+          {children}
+          <Navigation />
+        </MiniKitContextProvider>
       </body>
     </html>
   );
