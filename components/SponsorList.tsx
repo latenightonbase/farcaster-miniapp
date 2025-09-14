@@ -215,6 +215,7 @@ export default function AddBanner() {
           return {
             username: user?.username || "Unknown",
             pfp_url: user?.pfp_url || "",
+            fid: user?.fid || 0,
             bidAmount:
               currency == "USDC"
                 ? ethers.utils.formatUnits(String(bid.bidAmount), 6)
@@ -267,7 +268,7 @@ export default function AddBanner() {
 
       if (remainingSeconds <= 0) {
         setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      
+
         return;
       }
 
@@ -316,7 +317,9 @@ export default function AddBanner() {
       }).getProvider();
 
       // Check if USDC address to determine decimals
-      const isUSDC = caInUse.toLowerCase() === "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase();
+      const isUSDC =
+        caInUse.toLowerCase() ===
+        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase();
       const decimals = isUSDC ? 6 : 18;
 
       try {
@@ -324,7 +327,7 @@ export default function AddBanner() {
         if (context?.client.clientFid !== 309857) {
           // Standard wallet flow with permit
           let token, nonce, domain;
-          
+
           try {
             // Get token contract and domain data - different handling for USDC vs other ERC20
             if (currency === "USDC") {
@@ -332,33 +335,31 @@ export default function AddBanner() {
               const tokenName = await token?.name();
               const tokenVersion = (await token?.version()) || "1";
               nonce = Number(await token?.nonces(address));
-              
+
               domain = {
                 name: tokenName,
                 version: tokenVersion,
                 chainId: 8453,
                 verifyingContract: caInUse,
               } as const;
-              
             } else {
               token = await getContract(caInUse, erc20Abi);
               nonce = Number(await token?.nonces(address));
               const fromContract = await token?.eip712Domain();
-              
+
               domain = {
                 name: fromContract.name,
                 version: fromContract.version,
                 chainId: 8453,
                 verifyingContract: fromContract.verifyingContract,
               } as const;
-              
             }
           } catch (err) {
             console.error("Error getting token contract information:", err);
             setIsLoading(false);
             return;
           }
-          
+
           // Prepare permit data
           const types = {
             Permit: [
@@ -369,27 +370,41 @@ export default function AddBanner() {
               { name: "deadline", type: "uint256" },
             ],
           } as const;
-          
+
           // Calculate amount with proper decimals
-          const sendingAmount = BigInt(Math.round(usdcAmount * (10 ** decimals)));
-          
-          console.log("Sending Amount:", sendingAmount.toString(), "to contract:", contractAdds.auction);
-          
+          const sendingAmount = BigInt(Math.round(usdcAmount * 10 ** decimals));
+
+          console.log(
+            "Sending Amount:",
+            sendingAmount.toString(),
+            "to contract:",
+            contractAdds.auction
+          );
+
           // Check if bid is high enough
-          const auctionContract = await getContract(contractAdds.auction, auctionAbi);
+          const auctionContract = await getContract(
+            contractAdds.auction,
+            auctionAbi
+          );
           const currentHighestBid = await auctionContract?.highestBid();
-          console.log("Current highest bid from contract:", currentHighestBid.toString());
-          
+          console.log(
+            "Current highest bid from contract:",
+            currentHighestBid.toString()
+          );
+
           if (sendingAmount <= currentHighestBid) {
-            const formattedHighestBid = Number(currentHighestBid) / (10 ** decimals);
-            setError(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`);
+            const formattedHighestBid =
+              Number(currentHighestBid) / 10 ** decimals;
+            setError(
+              `Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`
+            );
             setIsLoading(false);
             return;
           }
-          
+
           // Set permit deadline to 1 hour from now
           const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
-          
+
           // Prepare the permit message
           const message = {
             owner: address as `0x${string}`,
@@ -398,7 +413,7 @@ export default function AddBanner() {
             nonce: BigInt(nonce),
             deadline,
           };
-          
+
           // Sign the typed data for the permit function
           console.log("Requesting signature from wallet...");
           const signature = await signTypedDataAsync({
@@ -407,16 +422,16 @@ export default function AddBanner() {
             types,
             message,
           });
-          
+
           const { v, r, s } = splitSignature(signature);
           console.log("Signature received successfully!");
-          
+
           // Prepare arguments for the contract call
           const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
-          
+
           // Small delay to help wallets process the signature
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          
+
           // Call contract with signed data
           const tx = await writeContract(config, {
             abi: auctionAbi,
@@ -425,12 +440,11 @@ export default function AddBanner() {
             args: bidPermitArgs,
             gas: BigInt(500000), // Explicit gas limit
           });
-          
+
           console.log("Transaction submitted:", tx);
-          
+
           // Wait for transaction confirmation
           await new Promise((resolve) => setTimeout(resolve, 5000));
-          
         } else {
           // Special client flow with multi-call transaction
           // Calculate amount with proper decimals using ethers library
@@ -438,8 +452,7 @@ export default function AddBanner() {
             Math.round(usdcAmount).toString(),
             decimals
           );
-        
-          
+
           // Prepare multicall data
           const calls = [
             {
@@ -461,11 +474,10 @@ export default function AddBanner() {
               }),
             },
           ];
-          
+
           const cryptoAccount = await getCryptoKeyAccount();
           const fromAddress = cryptoAccount?.account?.address;
-        
-          
+
           const result = await provider.request({
             method: "wallet_sendCalls",
             params: [
@@ -478,34 +490,49 @@ export default function AddBanner() {
               },
             ],
           });
-          
+
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-        
+
+        try {
+          await fetch("/api/notification", {
+            method: "POST",
+            body: JSON.stringify({
+              fid: highestBidder.fid, // Replace with actual fid if available
+              notification: {
+                title: "You just got outbid!",
+                body: `Your bid of ${highestBidder.bidAmount} ${currency} has been surpassed by ${user?.username}. Place a higher bid to reclaim your position!`,
+              },
+            }),
+          });
+        } catch (err) {
+          console.log("Error sending outbid notification:", err);
+        }
+
         // Refresh auction bids and reload the page
         await getAuctionBids();
         window.location.reload();
-        
       } catch (err: any) {
         console.error("Error in signing or sending transaction:", err);
-        
+
         // Map common error messages to user-friendly messages
         const errorMessages: Record<string, string> = {
           "user rejected": "Transaction was rejected in your wallet",
-          "deadline": "Transaction deadline has passed",
+          deadline: "Transaction deadline has passed",
           "Bid not high enough": "Your bid is not high enough",
           "Auction has ended": "This auction has already ended",
-          "insufficient funds": "You don't have enough funds for this transaction",
-          "gas": "Gas estimation failed. Try a higher amount or check your wallet settings",
-          "signature": "Error with signature. Please try again.",
+          "insufficient funds":
+            "You don't have enough funds for this transaction",
+          gas: "Gas estimation failed. Try a higher amount or check your wallet settings",
+          signature: "Error with signature. Please try again.",
           "EIP-1271": "Smart wallet signature verification failed",
         };
-        
+
         // Find matching error or use generic message
-        const errorKey = Object.keys(errorMessages).find(key => 
-          err.message && err.message.includes(key)
+        const errorKey = Object.keys(errorMessages).find(
+          (key) => err.message && err.message.includes(key)
         );
-        
+
         setIsLoading(false);
         return; // Stop execution here to prevent the finally block from closing the modal
       }

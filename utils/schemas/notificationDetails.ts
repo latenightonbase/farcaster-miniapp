@@ -10,6 +10,10 @@ const notificationDetailsSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  fid: {
+    type: Number,
+    required: true,
+  },
   wallet: {
     type: String,
     required: true,

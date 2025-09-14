@@ -79,6 +79,7 @@ export default function Home() {
           wallet: address,
           url: result.url,
           token: result.token,
+          fid: user?.fid,
         });
 
         await sendNotification({
@@ -96,11 +97,7 @@ export default function Home() {
       console.error("Error saving notification details:", error);
     }
     finally{
-      await axios.post(`/api/notification-details`, {
-          wallet: address,
-          url: Date.now().toString(),
-          token: Date.now().toString(),
-        });
+      
 
         setIsPopupOpen(false);
     }
@@ -163,13 +160,13 @@ export default function Home() {
           </div>
           
           {/* Sponsor Message Section */}
-          <div id="sponsor-message" className="scroll-mt-16 pt-4">
+          <div id="sponsor-message" className="scroll-mt-4 pt-4">
             {/* <h2 className="text-white text-2xl font-bold my-4 px-3">Message From Sponsor</h2> */}
             <DailyUpdate selected={activeTab} />
           </div>
 
           {/* Past Streams Section */}
-          <div id="past-streams" className="scroll-mt-16 pt-4">
+          <div id="past-streams" className="scroll-mt-4 pt-4">
             {/* <h2 className="text-white text-2xl font-bold my-4 px-3">Past Streams</h2> */}
             <YouTubeLivestreamFetcher />
           </div>

@@ -4,7 +4,9 @@ import  Montserrat from "next/font/local";
 import "./globals.css";
 import Rainbow from "@/utils/rainbow";
 import { MiniKitContextProvider } from "@/utils/MiniKitProvider";
-import Navigation from "@/components/UI/Navigation";
+import NavigationWrapper from "@/components/UI/NavigationWrapper";
+import 'nprogress/nprogress.css';
+import '@/styles/nprogress.css';
 
 import { Metadata } from 'next';
 
@@ -52,7 +54,7 @@ export default function RootLayout({
       >
         <MiniKitContextProvider>
           {children}
-          <Navigation />
+          <NavigationWrapper />
         </MiniKitContextProvider>
       </body>
     </html>

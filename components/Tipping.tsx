@@ -113,6 +113,7 @@ const Tipping = () => {
 
       setIsSuccess(true);
 
+
       setTimeout(() => {
         setIsDropdownOpen(false);
         setIsLoading(false);

@@ -6,11 +6,15 @@ import { RiAuctionFill } from "react-icons/ri";
 import { BiSolidVideos } from "react-icons/bi";
 import { MdMessage } from "react-icons/md";
 import { useEffect, useState } from "react";
+import { useNavigateWithLoader } from "@/utils/useNavigateWithLoader";
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState('');
+  const navigateWithLoader = useNavigateWithLoader();
 
   // Use effect to initialize activeSection based on URL hash on mount
   useEffect(() => {
@@ -25,6 +29,7 @@ export default function Navigation() {
 
   const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault();
+    NProgress.start();
     const section = document.getElementById(sectionId);
     if (section) {
       window.scrollTo({
@@ -34,11 +39,26 @@ export default function Navigation() {
       // Update URL without full page reload
       window.history.pushState({}, '', sectionId === 'home' ? '/' : `/#${sectionId}`);
       setActiveSection(sectionId);
+      setTimeout(() => {
+        NProgress.done();
+      }, 500); // Give some time for the scroll to complete
     }
   };
 
   // Check if we're on homepage to enable hash navigation
   const isHomePage = pathname === '/';
+
+  // Function to handle navigation with progress indicator
+  const handleNavigation = (url: string) => {
+    NProgress.start();
+    router.push(url);
+    
+    // For client-side navigation in Next.js, we need to manually complete
+    // the progress bar after a short delay
+    setTimeout(() => {
+      NProgress.done();
+    }, 500); // Adjust timing as needed
+  };
 
   return (
     <div className="fixed bottom-0 pb-5 left-0 w-full z-50 bg-black/80 backdrop-blur-md border-t border-red-500/50 py-2 px-4">
@@ -53,73 +73,62 @@ export default function Navigation() {
               setActiveSection('home');
             }}
             className={`flex flex-col items-center ${
-              activeSection === 'home' || (pathname === '/' && !activeSection) ? 'text-red-500' : 'text-gray-400'
+              activeSection === 'home' || (pathname === '/') ? 'text-red-500' : 'text-gray-400'
             }`}
           >
             <MdHome size={24} className="mb-1" />
             <span className="text-xs">Home</span>
           </a>
         ) : (
-          <Link 
-            href="/" 
-            prefetch={true}
-            onClick={() => setActiveSection('home')}
+          <a 
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveSection('home');
+              handleNavigation('/');
+            }}
             className="flex flex-col items-center text-gray-400"
           >
             <MdHome size={24} className="mb-1" />
             <span className="text-xs">Home</span>
-          </Link>
+          </a>
         )}
-        <Link 
-          href="/auctions" 
-          prefetch={true} 
+        <a 
+          href="/auctions"
+          onClick={(e) => {
+            e.preventDefault();
+            handleNavigation('/auctions');
+          }}
           className={`flex flex-col items-center ${pathname === '/auctions' ? 'text-red-500' : 'text-gray-400'}`}
         >
           <RiAuctionFill size={24} className="mb-1" />
           <span className="text-xs">Auction</span>
-        </Link>
-        {isHomePage ? (
+        </a>
+        
           <a 
-            href="/#past-streams" 
-            onClick={(e) => handleHashClick(e, 'past-streams')}
-            className={`flex flex-col items-center ${
-              activeSection === 'past-streams' ? 'text-red-500' : 'text-gray-400'
-            }`}
-          >
-            <BiSolidVideos size={24} className="mb-1" />
-            <span className="text-xs">Past Streams</span>
-          </a>
-        ) : (
-          <Link 
-            href="/#past-streams" 
-            prefetch={true} 
+            href="/#past-streams"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavigation('/#past-streams');
+            }}
             className="flex flex-col items-center text-gray-400"
           >
             <BiSolidVideos size={24} className="mb-1" />
             <span className="text-xs">Past Streams</span>
-          </Link>
-        )}
-        {isHomePage ? (
-          <a 
-            href="/#sponsor-message" 
-            onClick={(e) => handleHashClick(e, 'sponsor-message')}
-            className={`flex flex-col items-center ${
-              activeSection === 'sponsor-message' ? 'text-red-500' : 'text-gray-400'
-            }`}
-          >
-            <MdMessage size={24} className="mb-1" />
-            <span className="text-xs">Sponsor</span>
           </a>
-        ) : (
-          <Link 
-            href="/#sponsor-message" 
-            prefetch={true} 
+        
+          <a 
+            href="/#sponsor-message"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavigation('/#sponsor-message');
+            }}
             className="flex flex-col items-center text-gray-400"
           >
             <MdMessage size={24} className="mb-1" />
             <span className="text-xs">Sponsor</span>
-          </Link>
-        )}
+          </a>
+
       </div>
     </div>
   );
