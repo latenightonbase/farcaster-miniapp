@@ -1,15 +1,15 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Navigation from './Navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import '@/styles/nprogress.css'; // Our custom styles for NProgress
 
-export default function NavigationWrapper() {
+// Separate component that uses searchParams
+function NavigationProgress() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [prevPathname, setPrevPathname] = useState('');
   
   // Set up NProgress for navigation
@@ -49,8 +49,18 @@ export default function NavigationWrapper() {
     
     // Update previous pathname
     setPrevPathname(pathname);
-  }, [pathname, searchParams]);
+  }, [pathname]);
   
-  // We'll always render the Navigation component
-  return <Navigation />;
+  return null;
+}
+
+export default function NavigationWrapper() {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <NavigationProgress />
+      </Suspense>
+      <Navigation />
+    </>
+  );
 }
