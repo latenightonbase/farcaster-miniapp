@@ -1,5 +1,5 @@
-export default function Background({ selected }: { selected: string }) {
+export default function Background() {
   return (
-    <div className={`absolute min-h-screen inset-0 bg-gradient-to-b duration-500 transition-colors from-black ${selected == "youtube" ? "via-red-500/20 to-red-500/50" : selected == "twitch" ? "via-red-500/20 to-red-500/50" : ""} opacity-50 z-0`}></div>
+    <div className={`absolute min-h-screen inset-0 bg-gradient-to-b duration-500 transition-colors from-black via-bill-blue/50 to-bill-blue opacity-50 z-0`}></div>
   );
 }

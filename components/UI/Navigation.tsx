@@ -61,7 +61,7 @@ export default function Navigation() {
   };
 
   return (
-    <div className="fixed bottom-0 pb-5 left-0 w-full z-50 bg-black/80 backdrop-blur-md border-t border-red-500/50 py-2 px-4">
+    <div className="fixed bottom-0 pb-5 left-0 w-full z-50 bg-black/80 backdrop-blur-md border-t border-bill-blue/50 py-2 px-4">
       <div className="flex justify-around items-center">
         {isHomePage ? (
           <a 
@@ -73,7 +73,7 @@ export default function Navigation() {
               setActiveSection('home');
             }}
             className={`flex flex-col items-center ${
-              activeSection === 'home' || (pathname === '/') ? 'text-red-500' : 'text-gray-400'
+              activeSection === 'home' || (pathname === '/') ? 'text-bill-blue' : 'text-gray-400'
             }`}
           >
             <MdHome size={24} className="mb-1" />
@@ -99,7 +99,7 @@ export default function Navigation() {
             e.preventDefault();
             handleNavigation('/auctions');
           }}
-          className={`flex flex-col items-center ${pathname === '/auctions' ? 'text-red-500' : 'text-gray-400'}`}
+          className={`flex flex-col items-center ${pathname === '/auctions' ? 'text-bill-blue' : 'text-gray-400'}`}
         >
           <RiAuctionFill size={24} className="mb-1" />
           <span className="text-xs">Auction</span>

@@ -126,7 +126,7 @@ export default function Home() {
               <div className="p-6 rounded-lg w-11/12 max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
                 <div className="mt-5 flex flex-col items-center">
                   {error && (
-                    <p className="text-red-500 text-sm mb-4">{error}</p>
+                    <p className="text-bill-blue text-sm mb-4">{error}</p>
                   )}
                   <h2 className="text-white text-2xl font-semibold mb-4 text-center">
                     Welcome to the App
@@ -179,14 +179,14 @@ export default function Home() {
         {/* <div className="flex mx-auto pb-4 justify-center space-x-4 fixed w-[80%] min-w-[300px] z-1 bottom-4 -translate-1/2 left-1/2 animate-rise-2">
           <div className="bg-white/20 backdrop-blur-sm grid grid-cols-2 gap-2 p-2 rounded-sm w-full">
             <button
-              className={`px-5 flex items-center justify-center py-3 rounded-sm duration-200 transition-colors ${activeTab === "youtube" ? "border-white border-2 text-white bg-red-500 shadow-md shadow-red-500/40 " : "border-white/30 border-2 text-white/30 "
+              className={`px-5 flex items-center justify-center py-3 rounded-sm duration-200 transition-colors ${activeTab === "youtube" ? "border-white border-2 text-white bg-bill-blue shadow-md shadow-bill-blue/40 " : "border-white/30 border-2 text-white/30 "
                 }`}
               onClick={() => setActiveTab("youtube")}
             >
               <FaYoutube size={24} className="" />
             </button>
             <button
-              className={`px-5 flex items-center justify-center py-3 rounded-sm duration-200 transition-colors ${activeTab === "twitch" ? "border-white border-2 text-white bg-red-500 shadow-md shadow-red-500/40" : "border-white/30 border-2 text-white/30"
+              className={`px-5 flex items-center justify-center py-3 rounded-sm duration-200 transition-colors ${activeTab === "twitch" ? "border-white border-2 text-white bg-bill-blue shadow-md shadow-bill-blue/40" : "border-white/30 border-2 text-white/30"
                 }`}
               onClick={() => setActiveTab("twitch")}
             >
@@ -195,12 +195,12 @@ export default function Home() {
 
           </div>
         </div> */}
-        <Background selected={activeTab} />
+        <Background/>
         <div className="relative h-full z-1">
           <Tipping />
         </div>
       </main>
-      <footer className="text-center bg-black -translate-y-2 py-4  rounded-t-lg border-t-[2px] border-red-500/50 text-white/50 h-36 text-sm">
+      <footer className="text-center bg-black -translate-y-2 py-4  rounded-t-lg border-t-[2px] border-bill-blue/50 text-white/50 h-36 text-sm">
         An Onchain Media Production
       </footer>
     </div>

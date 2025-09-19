@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation';
-import Navigation from './Navigation';
+import Navbar from './Navbar';
 import { useEffect, useState, Suspense } from 'react';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
@@ -19,7 +19,8 @@ function NavigationProgress() {
       showSpinner: false,
       minimum: 0.1,
       easing: 'ease',
-      speed: 300
+      speed: 300,
+      trickleSpeed: 100 // Slower trickling for longer operations
     });
     
     // Add event listener for beforeunload (page refresh/close)
@@ -43,13 +44,15 @@ function NavigationProgress() {
       setPrevPathname(pathname);
       return;
     }
-    
-    // Complete any ongoing progress when new page loads
-    NProgress.done();
-    
-    // Update previous pathname
-    setPrevPathname(pathname);
-  }, [pathname]);
+
+    // If pathname has changed, we're navigating to a new page
+    if (prevPathname !== pathname) {
+      // Finish any current progress
+      NProgress.done();
+      // Update previous pathname
+      setPrevPathname(pathname);
+    }
+  }, [pathname, prevPathname]);
   
   return null;
 }
@@ -60,7 +63,7 @@ export default function NavigationWrapper() {
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
-      <Navigation />
+      <Navbar />
     </>
   );
 }

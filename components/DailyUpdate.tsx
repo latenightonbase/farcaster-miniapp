@@ -87,7 +87,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8 -mx-4">
 
             <div
-              className=" px-3 pb-3 shadow-xl mx-auto flex w-screen flex-col items-start justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-gradient-to-b from-transparent to-red-800/10 border-b-[2px]  border-red-500/30"
+              className=" px-3 pb-3 shadow-xl mx-auto flex w-screen flex-col items-start justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-gradient-to-b from-transparent to-red-800/10 border-b-[2px]  border-bill-blue/30"
             >
               <div className="flex items-center justify-start w-full mb-2 gap-2">
                 <span className="text-2xl text-white font-poppins font-bold">Message from Sponsor</span>
@@ -133,7 +133,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
       >
         <div 
           ref={modalRef}
-          className="bg-gradient-to-b from-red-950 to-black p-6 rounded-lg max-w-lg w-full m-4 border border-red-500/50"
+          className="bg-gradient-to-b from-red-950 to-black p-6 rounded-lg max-w-lg w-full m-4 border border-bill-blue/50"
         >
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-2xl font-bold text-red-400"><span className='mr-2'>🧨</span> How the LNOB Sponsorship Auction Works</h3>

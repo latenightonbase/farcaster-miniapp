@@ -710,7 +710,7 @@ export default function AddBanner() {
                     )} */}
                   </div>
                   {error && (
-                    <p className="text-red-500 text-sm mt-2">{error}</p>
+                    <p className="text-bill-blue text-sm mt-2">{error}</p>
                   )}
 
                   <button
