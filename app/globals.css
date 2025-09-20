@@ -69,3 +69,24 @@ body {
 .animate-rise-2 {
   animation: slow-rise 3s ease-out;
 }
+
+/* Customize scrollbar with bill-pink color */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bill-pink);
+  border-radius: 10px;
+}
+
+/* For Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bill-pink) transparent;
+}
