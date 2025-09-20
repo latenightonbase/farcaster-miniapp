@@ -18,6 +18,8 @@ import SponsorBanner from "@/components/SponsorBanner";
 import { useRouter } from "next/navigation";
 import { IoMdTrophy } from "react-icons/io";
 import { useGlobalContext } from "@/utils/globalContext";
+import AddBanner from "@/components/SponsorList";
+import { CustomConnect } from "@/components/UI/connectButton";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("youtube");
@@ -107,10 +109,10 @@ export default function Home() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-black animate-rise font-[var(--font-geist-mono)] pb-20">
+    <div className="min-h-screen overflow-x-hidden max-w-[700px] max-md:pt-16 mx-auto animate-rise font-[var(--font-geist-mono)] flex flex-col items-center justify-center">
       <main className="relative h-full">
 
-        <div className="relative z-50">
+        <div className="relative z-50 lg:hidden">
           <div
             className={`h-screen w-screen fixed top-0 left-0 duration-200 transition-all ${
               isPopupOpen
@@ -119,11 +121,11 @@ export default function Home() {
             } `}
           >
             <div
-              className={`absolute bottom-0 pb-5 border-t-2 border-orange-700 min-h-60 bg-gradient-to-b from-orange-950 to-black w-screen rounded-t-lg items-start shadow-xl bg-opacity-50 flex justify-center transition-all duration-500 z-50 ${
+              className={`absolute bottom-0 border-t-2 border-bill-pink min-h-60  rounded-t-lg items-start shadow-xl bg-opacity-50 flex justify-center transition-all duration-500 z-50 ${
                 isPopupOpen ? "translate-y-0" : "translate-y-full"
               }`}
             >
-              <div className="p-6 rounded-lg w-11/12 max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
+              <div className="p-6 rounded-lg bg-black w-screen max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
                 <div className="mt-5 flex flex-col items-center">
                   {error && (
                     <p className="text-bill-blue text-sm mb-4">{error}</p>
@@ -136,13 +138,13 @@ export default function Home() {
                   </p>
                   <button
                     onClick={handleAddFrame}
-                    className="bg-orange-500 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
+                    className="bg-bill-pink text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
                   >
                     Allow
                   </button>
                   <button
                     onClick={() => setIsPopupOpen(false)}
-                    className="mt-4 bg-gray-500 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
+                    className="mt-4 bg-white/10 text-center px-4 py-2 rounded text-lg font-bold text-white w-full hover:opacity-90 transition-opacity"
                   >
                     Cancel
                   </button>
@@ -155,9 +157,14 @@ export default function Home() {
         <div className="relative z-1 min-h-screen">
           <div id="home" className="scroll-mt-16">
             <ProfileSection />
-            <h2 className="text-white text-2xl font-bold my-4 px-3 flex justify-start items-center gap-2">Welcome {user ? <span className="text-red-400">{user?.username.split(0,10)}{user?.username.length > 10 && "..."}</span> : <span className="w-32 h-10 bg-white/20 animate-pulse rounded-lg"></span>}</h2>
+            {user && <h2 className="text-white text-2xl font-bold my-4 px-3 flex justify-start items-center gap-2">Welcome {user ? <span className="text-red-400">{user?.username.split(0,10)}{user?.username.length > 10 && "..."}</span> : <span className="w-32 h-10 bg-white/20 animate-pulse rounded-lg"></span>}</h2>}
             <SponsorBanner />
           </div>
+          
+          <div className="relative py-6">
+            <AddBanner />
+          </div>
+          
           
           {/* Sponsor Message Section */}
           <div id="sponsor-message" className="scroll-mt-4 pt-4">
@@ -195,12 +202,12 @@ export default function Home() {
 
           </div>
         </div> */}
-        <Background/>
-        <div className="relative h-full z-1">
+        {/* <Background/> */}
+        {/* <div className="relative h-full z-1">
           <Tipping />
-        </div>
+        </div> */}
       </main>
-      <footer className="text-center bg-black -translate-y-2 py-4  rounded-t-lg border-t-[2px] border-bill-blue/50 text-white/50 h-36 text-sm">
+      <footer className="text-center w-full bg-black py-4 rounded-t-lg border-t-[2px] border-bill-blue/50 text-white/50 h-36 text-sm">
         An Onchain Media Production
       </footer>
     </div>

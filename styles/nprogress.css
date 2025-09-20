@@ -5,7 +5,7 @@
 }
 
 #nprogress .bar {
-  background: #ff3333; /* Red color to match your theme */
+  background: #fc5ab6; /* bill-pink color */
   position: fixed;
   z-index: 9999; /* Ensure it's above everything */
   top: 0;
@@ -21,7 +21,7 @@
   right: 0px;
   width: 100px;
   height: 100%;
-  box-shadow: 0 0 10px #ff3333, 0 0 5px #ff3333;
+  box-shadow: 0 0 10px #fc5ab6, 0 0 5px #fc5ab6;
   opacity: 1.0;
   transform: rotate(3deg) translate(0px, -4px);
 }

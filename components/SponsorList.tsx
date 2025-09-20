@@ -26,6 +26,7 @@ import {
   base,
 } from "@base-org/account";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import { CustomConnect } from "./UI/connectButton";
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -554,9 +555,8 @@ export default function AddBanner() {
     return ethers.utils.hexConcat([to, valueHex, dataLength, data]);
   }
 
-  if (address)
     return (
-      <div className=" text-white">
+      <div className=" text-white px-3">
         {/* SponsorBanner component is now being used in page.tsx directly */}
 
         <div
@@ -780,22 +780,29 @@ export default function AddBanner() {
             </h3>
             <div className="w-[30%] flex justify-end">
               {isAuctionActive && (
-                <button
+                <>{
+                  address ? 
+                  <button
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"
+                  className="bg-bill-pink w-full h-10  font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"
                   disabled={!isAuctionActive}
                 >
                   <RiAuctionFill className="text-white text-xl" /> Bid
                 </button>
+                  : <CustomConnect/>
+                }
+                
+                </>
+                
               )}
             </div>
           </div>
-
+          
           {/* Countdown Timer for Mobile View */}
           {isAuctionActive && auctionDeadline && !isFetchingBidders && (
-            <div className="mt-4 bg-black/30 rounded-lg">
+            <div className="mt-4  rounded-lg">
               <div className="flex items-center gap-1 text-sm font-medium mb-2">
-                <RiTimerLine className="text-orange-400" />
+                <RiTimerLine className="text-bill-pink" />
                 <span>Auction ends in:</span>
               </div>
               <div className="grid grid-cols-4 gap-2 text-center">
@@ -834,7 +841,7 @@ export default function AddBanner() {
           ) : bidders.length > 0 ? (
             <table className="w-full text-left border-collapse mt-4">
               <thead>
-                <tr className="border-b border-white/30 text-red-300">
+                <tr className="border-b border-white/30 text-bill-pink">
                   <th className="py-2 ">Profile</th>
                   <th className="py-2 text-right ">Bid Amount</th>
                 </tr>

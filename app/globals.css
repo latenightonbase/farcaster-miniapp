@@ -22,7 +22,6 @@
   --color-bill-pink: #fc5ab6;
 }
 
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -34,6 +33,18 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom gradient for background */
+.bg-gradient-bill {
+  background-image: linear-gradient(to bottom, black, rgba(var(--bill-blue-rgb), 0.5), var(--bill-blue));
+}
+
+/* Desktop sidebar layout class */
+@media (min-width: 1024px) {
+  .desktop-with-sidebar {
+    padding-left: 16rem; /* 64px or 256px, matching the sidebar width */
+  }
 }
 
 @keyframes slow-rise {

@@ -13,6 +13,21 @@ export default function Navbar() {
   const router = useRouter();
   const navigateWithLoader = useNavigateWithLoader();
   const [activeSection, setActiveSection] = useState('');
+  const [isMobile, setIsMobile] = useState(true);
+
+  // Check if screen is mobile
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // 1024px is the lg breakpoint in Tailwind
+    };
+    
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIfMobile);
+    };
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -51,19 +66,61 @@ export default function Navbar() {
     }, 100);
   };
 
-  // Navigation links
   const navLinks = [
     { name: "Auctions", path: "/" },
     { name: "How it works", path: "/help" },
     { name: "Hall of Fame", path: "/leaderboard" },
     { name: "Start Your Auction", path: "/public-auctions" },
+    { name: "Live Streams", path: "/past-streams" },
   ];
 
   return (
     <>
-      {/* Header component with logo and hamburger menu */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-bill-pink/50 py-3 px-4 md:py-4 md:px-6">
-        <div className="container mx-auto flex justify-between items-center py-2">
+      {/* Desktop Sidebar (Twitter-like) */}
+      <aside className="hidden lg:flex h-screen z-50 w-64 animate-rise backdrop-blur-md border-r border-bill-pink/50 flex-col py-6">
+        {/* Logo */}
+        <a
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            handleNavigation('/');
+          }}
+          className="flex items-center px-6 mb-8"
+        >
+          <Image
+            src="/pfp.jpg"
+            alt="Profile"
+            width={48}
+            height={48}
+            className="rounded-full z-30 w-12 aspect-square"
+          />
+          <span className="ml-3 text-xl font-bold text-white">LNOB</span>
+        </a>
+
+        {/* Desktop Navigation - Vertical Menu */}
+        <nav className="flex flex-col px-4 w-full">
+          {navLinks.map((link) => (
+            <a
+              href={link.path}
+              key={link.path}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation(link.path);
+              }}
+              className={`text-base font-medium transition-colors hover:text-bill-pink hover:bg-white/10 rounded-full px-4 py-3 mb-3 flex items-center ${
+                pathname === link.path ? "text-bill-pink bg-white/5" : "text-gray-300"
+              }`}
+            >
+              {/* Could add icons here */}
+              <span>{link.name}</span>
+            </a>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Mobile Header */}
+      <header className="fixed top-0 left-0 w-full z-50  bg-black/80 backdrop-blur-md border-b border-bill-pink/50 px-4 md:py-4 md:px-6 lg:hidden">
+        <div className="container mx-auto flex justify-between items-center py-3">
           {/* Logo */}
           <a
             href="/"
@@ -75,17 +132,17 @@ export default function Navbar() {
             className="flex items-center"
           >
             <Image
-                        src="/pfp.jpg"
-                        alt="Profile"
-                        width={32}
-                        height={32}
-                        className="rounded-full absolute z-30 w-12 aspect-square"
-                      />
+              src="/pfp.jpg"
+              alt="Profile"
+              width={32}
+              height={32}
+              className="rounded-full z-30 w-12 aspect-square"
+            />
           </a>
 
           {/* Hamburger Button */}
           <button
-            className="z-50 block lg:hidden focus:outline-none relative"
+            className="z-50 block focus:outline-none relative"
             onClick={toggleMenu}
             aria-label="Toggle menu"
           >
@@ -108,28 +165,9 @@ export default function Navbar() {
             </div>
           </button>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-8">
-            {navLinks.map((link) => (
-              <a
-                href={link.path}
-                key={link.path}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigation(link.path);
-                }}
-                className={`text-sm font-medium transition-colors hover:text-bill-pink ${
-                  pathname === link.path ? "text-bill-pink" : "text-gray-300"
-                }`}
-              >
-                {link.name}
-              </a>
-            ))}
-          </nav>
-
           {/* Mobile Navigation Overlay */}
           <div
-            className={`fixed top-0 left-0 w-full border-b-4 border-bill-pink rounded-b-2xl bg-black/95 flex flex-col items-center justify-center transition-all duration-300 ease-in-out lg:hidden ${
+            className={`fixed top-0 left-0 w-full border-b-4 border-bill-pink rounded-b-2xl bg-black/95 flex flex-col items-center justify-center transition-all duration-300 ease-in-out ${
               isMenuOpen
                 ? "opacity-100 visible"
                 : "opacity-0 invisible pointer-events-none"

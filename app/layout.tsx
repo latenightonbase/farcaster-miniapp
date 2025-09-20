@@ -1,14 +1,14 @@
-
 import { Poppins } from "next/font/google";
-import  Montserrat from "next/font/local";
+import Montserrat from "next/font/local";
 import "./globals.css";
 import Rainbow from "@/utils/rainbow";
 import { MiniKitContextProvider } from "@/utils/MiniKitProvider";
 import NavigationWrapper from "@/components/UI/NavigationWrapper";
-import 'nprogress/nprogress.css';
-import '@/styles/nprogress.css';
+import "nprogress/nprogress.css";
+import "@/styles/nprogress.css";
 
-import { Metadata } from 'next';
+import { Metadata } from "next";
+import Background from "@/components/UI/Background";
 
 export async function generateMetadata(): Promise<Metadata> {
   const URL = "https://farcaster-miniapp-liart.vercel.app";
@@ -26,16 +26,15 @@ export async function generateMetadata(): Promise<Metadata> {
             type: "launch_frame",
             name: "Late Night on Base",
             url: URL,
-            splashImageUrl: "https://farcaster-miniapp-liart.vercel.app/pfp.jpg",
-            splashBackgroundColor:
-              "#3b0404",
+            splashImageUrl:
+              "https://farcaster-miniapp-liart.vercel.app/pfp.jpg",
+            splashBackgroundColor: "#3b0404",
           },
         },
       }),
     },
   };
 }
-
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -50,11 +49,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={` ${poppins.className} antialiased`}
+        className={`${poppins.className} antialiased relative min-h-screen desktop-with-sidebar overflow-hidden`}
       >
+        <Background />
         <MiniKitContextProvider>
-          {children}
-          <NavigationWrapper />
+          <div className="absolute left-0 lg:flex justify-center w-screen h-screen overflow-hidden lg:-translate-x-32">
+            <NavigationWrapper />
+            <div className="overflow-y-auto h-full max-[700px]:w-screen w-[700px]">
+              {children}
+            </div>
+          </div>
         </MiniKitContextProvider>
       </body>
     </html>

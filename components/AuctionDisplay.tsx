@@ -224,7 +224,7 @@ export default function AuctionDisplay( ) {
   }, []);
 
   return (
-    <div className="mt-6 text-white">
+    <div className=" text-white">
       {auctionId && constAuctionId && (
         <div className="flex items-center">
           <div className="w-[70%] flex gap-2">
@@ -284,7 +284,7 @@ export default function AuctionDisplay( ) {
               ) : (
                 <table className="w-full text-left border-collapse mt-4">
                   <thead>
-                    <tr className="border-b border-white/30 text-red-300">
+                    <tr className="border-b border-white/30 text-bill-pink">
                       <th className="py-2">Profile</th>
                       <th className="py-2 text-right">Bid Amount</th>
                     </tr>

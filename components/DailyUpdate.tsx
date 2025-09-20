@@ -75,7 +75,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto text-white animate-rise ">
+    <div className=" mx-auto text-white animate-rise max-[700px]:w-screen w-[700px]">
 
       {error && (
         <div className="mt-4 px-3 bg-red-800 border border-red-600 rounded-lg">
@@ -84,10 +84,10 @@ export default function DailyUpdate({ selected }: { selected: string }) {
       )}
 
       {!loading && videos.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8 -mx-4">
+        <div className="mt-8 -mx-4 px-4">
 
             <div
-              className=" px-3 pb-3 shadow-xl mx-auto flex w-screen flex-col items-start justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-gradient-to-b from-transparent to-red-800/10 border-b-[2px]  border-bill-blue/30"
+              className=" px-3 pb-3 shadow-xl mx-auto flex w-full flex-col items-center justify-center shadow-bill-blue/20 transition-shadow rounded-lg overflow-hidden bg-gradient-to-b from-transparent to-bill-light-blue/10 border-b-[2px]  border-bill-blue/30"
             >
               <div className="flex items-center justify-start w-full mb-2 gap-2">
                 <span className="text-2xl text-white font-poppins font-bold">Message from Sponsor</span>
@@ -102,7 +102,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
 
               {/* Enhanced Video Container */}
               {videos && (
-                <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
+                <div className="relative aspect-square rounded-lg overflow-hidden">
                   <video
                     ref={videoRef}
                     src={videos + "?v=" + Date.now()}
@@ -129,7 +129,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
 
       {/* Sponsorship Information Modal */}
       <div 
-        className={`fixed inset-0 z-50 bg-black/80 flex items-center justify-center transition-opacity duration-200 ${showModal ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed z-[1000] bg-black/80 flex items-center justify-center transition-opacity duration-200 ${showModal ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
         <div 
           ref={modalRef}
