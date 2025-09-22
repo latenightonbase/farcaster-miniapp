@@ -154,14 +154,14 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative z-1 min-h-screen">
+        <div className="relative z-1 w-full">
           <div id="home" className="scroll-mt-16">
             <ProfileSection />
             {user && <h2 className="text-white text-2xl font-bold my-4 px-3 flex justify-start items-center gap-2">Welcome {user ? <span className="text-red-400">{user?.username.split(0,10)}{user?.username.length > 10 && "..."}</span> : <span className="w-32 h-10 bg-white/20 animate-pulse rounded-lg"></span>}</h2>}
             <SponsorBanner />
           </div>
           
-          <div className="relative py-6">
+          <div className="relative py-4">
             <AddBanner />
           </div>
           

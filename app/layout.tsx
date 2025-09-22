@@ -49,11 +49,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${poppins.className} antialiased relative min-h-screen desktop-with-sidebar overflow-hidden`}
+        className={`${poppins.className} antialiased bg-black relative min-h-screen desktop-with-sidebar overflow-hidden`}
       >
         <Background />
         <MiniKitContextProvider>
-          <div className="absolute left-0 lg:flex justify-center w-screen h-screen overflow-hidden lg:-translate-x-32">
+          <div className="absolute left-0 flex justify-center w-screen h-screen overflow-hidden lg:-translate-x-32">
             <NavigationWrapper />
             <div className="overflow-y-auto h-full max-[700px]:w-screen w-[700px]">
               {children}
