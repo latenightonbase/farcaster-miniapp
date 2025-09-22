@@ -7,7 +7,7 @@
 #nprogress .bar {
   background: #fc5ab6; /* bill-pink color */
   position: fixed;
-  z-index: 9999; /* Ensure it's above everything */
+  z-index: 999999999; /* Ensure it's above everything */
   top: 0;
   left: 0;
   width: 100%;
