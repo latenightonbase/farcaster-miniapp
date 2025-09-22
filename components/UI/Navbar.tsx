@@ -6,6 +6,7 @@ import { useNavigateWithLoader } from "@/utils/useNavigateWithLoader";
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import Image from "next/image";
+import { CustomConnect } from "./connectButton";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -77,7 +78,7 @@ export default function Navbar() {
   return (
     <>
       {/* Desktop Sidebar (Twitter-like) */}
-      <aside className="hidden lg:flex h-screen z-50 w-64 animate-rise backdrop-blur-md  flex-col py-6">
+      <aside className="hidden lg:flex h-screen z-50 w-64 animate-rise backdrop-blur-md flex-col py-6">
         {/* Logo */}
         <a
           href="/"
@@ -98,7 +99,7 @@ export default function Navbar() {
         </a>
 
         {/* Desktop Navigation - Vertical Menu */}
-        <nav className="flex flex-col px-4 w-full">
+        <nav className="flex flex-col px-4 w-full h-full">
           {navLinks.map((link) => (
             <a
               href={link.path}
@@ -115,6 +116,11 @@ export default function Navbar() {
               <span>{link.name}</span>
             </a>
           ))}
+          
+          {/* Wallet Connect Button */}
+          <div className="mt-auto px-4 py-3">
+            <CustomConnect />
+          </div>
         </nav>
       </aside>
 
@@ -139,8 +145,11 @@ export default function Navbar() {
               className="rounded-full z-30 w-12 aspect-square"
             />
           </a>
-
-          {/* Hamburger Button */}
+          
+          {/* Mobile Wallet in Header - Visible when menu is closed */}
+          <div className={`z-40 transition-opacity duration-300 flex gap-4 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <CustomConnect />
+             {/* Hamburger Button */}
           <button
             className="z-50 block focus:outline-none relative"
             onClick={toggleMenu}
@@ -164,6 +173,9 @@ export default function Navbar() {
               ></span>
             </div>
           </button>
+          </div>
+
+         
 
           {/* Mobile Navigation Overlay */}
           <div
@@ -190,6 +202,8 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
+              
+             
             </nav>
           </div>
         </div>

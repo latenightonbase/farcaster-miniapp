@@ -1,10 +1,10 @@
 export default function HelpPage() {
   return (
-    <main className="container  mx-auto px-4 pt-24 pb-20">
+    <main className="container  mx-auto px-4 py-20">
 
-      <div className="max-w-3xl mx-auto p-6 rounded-lg ">
+      <div className="max-w-3xl mx-auto rounded-lg ">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-bill-pink mb-10"><span className='mr-2'>🧨</span> How the LNOB Sponsorship Auction Works</h1>
+          <h1 className="text-2xl font-bold text-bill-pink mb-4"> How the LNOB Sponsorship Auction Works:</h1>
 
           <div className="text-white text-left">
             <p className="mb-4">Every week, we run a 48-hour live auction for one golden prize:</p>

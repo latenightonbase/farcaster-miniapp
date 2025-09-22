@@ -1,10 +1,11 @@
 export default function PublicAuctionsPage() {
   return (
-    <main className="container mx-auto px-4 pt-24 pb-20">
-      <h1 className="text-3xl font-bold mb-6 text-center mt-8">Start Your Auction</h1>
-      <div className="max-w-3xl mx-auto bg-gray-900/50 p-6 rounded-lg shadow-lg">
-        <p className="mb-4">
-          This page will allow users to start their own auctions. Functionality to be added soon.
+    <main className="text-left px-4 py-20">
+      <h1 className="text-2xl font-bold mb-6  mt-8 text-bill-pink">Start Your Auction</h1>
+      <div className="max-w-3xl mx-auto text-white/50 animate-pulse text-center bg-gray-900/50 p-6 rounded-lg shadow-lg">
+        <h2 className="text-xl font-bold">Coming Soon!</h2>
+        <p className="mb-4 text-sm">
+          This page will allow users to start their own auctions in $LNOB and USDC
         </p>
       </div>
     </main>

@@ -74,7 +74,7 @@ export default function DailyUpdate({ selected }: { selected: string }) {
         <div className="mt-8 -mx-4 px-4">
 
             <div
-              className=" px-3 pb-3 shadow-xl mx-auto flex w-full flex-col items-center justify-center shadow-bill-blue/20 transition-shadow rounded-lg overflow-hidden bg-gradient-to-b from-transparent to-bill-light-blue/10 border-b-[2px]  border-bill-blue/30"
+              className=" px-3 pb-3 mx-auto flex w-full flex-col items-center justify-center rounded-lg overflow-hidden "
             >
               <div className="flex items-center justify-start w-full mb-2 gap-2">
                 <span className="text-2xl text-white font-poppins font-bold">Message from Sponsor</span>
