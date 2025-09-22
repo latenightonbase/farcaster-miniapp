@@ -350,6 +350,31 @@ export default function AddBanner() {
       }
 
       setIsLoading(true);
+      
+      // Check user's token balance before proceeding
+      try {
+        const tokenContract = await getContract(caInUse, currency === "USDC" ? usdcAbi : erc20Abi);
+        const decimals = currency === "USDC" ? 6 : 18;
+        const userBalance = await tokenContract?.balanceOf(address);
+        const bidAmount = BigInt(Math.round(usdcAmount * 10 ** decimals));
+        
+        console.log("User balance:", userBalance.toString());
+        console.log("Bid amount:", bidAmount.toString());
+        
+        if (userBalance < bidAmount) {
+          const formattedBalance = Number(userBalance) / 10 ** decimals;
+          const errorMessage = `Insufficient balance. You have ${formattedBalance.toFixed(2)} ${currency} but tried to bid ${usdcAmount} ${currency}`;
+          // setError(errorMessage);
+          toast.error(errorMessage, {
+            position: 'bottom-center'
+          });
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Error checking balance:", err);
+        // Continue with the transaction even if balance check fails
+      }
 
       const provider = createBaseAccountSDK({
         appName: "Bill test app",
@@ -582,11 +607,6 @@ export default function AddBanner() {
           toast.error(errorMessage, {
             duration: 4000,
             position: 'top-center',
-            style: {
-              background: '#333',
-              color: '#fff',
-              border: '1px solid #ff4d4f',
-            },
           });
         } else if (err.message && err.message.includes("exceeds balance")) {
           const errorMessage = "Transaction amount exceeds your balance";
@@ -594,11 +614,6 @@ export default function AddBanner() {
           toast.error(errorMessage, {
             duration: 4000,
             position: 'top-center',
-            style: {
-              background: '#333',
-              color: '#fff',
-              border: '1px solid #ff4d4f',
-            },
           });
         }
 
@@ -616,7 +631,11 @@ export default function AddBanner() {
 
     return (
       <>
-      <Toaster />
+      <Toaster
+        toastOptions={{
+          position: 'bottom-center'
+        }}
+      />
       <div
           className={`fixed left-0 top-0 w-screen inset-0 bg-black/80 flex items-center justify-center z-[1000000] transition-opacity duration-300 ${
             isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
