@@ -183,45 +183,83 @@ export default function AddBanner() {
       const bids = await contract?.getBidders(auctionId);
 
       if (bids && Array.isArray(bids)) {
-        const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
+        // Filter out non-numeric fids (which are likely wallet addresses)
+        const validFids = bids
+          .map((bid: any) => Number(bid.fid))
+          .filter((fid: number) => !isNaN(fid) && fid > 0);
+        
+        // Get wallet addresses (any non-numeric or zero fid)
+        const walletAddresses = bids
+          .filter((bid: any) => isNaN(Number(bid.fid)) || Number(bid.fid) === 0)
+          .map((bid: any) => bid.fid);
+        
+        console.log("Valid FIDs for Neynar:", validFids);
+        console.log("Wallet addresses:", walletAddresses);
 
-        const res = await fetch(
-          `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
-          {
-            headers: {
-              "x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
-            },
+        // Only query Neynar API if we have valid FIDs
+        let users: any[] = [];
+        if (validFids.length > 0) {
+          const res = await fetch(
+            `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(validFids)}`,
+            {
+              headers: {
+                "x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
+              },
+            }
+          );
+
+          console.log("Neynar API Response Status:", res);
+
+          if (res.ok) {
+            const jsonRes = await res.json();
+            users = jsonRes.users || [];
+          } else {
+            console.error("Error fetching user data from Neynar API");
           }
-        );
-
-        console.log("Neynar API Response Status:", res);
-
-        if (!res.ok) {
-          console.error("Error fetching user data from Neynar API");
-          return;
         }
-
-        const jsonRes = await res.json();
-
-        const users = jsonRes.users || [];
 
         console.log("All Users:", users);
 
         const enrichedBidders = bids.map((bid: any) => {
           console.log("Bid:", bid);
-          const user = users.find((u: any) => u.fid === Number(bid.fid));
+          
+          // Check if bid.fid is a wallet address (non-numeric or zero)
+          const isWalletAddress = isNaN(Number(bid.fid)) || Number(bid.fid) === 0;
+          
+          if (isWalletAddress) {
+            // For wallet addresses, generate a profile based on the address
+            const address = bid.fid.toString();
+            const shortenedAddress = address.length > 8 
+              ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}`
+              : address;
+              
+            // Create Robohash or similar avatar from address
+            const avatarUrl = `https://robohash.org/${address}?set=set4&size=150x150`;
+            
+            return {
+              username: shortenedAddress,
+              pfp_url: avatarUrl,
+              fid: address,
+              bidAmount:
+                currency == "USDC"
+                  ? ethers.utils.formatUnits(String(bid.bidAmount), 6)
+                  : ethers.utils.formatUnits(String(bid.bidAmount), 18),
+            };
+          } else {
+            // For regular FIDs, find the user data
+            const user = users.find((u: any) => u.fid === Number(bid.fid));
+            // console.log("User found for bid:", user);
 
-          console.log("User found for bid:", user);
-
-          return {
-            username: user?.username || "Unknown",
-            pfp_url: user?.pfp_url || "",
-            fid: user?.fid || 0,
-            bidAmount:
-              currency == "USDC"
-                ? ethers.utils.formatUnits(String(bid.bidAmount), 6)
-                : ethers.utils.formatUnits(String(bid.bidAmount), 18),
-          };
+            return {
+              username: user?.username || `FID: ${bid.fid}`,
+              pfp_url: user?.pfp_url || `https://robohash.org/${bid.fid}?set=set4&size=150x150`,
+              fid: user?.fid || Number(bid.fid),
+              bidAmount:
+                currency == "USDC"
+                  ? ethers.utils.formatUnits(String(bid.bidAmount), 6)
+                  : ethers.utils.formatUnits(String(bid.bidAmount), 18),
+            };
+          }
         });
 
         // Filter out bidders with bidAmount = 0
@@ -428,7 +466,7 @@ export default function AddBanner() {
           console.log("Signature received successfully!");
 
           // Prepare arguments for the contract call
-          const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
+          const bidPermitArgs = [sendingAmount, String(user?.fid || address), deadline, v, r, s];
 
           // Small delay to help wallets process the signature
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -471,7 +509,7 @@ export default function AddBanner() {
               data: encodeFunctionData({
                 abi: auctionAbi,
                 functionName: "placeBid",
-                args: [sendingAmount, user?.fid],
+                args: [sendingAmount, String(user?.fid || address)],
               }),
             },
           ];
@@ -495,20 +533,20 @@ export default function AddBanner() {
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
 
-        try {
-          await fetch("/api/notification", {
-            method: "POST",
-            body: JSON.stringify({
-              fid: highestBidder.fid, // Replace with actual fid if available
-              notification: {
-                title: "You just got outbid!",
-                body: `Your bid of ${highestBidder.bidAmount} ${currency} has been surpassed by ${user?.username}. Place a higher bid to reclaim your position!`,
-              },
-            }),
-          });
-        } catch (err) {
-          console.log("Error sending outbid notification:", err);
-        }
+        // try {
+        //   await fetch("/api/notification", {
+        //     method: "POST",
+        //     body: JSON.stringify({
+        //       fid: highestBidder.fid, // Replace with actual fid if available
+        //       notification: {
+        //         title: "You just got outbid!",
+        //         body: `Your bid of ${highestBidder.bidAmount} ${currency} has been surpassed by ${user?.username}. Place a higher bid to reclaim your position!`,
+        //       },
+        //     }),
+        //   });
+        // } catch (err) {
+        //   console.log("Error sending outbid notification:", err);
+        // }
 
         // Refresh auction bids and reload the page
         await getAuctionBids();

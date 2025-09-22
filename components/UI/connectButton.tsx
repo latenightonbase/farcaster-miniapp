@@ -60,7 +60,7 @@ export const CustomConnect = () => {
                   <button
                     onClick={openAccountModal}
                     type="button"
-                    className="bg-bill-pink flex items-center gap-2 text-center px-4 py-2 rounded text-md font-bold text-white hover:bg-orange-600"
+                    className="bg-bill-pink flex items-center gap-2 text-center px-4 py-2 rounded text-md font-bold text-white hover:bg-pink-700"
                   >
                     <MdWallet/>
                     {account.displayName.toUpperCase()}
