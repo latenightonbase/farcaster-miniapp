@@ -564,7 +564,7 @@ export default function AddBanner() {
             isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <div className="bg-gradient-to-b mx-2 from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
+          <div className="bg-black mx-2 border-y-2 border-bill-pink p-6 rounded-lg w-96 text-white relative">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-white hover:text-gray-400"
@@ -715,7 +715,7 @@ export default function AddBanner() {
 
                   <button
                     type="button"
-                    className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
+                    className="bg-bill-pink text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
                     onClick={() => {
                       if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
                         setError(
@@ -741,7 +741,7 @@ export default function AddBanner() {
               ) : (
                 <button
                   type="button"
-                  className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full flex items-center justify-center"
+                  className="bg-bill-pink text-white px-4 py-2 rounded-lg w-full flex items-center justify-center"
                   onClick={() => setInputVisible(true)}
                   disabled={isLoading}
                 >
