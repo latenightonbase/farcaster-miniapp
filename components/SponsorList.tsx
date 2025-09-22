@@ -3,6 +3,7 @@ import { FaBullhorn } from "react-icons/fa";
 import { X } from "lucide-react";
 import axios from "axios";
 import { BigNumber, ethers } from "ethers";
+import toast from 'react-hot-toast';
 
 import { HiSpeakerphone } from "react-icons/hi";
 import { useSignTypedData } from "wagmi";
@@ -27,6 +28,7 @@ import {
 } from "@base-org/account";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { CustomConnect } from "./UI/connectButton";
+import { Toaster } from 'react-hot-toast';
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -562,6 +564,8 @@ export default function AddBanner() {
           "Auction has ended": "This auction has already ended",
           "insufficient funds":
             "You don't have enough funds for this transaction",
+          "exceeds balance": 
+            "Transaction amount exceeds your balance",
           gas: "Gas estimation failed. Try a higher amount or check your wallet settings",
           signature: "Error with signature. Please try again.",
           "EIP-1271": "Smart wallet signature verification failed",
@@ -571,6 +575,32 @@ export default function AddBanner() {
         const errorKey = Object.keys(errorMessages).find(
           (key) => err.message && err.message.includes(key)
         );
+        
+        if (errorKey) {
+          const errorMessage = errorMessages[errorKey];
+          setError(errorMessage);
+          toast.error(errorMessage, {
+            duration: 4000,
+            position: 'top-center',
+            style: {
+              background: '#333',
+              color: '#fff',
+              border: '1px solid #ff4d4f',
+            },
+          });
+        } else if (err.message && err.message.includes("exceeds balance")) {
+          const errorMessage = "Transaction amount exceeds your balance";
+          setError(errorMessage);
+          toast.error(errorMessage, {
+            duration: 4000,
+            position: 'top-center',
+            style: {
+              background: '#333',
+              color: '#fff',
+              border: '1px solid #ff4d4f',
+            },
+          });
+        }
 
         setIsLoading(false);
         return; // Stop execution here to prevent the finally block from closing the modal
@@ -586,6 +616,7 @@ export default function AddBanner() {
 
     return (
       <>
+      <Toaster />
       <div
           className={`fixed left-0 top-0 w-screen inset-0 bg-black/80 flex items-center justify-center z-[1000000] transition-opacity duration-300 ${
             isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
