@@ -251,7 +251,7 @@ export default function AddBanner() {
             // console.log("User found for bid:", user);
 
             return {
-              username: user?.username || `FID: ${bid.fid}`,
+              username: user?.username || `${bid.fid.slice(0,4)}...${bid.fid.slice(-4)}`,
               pfp_url: user?.pfp_url || `https://robohash.org/${bid.fid}?set=set4&size=150x150`,
               fid: user?.fid || Number(bid.fid),
               bidAmount:
@@ -583,15 +583,6 @@ export default function AddBanner() {
       setIsModalOpen(false);
     }
   };
-
-  function encodeSafeTx(to: string, value: number | string, data: string) {
-    const valueHex = ethers.utils.hexZeroPad(ethers.utils.hexlify(value), 32);
-    const dataLength = ethers.utils.hexZeroPad(
-      ethers.utils.hexlify(ethers.utils.arrayify(data).length),
-      32
-    );
-    return ethers.utils.hexConcat([to, valueHex, dataLength, data]);
-  }
 
     return (
       <>
