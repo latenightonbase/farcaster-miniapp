@@ -77,7 +77,7 @@ export default function Navbar() {
   return (
     <>
       {/* Desktop Sidebar (Twitter-like) */}
-      <aside className="hidden lg:flex h-screen z-50 w-64 animate-rise backdrop-blur-md border-r border-bill-pink/50 flex-col py-6">
+      <aside className="hidden lg:flex h-screen z-50 w-64 animate-rise backdrop-blur-md  flex-col py-6">
         {/* Logo */}
         <a
           href="/"

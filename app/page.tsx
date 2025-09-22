@@ -1,7 +1,7 @@
 "use client";
 import { ProfileSection } from "@/components/ProfileSection";
 import { useEffect, useState } from "react";
-import YouTubeLivestreamFetcher from "@/components/YTHandler";
+// import YouTubeLivestreamFetcher from "@/components/YTHandler";
 import TwitchStreamFetcher from "@/components/TwitchHandler";
 import TwitterFetcher from "@/components/TwitterHandler";
 import Background from "@/components/UI/Background";
@@ -173,10 +173,9 @@ export default function Home() {
           </div>
 
           {/* Past Streams Section */}
-          <div id="past-streams" className="scroll-mt-4 pt-4">
-            {/* <h2 className="text-white text-2xl font-bold my-4 px-3">Past Streams</h2> */}
+          {/* <div id="past-streams" className="scroll-mt-4 pt-4">
             <YouTubeLivestreamFetcher />
-          </div>
+          </div> */}
           
           {/* Conditional Rendering for other tabs */}
           <div className="mt-6">

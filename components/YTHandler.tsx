@@ -73,7 +73,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
     }
   };
 
-  // Fetch livestreams for a channel
+  
   const fetchLivestreams = async (): Promise<void> => {
     try {
       setLoading(true);
