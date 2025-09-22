@@ -134,6 +134,8 @@ export default function AddBanner() {
       const contract = await getContract(contractAdds.auction, auctionAbi);
       const auctionMeta = await contract?.getCurrentAuctionMeta();
 
+      console.log("Auction Meta:", auctionMeta);
+
       // Check if auction name exists
       if (!auctionMeta || !auctionMeta.tokenName) {
         console.log("No active auction found");
@@ -227,6 +229,8 @@ export default function AddBanner() {
           
           // Check if bid.fid is a wallet address (non-numeric or zero)
           const isWalletAddress = isNaN(Number(bid.fid)) || Number(bid.fid) === 0;
+
+          console.log("This is the currency in use:", currency);
           
           if (isWalletAddress) {
             // For wallet addresses, generate a profile based on the address
