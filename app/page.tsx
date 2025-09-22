@@ -66,7 +66,7 @@ export default function Home() {
         }
       }
     };
-    if (isFrameReady) {
+    if (isFrameReady && context?.client.clientFid !== 309857) {
       checkNotificationDetails();
     }
   }, [address]);
