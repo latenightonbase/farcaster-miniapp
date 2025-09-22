@@ -109,23 +109,23 @@ export default function Home() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen overflow-x-hidden max-w-[700px] max-md:pt-16 mx-auto animate-rise font-[var(--font-geist-mono)] flex flex-col items-center justify-center">
+    <div className="min-h-screen overflow-x-hidden max-w-[700px] max-lg:pt-16 mx-auto animate-rise font-[var(--font-geist-mono)] flex flex-col items-center justify-center">
       <main className="relative h-full">
 
         <div className="relative z-50 lg:hidden">
           <div
-            className={`h-screen w-screen fixed top-0 left-0 duration-200 transition-all ${
+            className={`h-screen w-screen fixed flex items-end justify-center top-0 left-0 duration-200 transition-all ${
               isPopupOpen
                 ? " translate-y-0 bg-black/50 "
                 : " translate-y-full bg-transparent"
             } `}
           >
             <div
-              className={`absolute bottom-0 border-t-2 border-bill-pink min-h-60  rounded-t-lg items-start shadow-xl bg-opacity-50 flex justify-center transition-all duration-500 z-50 ${
+              className={`absolute bottom-0 border-t-2 border-bill-pink bg-black w-full min-h-60  rounded-t-lg items-start shadow-xl bg-opacity-50 flex justify-center transition-all duration-500 z-50 ${
                 isPopupOpen ? "translate-y-0" : "translate-y-full"
               }`}
             >
-              <div className="p-6 rounded-lg bg-black w-screen max-w-md shadow-2xl transform transition-transform scale-100 animate-fade-in relative">
+              <div className="p-6 rounded-lg  w-full max-w-md shadow-2xl transform transition-transform animate-fade-in relative">
                 <div className="mt-5 flex flex-col items-center">
                   {error && (
                     <p className="text-bill-blue text-sm mb-4">{error}</p>

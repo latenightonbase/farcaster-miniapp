@@ -53,7 +53,7 @@ export default function RootLayout({
       >
         <Background />
         <MiniKitContextProvider>
-          <div className="absolute left-0 flex justify-center w-screen h-screen overflow-hidden lg:-translate-x-32">
+          <div className="absolute left-0 flex justify-center w-screen h-screen overflow-hidden ">
             <NavigationWrapper />
             <div className="overflow-y-auto h-full max-[700px]:w-screen w-[700px]">
               {children}

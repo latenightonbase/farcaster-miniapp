@@ -556,11 +556,9 @@ export default function AddBanner() {
   }
 
     return (
-      <div className=" text-white px-3">
-        {/* SponsorBanner component is now being used in page.tsx directly */}
-
-        <div
-          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${
+      <>
+      <div
+          className={`fixed left-0 top-0 w-screen inset-0 bg-black/80 flex items-center justify-center z-[1000000] transition-opacity duration-300 ${
             isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
@@ -585,29 +583,6 @@ export default function AddBanner() {
                 <li>Non-winning bids will be refunded.</li>
               </ul>
 
-              {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
-                  <button
-                    onClick={() => setCurrency("ETH")}
-                    className={`flex-1 py-2 rounded-full font-bold transition ${
-                      currency === "ETH"
-                        ? "bg-orange-500 text-white"
-                        : "bg-orange-950/50 text-gray-300"
-                    } hover:bg-orange-600`}
-                  >
-                    ETH
-                  </button>
-                  <button
-                    onClick={() => setCurrency("USDC")}
-                    className={`flex-1 py-2 rounded-full font-bold transition ${
-                      currency === "USDC"
-                        ? "bg-orange-500 text-white"
-                        : "bg-orange-950/50 text-gray-300"
-                    } hover:bg-orange-600`}
-                  >
-                    USDC
-                  </button>
-                </div> */}
-
               {highestBidder && (
                 <div>
                   <label className="flex items-center text-md gap-1 font-bold ">
@@ -630,32 +605,6 @@ export default function AddBanner() {
                       {currency}
                     </h4>
                   </div>
-                  {/* {auctionDeadline && (
-                  <div className="mt-2 bg-white/10 p-3 rounded-sm">
-                    <div className="flex items-center gap-1 text-sm font-medium mb-1">
-                      <RiTimerLine className="text-orange-400" />
-                      <span>Auction ends in:</span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-1 text-center">
-                      <div className="bg-black/30 p-1 rounded">
-                        <div className="text-lg font-bold">{timeRemaining.days}</div>
-                        <div className="text-xs text-gray-400">Days</div>
-                      </div>
-                      <div className="bg-black/30 p-1 rounded">
-                        <div className="text-lg font-bold">{timeRemaining.hours}</div>
-                        <div className="text-xs text-gray-400">Hours</div>
-                      </div>
-                      <div className="bg-black/30 p-1 rounded">
-                        <div className="text-lg font-bold">{timeRemaining.minutes}</div>
-                        <div className="text-xs text-gray-400">Mins</div>
-                      </div>
-                      <div className="bg-black/30 p-1 rounded">
-                        <div className="text-lg font-bold">{timeRemaining.seconds}</div>
-                        <div className="text-xs text-gray-400">Secs</div>
-                      </div>
-                    </div>
-                  </div>
-                )} */}
                 </div>
               )}
 
@@ -678,36 +627,7 @@ export default function AddBanner() {
                         ≈ {(usdcAmount * tokenPrice).toFixed(8)} USD
                       </span>
                     )}
-                    {/* {tokenPrice !== null && (
-                      <div className="absolute right-3 top-2 text-xs bg-black/70 px-2 py-1 rounded text-white/80">
-                        {tokenPriceLoading ? (
-                          <span className="flex items-center">
-                            <RiLoader5Fill className="animate-spin mr-1" />
-                            Loading...
-                          </span>
-                        ) : (
-                          <div>
-                            <span className="flex items-center">
-                              1 {currency} ≈ ${tokenPrice.toFixed(8)} USD
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (caInUse) fetchTokenPrice(caInUse);
-                                }}
-                                className="ml-1 text-blue-400 hover:text-blue-300"
-                              >
-                                ↻
-                              </button>
-                            </span>
-                            {usdcAmount > 0 && (
-                              <span className="block text-green-400">
-                                ≈ ${(usdcAmount * tokenPrice).toFixed(2)} USD
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )} */}
+                    
                   </div>
                   {error && (
                     <p className="text-bill-blue text-sm mt-2">{error}</p>
@@ -758,6 +678,8 @@ export default function AddBanner() {
             </>
           </div>
         </div>
+        <div className=" text-white relative px-3">
+        {/* SponsorBanner component is now being used in page.tsx directly */}
 
         <div className="mt-6 text-white">
           <div className="flex items-center">
@@ -798,6 +720,31 @@ export default function AddBanner() {
             </div>
           </div>
           
+          {/* Highest Bidder Display */}
+          {isAuctionActive && highestBidder && !isFetchingBidders && (
+            <div className="mt-4 bg-white/10 p-3 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <RiAuctionFill className="text-bill-pink text-xl" />
+                <span className="font-medium">Current Highest Bid:</span>
+              </div>
+              <div className="flex flex-col items-center justify-between bg-black/30 p-3 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Image
+                    alt={highestBidder.username}
+                    src={highestBidder.pfp_url}
+                    width={32}
+                    height={32}
+                    className="rounded-full w-8 h-8"
+                  />
+                  <span className="font-medium">{highestBidder.username}</span>
+                </div>
+                <div className="font-bold text-lg text-bill-pink">
+                  {Math.round(highestBidder.bidAmount).toLocaleString()} {currency}
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Countdown Timer for Mobile View */}
           {isAuctionActive && auctionDeadline && !isFetchingBidders && (
             <div className="mt-4  rounded-lg">
@@ -821,7 +768,7 @@ export default function AddBanner() {
                   <div className="text-xs text-gray-400">Mins</div>
                 </div>
                 <div className="bg-black/50 p-2 rounded">
-                  <div className="text-xl font-bold">
+                  <div className="text-xl font-bold text-bill-pink">
                     {timeRemaining.seconds}
                   </div>
                   <div className="text-xs text-gray-400">Secs</div>
@@ -875,5 +822,7 @@ export default function AddBanner() {
           )}
         </div>
       </div>
+      </>
+      
     );
 }
