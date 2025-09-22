@@ -48,6 +48,27 @@ export default function Navbar() {
       setActiveSection('home');
     }
   }, [pathname]);
+  
+  // Add click outside listener to close the mobile menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      // Check if the click is outside the menu and the menu is open
+      if (isMenuOpen && !target.closest('.mobile-menu-container') && !target.closest('button[aria-label="Toggle menu"]')) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    // Add event listener when menu is open
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Clean up the event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   // Check if we're on homepage to enable hash navigation
   const isHomePage = pathname === '/';
@@ -78,7 +99,7 @@ export default function Navbar() {
   return (
     <>
       {/* Desktop Sidebar (Twitter-like) */}
-      <aside className="hidden lg:flex h-screen z-50 w-64 animate-rise backdrop-blur-md flex-col py-6">
+      <aside className="hidden lg:flex h-screen z-[100000] w-64 animate-rise backdrop-blur-md flex-col py-6">
         {/* Logo */}
         <a
           href="/"
@@ -125,7 +146,7 @@ export default function Navbar() {
       </aside>
 
       {/* Mobile Header */}
-      <header className="fixed top-0 left-0 w-full z-50  bg-black/80 backdrop-blur-md border-b border-bill-pink/50 px-4 md:py-4 md:px-6 lg:hidden">
+      <header className="fixed top-0 left-0 w-full z-[10000]  bg-black/80 backdrop-blur-md border-b border-bill-pink/50 px-4 md:py-4 md:px-6 lg:hidden">
         <div className="container mx-auto flex justify-between items-center py-3">
           {/* Logo */}
           <a
@@ -179,7 +200,7 @@ export default function Navbar() {
 
           {/* Mobile Navigation Overlay */}
           <div
-            className={`fixed top-0 left-0 w-full border-b-4 border-bill-pink rounded-b-2xl bg-black/95 flex flex-col items-center justify-center transition-all duration-300 ease-in-out ${
+            className={`mobile-menu-container fixed top-0 left-0 w-full border-b-4 border-bill-pink rounded-b-2xl bg-black/95 flex flex-col items-center justify-center transition-all duration-300 ease-in-out ${
               isMenuOpen
                 ? "opacity-100 visible"
                 : "opacity-0 invisible pointer-events-none"

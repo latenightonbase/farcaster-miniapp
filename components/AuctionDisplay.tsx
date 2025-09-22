@@ -20,6 +20,7 @@ interface AuctionData {
   auctionData: {
     position: number;
     name: string;
+    fid: string;
     entryAmount: number;
     USDCValue: number;
   }[];
@@ -31,6 +32,7 @@ export default function AuctionDisplay() {
   const [currentAuctionIndex, setCurrentAuctionIndex] = useState<number>(0);
   const [isFetchingAuctions, setIsFetchingAuctions] = useState(false);
   const [isChangingAuction, setIsChangingAuction] = useState(false);
+  const [userProfiles, setUserProfiles] = useState<Record<string, any>>({});
 
   const { address } = useAccount();
 
@@ -85,8 +87,56 @@ export default function AuctionDisplay() {
             }
             return auction;
           });
+
+          console.log('Validated Auctions:', JSON.stringify(validatedAuctions, null, 2));
           
           setPastAuctions(validatedAuctions);
+          
+          // Collect all FIDs for Neynar API call
+          const allFids: string[] = [];
+          validatedAuctions.forEach((auction: AuctionData) => {
+            if (auction.auctionData && Array.isArray(auction.auctionData)) {
+              auction.auctionData.forEach((bidder: {fid?: string}) => {
+                // Only add FIDs that don't look like wallet addresses
+                if (bidder.fid && !bidder.fid.includes('0x')) {
+                  allFids.push(bidder.fid);
+                }
+              });
+            }
+          });
+          
+          // Fetch user profiles from Neynar API
+          if (allFids.length > 0) {
+            try {
+              const res = await fetch(
+                `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(allFids)}`,
+                {
+                  headers: {
+                    "x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
+                  },
+                }
+              );
+              
+              console.log("Neynar API Response Status:", res);
+              
+              if (res.ok) {
+                const jsonRes = await res.json();
+                const users = jsonRes.users || [];
+                
+                // Create a map of FID to user profile data
+                const userProfilesMap: Record<string, any> = {};
+                users.forEach((user: any) => {
+                  userProfilesMap[user.fid] = user;
+                });
+                
+                setUserProfiles(userProfilesMap);
+              } else {
+                console.error("Error fetching user data from Neynar API");
+              }
+            } catch (error) {
+              console.error("Error with Neynar API request:", error);
+            }
+          }
         } else {
           console.error('Invalid response format:', data);
         }
@@ -168,16 +218,27 @@ export default function AuctionDisplay() {
                         pastAuctions[currentAuctionIndex].auctionData.map((bidder, idx) => (
                         <tr key={idx} className="border-b border-white/10">
                           <td className="py-2 flex items-center gap-2">
-                            {bidder.name.includes('0x') || bidder.name.includes('...') ? (
+                            {bidder.fid && bidder.fid.includes('0x') ? (
                               // For wallet addresses, use Robohash
                               <img 
                                 src={`https://robohash.org/${bidder.name}?set=set4&size=150x150`}
                                 alt={bidder.name}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
+                            ) : bidder.fid && userProfiles[bidder.fid]?.pfp_url ? (
+                              // For users with Farcaster IDs that we found profiles for
+                              <img 
+                                src={userProfiles[bidder.fid].pfp_url}
+                                alt={bidder.name}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
                             ) : (
-                              // For regular users, use the default avatar or generate one
-                              <div className="w-8 h-8 rounded-full bg-white/40"></div>
+                              // Fallback to Robohash for any other case
+                              <img 
+                                src={`https://robohash.org/${bidder.name}?set=set4&size=150x150`}
+                                alt={bidder.name}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
                             )}
                             <span className="truncate">{bidder.name}</span>
                           </td>
@@ -188,7 +249,8 @@ export default function AuctionDisplay() {
                                 : ""
                             }`}
                           >
-                            {Math.round(bidder.entryAmount).toLocaleString()} {pastAuctions[currentAuctionIndex].currency}
+                            <span className="block">{Math.round(bidder.entryAmount).toLocaleString()} {pastAuctions[currentAuctionIndex].currency} </span>
+                          <span className="text-xs text-gray-400 font-light">{pastAuctions[currentAuctionIndex].currency == "LNOB" &&`≈ ${(bidder.USDCValue).toLocaleString()} USDC`}</span>
                           </td>
                         </tr>
                       ))}

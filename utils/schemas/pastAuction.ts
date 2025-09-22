@@ -14,14 +14,18 @@ const pastAuctionSchema = new mongoose.Schema({
     required: true,
   },
   auctionData: {
-    type: {
-        position:{
-            type: Number,
-            required: true,
-        },
+    type: [{
+      position: {
+        type: Number,
+        required: true,
+      },
       name: {
         type: String,
         required: true,
+      },
+      fid: {
+        type: String,
+        required: false,
       },
       entryAmount: {
         type: Number,
@@ -31,8 +35,9 @@ const pastAuctionSchema = new mongoose.Schema({
         type: Number,
         required: true,
       }
-    },
+    }],
     required: true,
+    default: [],
   },
   createdAt: {
     type: Date,
