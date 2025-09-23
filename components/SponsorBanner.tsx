@@ -52,9 +52,9 @@ export default function SponsorBanner() {
 
               <div className="flex flex-col mt-2">
                 <span className="text-white/80 text-sm">
-                  Today&apos;s Highlighted Project:
+                  Auction Winner:
                 </span>
-                <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">
+                <span className="text-[30px] font-bold bg-gradient-to-br from-pink-600 via-bill-pink to-pink-500 text-transparent bg-clip-text">
                   {name}
                 </span>
               </div>

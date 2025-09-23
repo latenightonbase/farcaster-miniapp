@@ -282,7 +282,7 @@ const TwitterFetcher = () => {
 
       {/* Search Controls */}
       <div className="bg-gray-50 p-6 rounded-lg mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <div className="flex flex-col lg:flex-row gap-4 mb-4">
           <div className="flex gap-4">
             <label className="flex items-center">
               <input
@@ -307,7 +307,7 @@ const TwitterFetcher = () => {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           {searchType === 'user' ? (
             <input
               type="text"
@@ -455,7 +455,7 @@ const TwitterFetcher = () => {
                 />
                 
                 {tweet.media && tweet.media.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mb-4">
                     {tweet.media.map((mediaItem, index) => (
                       <div key={index} className="rounded-lg overflow-hidden">
                         {mediaItem.type === 'photo' && (

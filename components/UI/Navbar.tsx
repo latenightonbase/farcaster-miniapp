@@ -7,6 +7,7 @@ import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import Image from "next/image";
 import { CustomConnect } from "./connectButton";
+import { FaGavel, FaQuestionCircle, FaTrophy, FaPlay, FaStream, FaBars, FaInfoCircle, FaQrcode } from "react-icons/fa";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -89,11 +90,13 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { name: "Auctions", path: "/" },
-    { name: "How it works", path: "/help" },
-    { name: "Hall of Fame", path: "/leaderboard" },
-    { name: "Start Your Auction", path: "/public-auctions" },
-    { name: "Live Streams", path: "/past-streams" },
+    { name: "Auctions", path: "/", icon: <FaGavel className="mr-2" /> },
+    { name: "How to Bid", path: "/help", icon: <FaQuestionCircle className="mr-2" /> },
+    { name: "The Winners Circle", path: "/leaderboard", icon: <FaTrophy className="mr-2" /> },
+    { name: "Start Your Auction", path: "/public-auctions", icon: <FaPlay className="mr-2" /> },
+    { name: "Live Streams", path: "/past-streams", icon: <FaStream className="mr-2" /> },
+    { name: "About LNOB", path: "/about", icon: <FaInfoCircle className="mr-2" /> },
+    { name: "Scan to Earn", path: "/earn", icon: <FaQrcode className="mr-2" /> },
   ];
 
   return (
@@ -133,7 +136,7 @@ export default function Navbar() {
                 pathname === link.path ? "text-bill-pink bg-white/5" : "text-gray-300"
               }`}
             >
-              {/* Could add icons here */}
+              {link.icon}
               <span>{link.name}</span>
             </a>
           ))}
@@ -146,7 +149,7 @@ export default function Navbar() {
       </aside>
 
       {/* Mobile Header */}
-      <header className="fixed top-0 left-0 w-full z-[10000]  bg-black/80 backdrop-blur-md border-b border-bill-pink/50 px-4 md:py-4 md:px-6 lg:hidden">
+      <header className="fixed top-0 left-0 w-full z-[10000]  bg-black/80 backdrop-blur-md border-b border-bill-pink/50 px-4 lg:py-4 lg:px-6 lg:hidden">
         <div className="container mx-auto flex justify-between items-center py-3">
           {/* Logo */}
           <a
@@ -176,23 +179,7 @@ export default function Navbar() {
             onClick={toggleMenu}
             aria-label="Toggle menu"
           >
-            <div className="w-6 flex flex-col justify-between h-5 relative">
-              <span
-                className={`block h-0.5 w-full bg-white transform transition-all duration-300 ease-in-out ${
-                  isMenuOpen ? "rotate-45 translate-y-[9px] absolute top-0" : ""
-                }`}
-              ></span>
-              <span
-                className={`block h-0.5 w-full bg-white transition-all duration-300 ease-in-out ${
-                  isMenuOpen ? "opacity-0" : "opacity-100"
-                }`}
-              ></span>
-              <span
-                className={`block h-0.5 w-full bg-white transform transition-all duration-300 ease-in-out ${
-                  isMenuOpen ? "-rotate-45 -translate-y-[8px] absolute bottom-0" : ""
-                }`}
-              ></span>
-            </div>
+            <FaBars className="w-6 h-6 text-white" />
           </button>
           </div>
 
@@ -216,10 +203,11 @@ export default function Navbar() {
                     closeMenu();
                     handleNavigation(link.path);
                   }}
-                  className={`text-xl font-medium transition-colors hover:text-bill-pink py-4 hover:scale-105 transform duration-200 ${
+                  className={`text-xl font-medium transition-colors hover:text-bill-pink py-4 hover:scale-105 transform duration-200 flex items-center ${
                     pathname === link.path ? "text-bill-pink" : "text-white"
                   }`}
                 >
+                  {link.icon}
                   {link.name}
                 </Link>
               ))}

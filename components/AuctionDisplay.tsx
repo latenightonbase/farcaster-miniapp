@@ -235,8 +235,8 @@ export default function AuctionDisplay() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-white/30 text-bill-pink flex items-end gap-1 ">
-                      <th className="py-2 md:w-[10%] w-[15%]">Rank</th>
-                      <th className="py-2 md:w-[60%] w-[55%]">Profile</th>
+                      <th className="py-2 lg:w-[10%] w-[15%]">Rank</th>
+                      <th className="py-2 lg:w-[60%] w-[55%]">Profile</th>
                       <th className="py-2 text-center w-[15%]">Wins</th>
                       <th className="py-2 text-right w-[15%]"><span className="block">Value</span><span className="text-xs font-normal"> (USDC)</span></th>
                     </tr>
@@ -244,8 +244,8 @@ export default function AuctionDisplay() {
                   <tbody>
                     {topBidders.slice(0, 5).map((bidder, idx) => (
                       <tr key={idx} className="border-b border-white/10 flex gap-1 items-center">
-                        <td className="py-2 text-white/70 md:w-[10%] w-[15%]">#{idx + 1}</td>
-                        <td className="py-2 flex items-center gap-2 md:w-[60%] w-[55%]">
+                        <td className="py-2 text-white/70 lg:w-[10%] w-[15%]">#{idx + 1}</td>
+                        <td className="py-2 flex items-center gap-2 lg:w-[60%] w-[55%]">
                           {bidder.fid && bidder.fid.includes('0x') ? (
                             <img 
                               src={`https://robohash.org/${bidder.name}?set=set4&size=150x150`}
@@ -287,7 +287,7 @@ export default function AuctionDisplay() {
         <>
           <div className="flex items-center">
             <div className="w-full flex gap-2">
-              <h3 className="text-xl font-bold">Auction: {pastAuctions[currentAuctionIndex]?.auctionName}</h3>
+              <h3 className="text-xl font-bold">{pastAuctions[currentAuctionIndex]?.auctionName}</h3>
               {pastAuctions.length > 1 && (
                 <>
                   <button

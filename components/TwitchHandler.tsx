@@ -358,7 +358,7 @@ const TwitchStreamFetcher = () => {
       {!loading && videos.length > 0 && (
         <div className="relative">
           <h2 className="text-xl font-semibold text-white mb-4 text-center">Past Streams</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 p-3 bg-black/40 rounded-xl">
+          <div className="grid gap-4 lg:grid-cols-2 lg:grid-cols-3 p-3 bg-black/40 rounded-xl">
             {videos.map((video) => (
               <div
                 key={video.id}

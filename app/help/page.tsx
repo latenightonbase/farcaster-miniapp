@@ -2,12 +2,12 @@ export default function HelpPage() {
   return (
     <main className="container  mx-auto px-4 py-20">
 
-      <div className="max-w-3xl mx-auto rounded-lg ">
+      <div className="max-w-3xl mx-auto rounded-lg max-lg:h-screen max-lg:flex items-center justify-center pt-6">
         <div className="mb-8">
-          <h1 className="md:text-3xl text-2xl font-bold text-bill-pink mb-4"> How the LNOB Sponsorship Auction Works:</h1>
+          <h1 className="lg:text-3xl text-2xl font-bold text-bill-pink mb-4"> How the LNOB Sponsorship Auction Works:</h1>
 
           <div className="text-white text-left ">
-            <p className="mb-4 md:text-xl text-lg">Every week, we run a 48-hour live auction for one golden prize:</p>
+            <p className="mb-4 lg:text-xl text-lg">Every week, we run a 48-hour live auction for one golden prize:</p>
             {/* <p className="text-xl font-semibold text-bill-pink/80 mb-4">The Official LNOB Sponsorship Slot of the Week</p> */}
             
             <div className="p-4 rounded-xl bg-white/10 text-md">
