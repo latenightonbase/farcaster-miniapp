@@ -73,7 +73,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
     }
   };
 
-  // Fetch livestreams for a channel
+  
   const fetchLivestreams = async (): Promise<void> => {
     try {
       setLoading(true);
@@ -185,7 +185,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
     <div className="max-w-6xl mx-auto p-3 text-white animate-rise">
       {liveVideo && (
         <div className="mb-8">
-          <h2 className="bg-red-500 px-4 py-1 flex items-center justify-center rounded-lg text-xl font-semibold text-white mb-4 text-center">
+          <h2 className="bg-bill-blue px-4 py-1 flex items-center justify-center rounded-lg text-xl font-semibold text-white mb-4 text-center">
           <GoDotFill className='text-xl animate-pulse'/> Live Now</h2>
           <div className="relative bg-black rounded-lg overflow-hidden shadow-xl ">
             <iframe
@@ -240,7 +240,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
             {livestreams.map((stream) => (
               <div
                 key={stream.id}
-                className="flex-col items-center gap-2 bg-red-800/20 border-x-[2px] border-red-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow p-2 cursor-pointer"
+                className="flex-col items-center gap-2 bg-bill-blue/20 border-x-[2px] border-bill-blue/30 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow p-2 cursor-pointer"
                 onClick={() => setPlayingVideoId(stream.id)}
               >
                 <div className='flex gap-2'>
@@ -253,7 +253,7 @@ const YouTubeLivestreamFetcher: React.FC = () => {
                   <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
                     {stream.title}
                   </h3>
-                  <p className="text-[10px] text-red-100 mb-1">
+                  <p className="text-[10px] text-bill-light-blue mb-1">
                     {moment(stream.publishedAt).fromNow()}
                   </p>
                   

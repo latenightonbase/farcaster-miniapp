@@ -9,7 +9,7 @@ export function ProfileSection() {
   
 
   return (
-    <div className="flex flex-col items-center shadow-md pb-5 overflow-hidden font-[var(--font-geist-mono)] ">
+    <div className="flex flex-col items-center pb-5 overflow-hidden font-[var(--font-geist-mono)] ">
 
       {/* Banner */}
       <div className="w-full h-48 bg-gray-700 relative">

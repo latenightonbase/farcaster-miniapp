@@ -29,15 +29,15 @@ export async function POST(req: Request) {
   await connectToDB();
 
   const body = await req.json();
-  const { wallet, url, token } = body;
+  const { wallet, url, token, fid } = body;
 
-  if (!wallet || !url || !token) {
+  if (!wallet || !url || !token || !fid) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
   try {
     await NotificationDetails.create(
-      { wallet, url, token },
+      { wallet, url, token, fid },
     );
     return NextResponse.json({ message: "Notification details saved successfully" });
   } catch (error) {

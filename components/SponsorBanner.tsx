@@ -34,14 +34,14 @@ export default function SponsorBanner() {
 
   if(uploadedImage)
   return (
-    <div className=''>
+    <div className='w-full px-3'>
       {uploadedImage && (
             <a href={url || "#"} target="_blank" rel="noopener noreferrer" className='px-3'>
               <div className="relative">
                 <img
                   src={`${uploadedImage}?v=${Date.now()}`}
                   alt="Sponsor Banner"
-                  className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
+                  className="mx-auto mt-4 aspect-[3/1] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-bill-blue/20 active:scale-95  hover:scale-95 duration-200"
                 />
                 {url !== "#" && (
                   <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
@@ -52,9 +52,9 @@ export default function SponsorBanner() {
 
               <div className="flex flex-col mt-2">
                 <span className="text-white/80 text-sm">
-                  Today&apos;s Highlighted Project:
+                  Auction Winner:
                 </span>
-                <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">
+                <span className="text-[30px] font-bold bg-gradient-to-br from-pink-600 via-bill-pink to-pink-500 text-transparent bg-clip-text">
                   {name}
                 </span>
               </div>
