@@ -1,8 +1,8 @@
 export default function HelpPage() {
   return (
-    <main className="container  mx-auto px-4 py-10">
+    <main className="container  mx-auto px-4 py-16">
 
-      <div className="max-w-3xl mx-auto rounded-lg max-lg:h-screen max-lg:flex items-center justify-center pt-6">
+      <div className="max-w-3xl mx-auto rounded-lg pt-6">
         <div className="mb-8">
           <h1 className="lg:text-3xl text-2xl font-bold text-bill-pink mb-4"> How the LNOB Sponsorship Auction Works:</h1>
 
@@ -20,6 +20,14 @@ export default function HelpPage() {
               <li className="flex"><span className='flex-shrink-0 mr-2'>🎞️</span> <span>Zora clip to memorialize your moment</span></li>
               <li className="flex"><span className='flex-shrink-0 mr-2'>🔁</span> <span>Exposure across Base + Farcaster + access to the LNOB community (50k+ holders)</span></li>
               <li className="flex"><span className='flex-shrink-0 mr-2'>🔥</span> <span>All powered by your LNOB token or USDC bid</span></li>
+            </ul>
+            </div>
+
+            <div className="p-4 rounded-xl bg-white/10 text-md mt-4">
+<p className="mb-2 font-semibold">Getting outbid:</p>
+            <ul className="space-y-1">
+              <li className="flex"><span className='flex-shrink-0 mr-2'>🎤</span> <span>if you get out bid you get your money back instantly.  No waiting required</span></li>
+              
             </ul>
             </div>
             

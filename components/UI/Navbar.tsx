@@ -7,7 +7,7 @@ import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import Image from "next/image";
 import { CustomConnect } from "./connectButton";
-import { FaGavel, FaQuestionCircle, FaTrophy, FaPlay, FaStream, FaBars, FaInfoCircle, FaQrcode } from "react-icons/fa";
+import { FaGavel, FaQuestionCircle, FaTrophy, FaPlay, FaStream, FaBars, FaInfoCircle, FaQrcode, FaTimes } from "react-icons/fa";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -193,6 +193,15 @@ export default function Navbar() {
                 : "opacity-0 invisible pointer-events-none"
             }`}
           >
+            {/* Close Button */}
+            <button
+              className="absolute top-4 right-4 z-50 focus:outline-none"
+              onClick={closeMenu}
+              aria-label="Close menu"
+            >
+              <FaTimes className="w-6 h-6 text-white hover:text-bill-pink" />
+            </button>
+            
             <nav className="flex flex-col items-center px-6 w-full max-w-md">
               {navLinks.map((link) => (
                 <Link
