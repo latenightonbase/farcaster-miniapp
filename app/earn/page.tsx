@@ -33,14 +33,19 @@ export default function ScanToEarnPage() {
           </div>
           
           {/* How It Works */}
-          <div className="mb-12">
+          <div className="mb-6">
             {/* <h2 className="text-2xl font-bold text-bill-pink mb-6 text-center">How It Works</h2> */}
             
             <div className="">
-              <div className=" rounded-lg flex flex-col items-center text-center">
+              <div className="flex flex-col items-center text-center">
                 <FaQrcode className="text-bill-pink text-4xl mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">Scan QR Codes</h3>
                 <p className="text-gray-300">Participate in our scan to earn program and collect LNOB rewards and climb the leaderboard for engaging with the winning brand</p>
+              </div>
+
+              <div className="flex flex-col items-center text-center justify-center animate-pulse mt-10 h-20 rounded-lg bg-black/40">
+                
+                <h3 className="text-xl font-semibold text-white mb-2 opacity-40">Coming Soon!</h3>
               </div>
               
               {/* <div className="bg-black/40 p-6 rounded-lg border border-white/10 flex flex-col items-center text-center">
