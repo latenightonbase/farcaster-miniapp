@@ -206,9 +206,9 @@ export default function Home() {
           <Tipping />
         </div> */}
       </main>
-      <footer className="text-center w-full bg-black py-4 rounded-t-lg border-t-[2px] border-bill-blue/50 text-white/50 h-36 text-sm">
+      {/* <footer className="text-center w-full bg-black py-4 rounded-t-lg border-t-[2px] border-bill-blue/50 text-white/50 h-36 text-sm">
         An Onchain Media Production
-      </footer>
+      </footer> */}
     </div>
   );
 }
