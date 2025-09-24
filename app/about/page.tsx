@@ -22,57 +22,51 @@ export default function AboutPage() {
               className="rounded-full mb-6 lg:mb-0 lg:mr-8"
             />
             <div>
-              <h2 className="text-2xl font-bold text-bill-pink mb-3">Our Mission</h2>
               <p className="text-gray-200 mb-4">
-                Late Night on Base is a revolutionary platform connecting content creators with their audience through 
-                blockchain-powered auctions and engagement tools.
+                Late Night on Base is the first onchain late-night show — a mix of livestreams, interviews, and media auctions 
+                that bring the Base community together in real time.
               </p>
               <p className="text-gray-200">
-                We're building the future of creator monetization on Base, empowering both creators and fans to participate 
-                in a transparent, fun, and rewarding ecosystem.
+                Hosted by Bill the Bull, LNOB has already produced 250+ live streams and 100+ podcasts, making it one of the 
+                most consistent and recognizable voices in the Base ecosystem.
               </p>
             </div>
           </div>
           
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-bill-pink mb-4">What We Do</h2>
+            <h2 className="text-2xl font-bold text-bill-pink mb-4">🚀 What Makes Us Different</h2>
             <ul className="space-y-4 text-gray-200">
               <li className="flex items-start">
                 <span className="text-bill-pink mr-2">•</span>
-                <p>Host live auctions that allow fans to bid for exclusive perks and experiences with their favorite creators</p>
+                <p>Media Auctions → Brands and builders compete for the spotlight through onchain auctions, creating a transparent and fun way to sponsor content.</p>
               </li>
               <li className="flex items-start">
                 <span className="text-bill-pink mr-2">•</span>
-                <p>Facilitate live streams where creators can engage directly with their community</p>
+                <p>Livestreams + Podcasts → Covering the latest in Base culture, projects, and stories, streamed live Mon–Thurs 12PM PST.</p>
               </li>
               <li className="flex items-start">
                 <span className="text-bill-pink mr-2">•</span>
-                <p>Create a Winners Circle that recognizes and rewards the most active participants</p>
-              </li>
-              <li className="flex items-start">
-                <span className="text-bill-pink mr-2">•</span>
-                <p>Build tools that make blockchain technology accessible to everyone</p>
+                <p>Community First → Every episode amplifies Base-native builders, creators, and supporters.</p>
               </li>
             </ul>
           </div>
           
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-bill-pink mb-4">Our Story</h2>
-            <p className="text-gray-200 mb-4">
-              Late Night on Base started as a grassroots movement to bring more engagement to the Base ecosystem. 
-              What began as experimental auctions quickly evolved into a full-fledged platform for creators and fans.
-            </p>
+            <h2 className="text-2xl font-bold text-bill-pink mb-4">📖 Our Story</h2>
             <p className="text-gray-200">
-              Today, we're proud to be one of the most active communities on Base, with a growing ecosystem of creators, 
-              bidders, and supporters who share our vision for the future of content creation.
+              What started as one streamer testing auctions turned into a new media model on Base. Today, LNOB is a hub for creators, 
+              brands, and fans — where sponsorships aren't sold in backroom deals but won in the open through competitive bidding.
             </p>
           </div>
           
           <div>
-            <h2 className="text-2xl font-bold text-bill-pink mb-4">Join the Community</h2>
+            <h2 className="text-2xl font-bold text-bill-pink mb-4">🤝 Join Us</h2>
             <p className="text-gray-200 mb-6">
-              Whether you're a creator looking to monetize your content or a fan wanting to support your favorites, 
-              there's a place for you in the Late Night on Base community.
+              Whether you're a brand looking to advertise, a project ready for the spotlight, or a fan who just wants to be part 
+              of the culture, there's a place for you in the LNOB ecosystem.
+            </p>
+            <p className="text-gray-200 italic mb-6">
+              Late Night on Base: where culture meets the auction block.
             </p>
             <div className="flex flex-wrap gap-4">
               <a href="https://twitter.com/latenightonbase" target="_blank" rel="noopener noreferrer" 
