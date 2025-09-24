@@ -91,7 +91,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Auctions", path: "/", icon: <FaGavel className="mr-2" /> },
-    { name: "How to Bid", path: "/help", icon: <FaQuestionCircle className="mr-2" /> },
+    { name: "How it Works", path: "/help", icon: <FaQuestionCircle className="mr-2" /> },
     { name: "The Winners Circle", path: "/leaderboard", icon: <FaTrophy className="mr-2" /> },
     { name: "Start Your Auction", path: "/public-auctions", icon: <FaPlay className="mr-2" /> },
     { name: "Live Streams", path: "/past-streams", icon: <FaStream className="mr-2" /> },

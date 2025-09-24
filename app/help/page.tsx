@@ -1,6 +1,6 @@
 export default function HelpPage() {
   return (
-    <main className="container  mx-auto px-4 py-20">
+    <main className="container  mx-auto px-4 py-10">
 
       <div className="max-w-3xl mx-auto rounded-lg max-lg:h-screen max-lg:flex items-center justify-center pt-6">
         <div className="mb-8">
@@ -13,13 +13,13 @@ export default function HelpPage() {
             <div className="p-4 rounded-xl bg-white/10 text-md">
 <p className="mb-2 font-semibold">What you win:</p>
             <ul className="space-y-1">
-              <li><span className='mr-2'>🎤</span> Guest appearance on the LNOB show (10K+ impressions weekly)</li>
-              <li><span className='mr-2'>📱</span> Sponsored shoutouts in every stream</li>
-              <li><span className='mr-2'>🧠</span> BNKR blitz campaign for engagement</li>
-              <li><span className='mr-2'>📢</span> Featured banner in-app + clickable link</li>
-              <li><span className='mr-2'>🎞️</span> Zora clip to memorialize your moment</li>
-              <li><span className='mr-2'>🔁</span> Exposure across Base + Farcaster</li>
-              <li><span className='mr-2'>🔥</span> All powered by your LNOB token or USDC bid</li>
+              <li className="flex"><span className='flex-shrink-0 mr-2'>🎤</span> <span>Guest appearance on the LNOB show (averages 1k-2.5k viewers every show)</span></li>
+              <li className="flex"><span className='flex-shrink-0 mr-2'>📱</span> <span>Sponsored shoutouts in every stream - you are the official host for every show the following. Live banner and QR code played during the episode</span></li>
+              <li className="flex"><span className='flex-shrink-0 mr-2'>🧠</span> <span>BNKR blitz campaign for engagement</span></li>
+              <li className="flex"><span className='flex-shrink-0 mr-2'>📢</span> <span>Featured banner in-app + clickable link</span></li>
+              <li className="flex"><span className='flex-shrink-0 mr-2'>🎞️</span> <span>Zora clip to memorialize your moment</span></li>
+              <li className="flex"><span className='flex-shrink-0 mr-2'>🔁</span> <span>Exposure across Base + Farcaster + access to the LNOB community (50k+ holders)</span></li>
+              <li className="flex"><span className='flex-shrink-0 mr-2'>🔥</span> <span>All powered by your LNOB token or USDC bid</span></li>
             </ul>
             </div>
             
