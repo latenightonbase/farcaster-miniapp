@@ -3,6 +3,7 @@ import { FaBullhorn } from "react-icons/fa";
 import { X } from "lucide-react";
 import axios from "axios";
 import { BigNumber, ethers } from "ethers";
+import toast from 'react-hot-toast';
 
 import { HiSpeakerphone } from "react-icons/hi";
 import { useSignTypedData } from "wagmi";
@@ -26,6 +27,8 @@ import {
   base,
 } from "@base-org/account";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import { CustomConnect } from "./UI/connectButton";
+import { Toaster } from 'react-hot-toast';
 
 export default function AddBanner() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -131,6 +134,8 @@ export default function AddBanner() {
       const contract = await getContract(contractAdds.auction, auctionAbi);
       const auctionMeta = await contract?.getCurrentAuctionMeta();
 
+      console.log("Auction Meta:", auctionMeta);
+
       // Check if auction name exists
       if (!auctionMeta || !auctionMeta.tokenName) {
         console.log("No active auction found");
@@ -182,44 +187,85 @@ export default function AddBanner() {
       const bids = await contract?.getBidders(auctionId);
 
       if (bids && Array.isArray(bids)) {
-        const fids = bids.map((bid: any) => Number(bid.fid)); // Extract fids from bids
+        // Filter out non-numeric fids (which are likely wallet addresses)
+        const validFids = bids
+          .map((bid: any) => Number(bid.fid))
+          .filter((fid: number) => !isNaN(fid) && fid > 0);
+        
+        // Get wallet addresses (any non-numeric or zero fid)
+        const walletAddresses = bids
+          .filter((bid: any) => isNaN(Number(bid.fid)) || Number(bid.fid) === 0)
+          .map((bid: any) => bid.fid);
+        
+        console.log("Valid FIDs for Neynar:", validFids);
+        console.log("Wallet addresses:", walletAddresses);
 
-        const res = await fetch(
-          `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(fids)}`,
-          {
-            headers: {
-              "x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
-            },
+        // Only query Neynar API if we have valid FIDs
+        let users: any[] = [];
+        if (validFids.length > 0) {
+          const res = await fetch(
+            `https://api.neynar.com/v2/farcaster/user/bulk?fids=${String(validFids)}`,
+            {
+              headers: {
+                "x-api-key": process.env.NEXT_PUBLIC_NEYNAR_API_KEY as string,
+              },
+            }
+          );
+
+          console.log("Neynar API Response Status:", res);
+
+          if (res.ok) {
+            const jsonRes = await res.json();
+            users = jsonRes.users || [];
+          } else {
+            console.error("Error fetching user data from Neynar API");
           }
-        );
-
-        console.log("Neynar API Response Status:", res);
-
-        if (!res.ok) {
-          console.error("Error fetching user data from Neynar API");
-          return;
         }
-
-        const jsonRes = await res.json();
-
-        const users = jsonRes.users || [];
 
         console.log("All Users:", users);
 
         const enrichedBidders = bids.map((bid: any) => {
           console.log("Bid:", bid);
-          const user = users.find((u: any) => u.fid === Number(bid.fid));
+          
+          // Check if bid.fid is a wallet address (non-numeric or zero)
+          const isWalletAddress = isNaN(Number(bid.fid)) || Number(bid.fid) === 0;
 
-          console.log("User found for bid:", user);
+          console.log("This is the currency in use:", currency);
+          
+          if (isWalletAddress) {
+            // For wallet addresses, generate a profile based on the address
+            const address = bid.fid.toString();
+            const shortenedAddress = address.length > 8 
+              ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}`
+              : address;
+              
+            // Create Robohash or similar avatar from address
+            const avatarUrl = `https://robohash.org/${address}?set=set4&size=150x150`;
+            
+            return {
+              username: shortenedAddress,
+              pfp_url: avatarUrl,
+              fid: address,
+              bidAmount:
+                currency == "USDC"
+                  ? ethers.utils.formatUnits(String(bid.bidAmount), 6)
+                  : ethers.utils.formatUnits(String(bid.bidAmount), 18),
+            };
+          } else {
+            // For regular FIDs, find the user data
+            const user = users.find((u: any) => u.fid === Number(bid.fid));
+            // console.log("User found for bid:", user);
 
-          return {
-            username: user?.username || "Unknown",
-            pfp_url: user?.pfp_url || "",
-            bidAmount:
-              currency == "USDC"
-                ? ethers.utils.formatUnits(String(bid.bidAmount), 6)
-                : ethers.utils.formatUnits(String(bid.bidAmount), 18),
-          };
+            return {
+              username: user?.username || `${bid.fid.slice(0,4)}...${bid.fid.slice(-4)}`,
+              pfp_url: user?.pfp_url || `https://robohash.org/${bid.fid}?set=set4&size=150x150`,
+              fid: user?.fid || Number(bid.fid),
+              bidAmount:
+                currency == "USDC"
+                  ? ethers.utils.formatUnits(String(bid.bidAmount), 6)
+                  : ethers.utils.formatUnits(String(bid.bidAmount), 18),
+            };
+          }
         });
 
         // Filter out bidders with bidAmount = 0
@@ -267,7 +313,7 @@ export default function AddBanner() {
 
       if (remainingSeconds <= 0) {
         setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      
+
         return;
       }
 
@@ -308,6 +354,31 @@ export default function AddBanner() {
       }
 
       setIsLoading(true);
+      
+      // Check user's token balance before proceeding
+      try {
+        const tokenContract = await getContract(caInUse, currency === "USDC" ? usdcAbi : erc20Abi);
+        const decimals = currency === "USDC" ? 6 : 18;
+        const userBalance = await tokenContract?.balanceOf(address);
+        const bidAmount = BigInt(Math.round(usdcAmount * 10 ** decimals));
+        
+        console.log("User balance:", userBalance.toString());
+        console.log("Bid amount:", bidAmount.toString());
+        
+        if (userBalance < bidAmount) {
+          const formattedBalance = Number(userBalance) / 10 ** decimals;
+          const errorMessage = `Insufficient balance. You have ${formattedBalance.toFixed(2)} ${currency} but tried to bid ${usdcAmount} ${currency}`;
+          // setError(errorMessage);
+          toast.error(errorMessage, {
+            position: 'bottom-center'
+          });
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Error checking balance:", err);
+        // Continue with the transaction even if balance check fails
+      }
 
       const provider = createBaseAccountSDK({
         appName: "Bill test app",
@@ -316,7 +387,9 @@ export default function AddBanner() {
       }).getProvider();
 
       // Check if USDC address to determine decimals
-      const isUSDC = caInUse.toLowerCase() === "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase();
+      const isUSDC =
+        caInUse.toLowerCase() ===
+        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase();
       const decimals = isUSDC ? 6 : 18;
 
       try {
@@ -324,7 +397,7 @@ export default function AddBanner() {
         if (context?.client.clientFid !== 309857) {
           // Standard wallet flow with permit
           let token, nonce, domain;
-          
+
           try {
             // Get token contract and domain data - different handling for USDC vs other ERC20
             if (currency === "USDC") {
@@ -332,33 +405,31 @@ export default function AddBanner() {
               const tokenName = await token?.name();
               const tokenVersion = (await token?.version()) || "1";
               nonce = Number(await token?.nonces(address));
-              
+
               domain = {
                 name: tokenName,
                 version: tokenVersion,
                 chainId: 8453,
                 verifyingContract: caInUse,
               } as const;
-              
             } else {
               token = await getContract(caInUse, erc20Abi);
               nonce = Number(await token?.nonces(address));
               const fromContract = await token?.eip712Domain();
-              
+
               domain = {
                 name: fromContract.name,
                 version: fromContract.version,
                 chainId: 8453,
                 verifyingContract: fromContract.verifyingContract,
               } as const;
-              
             }
           } catch (err) {
             console.error("Error getting token contract information:", err);
             setIsLoading(false);
             return;
           }
-          
+
           // Prepare permit data
           const types = {
             Permit: [
@@ -369,27 +440,41 @@ export default function AddBanner() {
               { name: "deadline", type: "uint256" },
             ],
           } as const;
-          
+
           // Calculate amount with proper decimals
-          const sendingAmount = BigInt(Math.round(usdcAmount * (10 ** decimals)));
-          
-          console.log("Sending Amount:", sendingAmount.toString(), "to contract:", contractAdds.auction);
-          
+          const sendingAmount = BigInt(Math.round(usdcAmount * 10 ** decimals));
+
+          console.log(
+            "Sending Amount:",
+            sendingAmount.toString(),
+            "to contract:",
+            contractAdds.auction
+          );
+
           // Check if bid is high enough
-          const auctionContract = await getContract(contractAdds.auction, auctionAbi);
+          const auctionContract = await getContract(
+            contractAdds.auction,
+            auctionAbi
+          );
           const currentHighestBid = await auctionContract?.highestBid();
-          console.log("Current highest bid from contract:", currentHighestBid.toString());
-          
+          console.log(
+            "Current highest bid from contract:",
+            currentHighestBid.toString()
+          );
+
           if (sendingAmount <= currentHighestBid) {
-            const formattedHighestBid = Number(currentHighestBid) / (10 ** decimals);
-            setError(`Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`);
+            const formattedHighestBid =
+              Number(currentHighestBid) / 10 ** decimals;
+            setError(
+              `Bid must be higher than current highest bid (${formattedHighestBid} ${currency})`
+            );
             setIsLoading(false);
             return;
           }
-          
+
           // Set permit deadline to 1 hour from now
           const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
-          
+
           // Prepare the permit message
           const message = {
             owner: address as `0x${string}`,
@@ -398,7 +483,7 @@ export default function AddBanner() {
             nonce: BigInt(nonce),
             deadline,
           };
-          
+
           // Sign the typed data for the permit function
           console.log("Requesting signature from wallet...");
           const signature = await signTypedDataAsync({
@@ -407,16 +492,16 @@ export default function AddBanner() {
             types,
             message,
           });
-          
+
           const { v, r, s } = splitSignature(signature);
           console.log("Signature received successfully!");
-          
+
           // Prepare arguments for the contract call
-          const bidPermitArgs = [sendingAmount, user?.fid, deadline, v, r, s];
-          
+          const bidPermitArgs = [sendingAmount, String(user?.fid || address), deadline, v, r, s];
+
           // Small delay to help wallets process the signature
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          
+
           // Call contract with signed data
           const tx = await writeContract(config, {
             abi: auctionAbi,
@@ -425,12 +510,11 @@ export default function AddBanner() {
             args: bidPermitArgs,
             gas: BigInt(500000), // Explicit gas limit
           });
-          
+
           console.log("Transaction submitted:", tx);
-          
+
           // Wait for transaction confirmation
           await new Promise((resolve) => setTimeout(resolve, 5000));
-          
         } else {
           // Special client flow with multi-call transaction
           // Calculate amount with proper decimals using ethers library
@@ -438,8 +522,7 @@ export default function AddBanner() {
             Math.round(usdcAmount).toString(),
             decimals
           );
-        
-          
+
           // Prepare multicall data
           const calls = [
             {
@@ -457,15 +540,14 @@ export default function AddBanner() {
               data: encodeFunctionData({
                 abi: auctionAbi,
                 functionName: "placeBid",
-                args: [sendingAmount, user?.fid],
+                args: [sendingAmount, String(user?.fid || address)],
               }),
             },
           ];
-          
+
           const cryptoAccount = await getCryptoKeyAccount();
           const fromAddress = cryptoAccount?.account?.address;
-        
-          
+
           const result = await provider.request({
             method: "wallet_sendCalls",
             params: [
@@ -478,34 +560,67 @@ export default function AddBanner() {
               },
             ],
           });
-          
+
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-        
+
+        // try {
+        //   await fetch("/api/notification", {
+        //     method: "POST",
+        //     body: JSON.stringify({
+        //       fid: highestBidder.fid, // Replace with actual fid if available
+        //       notification: {
+        //         title: "You just got outbid!",
+        //         body: `Your bid of ${highestBidder.bidAmount} ${currency} has been surpassed by ${user?.username}. Place a higher bid to reclaim your position!`,
+        //       },
+        //     }),
+        //   });
+        // } catch (err) {
+        //   console.log("Error sending outbid notification:", err);
+        // }
+
         // Refresh auction bids and reload the page
         await getAuctionBids();
         window.location.reload();
-        
       } catch (err: any) {
         console.error("Error in signing or sending transaction:", err);
-        
+
         // Map common error messages to user-friendly messages
         const errorMessages: Record<string, string> = {
           "user rejected": "Transaction was rejected in your wallet",
-          "deadline": "Transaction deadline has passed",
+          deadline: "Transaction deadline has passed",
           "Bid not high enough": "Your bid is not high enough",
           "Auction has ended": "This auction has already ended",
-          "insufficient funds": "You don't have enough funds for this transaction",
-          "gas": "Gas estimation failed. Try a higher amount or check your wallet settings",
-          "signature": "Error with signature. Please try again.",
+          "insufficient funds":
+            "You don't have enough funds for this transaction",
+          "exceeds balance": 
+            "Transaction amount exceeds your balance",
+          gas: "Gas estimation failed. Try a higher amount or check your wallet settings",
+          signature: "Error with signature. Please try again.",
           "EIP-1271": "Smart wallet signature verification failed",
         };
-        
+
         // Find matching error or use generic message
-        const errorKey = Object.keys(errorMessages).find(key => 
-          err.message && err.message.includes(key)
+        const errorKey = Object.keys(errorMessages).find(
+          (key) => err.message && err.message.includes(key)
         );
         
+        if (errorKey) {
+          const errorMessage = errorMessages[errorKey];
+          setError(errorMessage);
+          toast.error(errorMessage, {
+            duration: 4000,
+            position: 'top-center',
+          });
+        } else if (err.message && err.message.includes("exceeds balance")) {
+          const errorMessage = "Transaction amount exceeds your balance";
+          setError(errorMessage);
+          toast.error(errorMessage, {
+            duration: 4000,
+            position: 'top-center',
+          });
+        }
+
         setIsLoading(false);
         return; // Stop execution here to prevent the finally block from closing the modal
       }
@@ -518,52 +633,19 @@ export default function AddBanner() {
     }
   };
 
-  function encodeSafeTx(to: string, value: number | string, data: string) {
-    const valueHex = ethers.utils.hexZeroPad(ethers.utils.hexlify(value), 32);
-    const dataLength = ethers.utils.hexZeroPad(
-      ethers.utils.hexlify(ethers.utils.arrayify(data).length),
-      32
-    );
-    return ethers.utils.hexConcat([to, valueHex, dataLength, data]);
-  }
-
-  if (address)
     return (
-      <div className="mx-3 text-white">
-        {loading
-          ? null
-          : uploadedImage && (
-              <a href={url || "#"} target="_blank" rel="noopener noreferrer">
-                <div className="relative">
-                  <img
-                    src={`${uploadedImage}?v=${Date.now()}`}
-                    alt="Sponsor Banner"
-                    className="mx-auto mt-4 h-[200px] w-full object-cover overflow-hidden rounded-lg shadow-xl shadow-red-600/20 active:scale-95  hover:scale-95 duration-200"
-                  />
-                  {url !== "#" && (
-                    <span className="bg-black/50 text-sm absolute rounded-full text-white px-2 bottom-1 right-1 flex items-center justify-center gap-1">
-                      <PiCursorClickFill /> Click for more info
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-col mt-2">
-                  <span className="text-white/80 text-sm">
-                    Today&apos;s Highlighted Project:
-                  </span>
-                  <span className="text-2xl font-bold bg-gradient-to-br from-yellow-500 via-yellow-300 to-yellow-700 text-transparent bg-clip-text">
-                    {name}
-                  </span>
-                </div>
-              </a>
-            )}
-
-        <div
-          className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-300 ${
+      <>
+      <Toaster
+        toastOptions={{
+          position: 'bottom-center'
+        }}
+      />
+      <div
+          className={`fixed left-0 top-0 w-screen inset-0 bg-black/80 flex items-center justify-center z-[1000000] transition-opacity duration-300 ${
             isModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <div className="bg-gradient-to-b mx-2 from-black to-orange-950 border-y-2 border-orange-500 p-6 rounded-lg w-96 text-white relative">
+          <div className="bg-black mx-2 border-y-2 border-bill-pink p-6 rounded-lg w-96 text-white relative">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-white hover:text-gray-400"
@@ -583,29 +665,6 @@ export default function AddBanner() {
                 <li>Highest bidder will be contacted via Farcaster.</li>
                 <li>Non-winning bids will be refunded.</li>
               </ul>
-
-              {/* <div className="flex mt-2 gap-2 mb-4 text-sm">
-                  <button
-                    onClick={() => setCurrency("ETH")}
-                    className={`flex-1 py-2 rounded-full font-bold transition ${
-                      currency === "ETH"
-                        ? "bg-orange-500 text-white"
-                        : "bg-orange-950/50 text-gray-300"
-                    } hover:bg-orange-600`}
-                  >
-                    ETH
-                  </button>
-                  <button
-                    onClick={() => setCurrency("USDC")}
-                    className={`flex-1 py-2 rounded-full font-bold transition ${
-                      currency === "USDC"
-                        ? "bg-orange-500 text-white"
-                        : "bg-orange-950/50 text-gray-300"
-                    } hover:bg-orange-600`}
-                  >
-                    USDC
-                  </button>
-                </div> */}
 
               {highestBidder && (
                 <div>
@@ -629,32 +688,6 @@ export default function AddBanner() {
                       {currency}
                     </h4>
                   </div>
-                  {/* {auctionDeadline && (
-                  <div className="mt-2 bg-white/10 p-3 rounded-sm">
-                    <div className="flex items-center gap-1 text-sm font-medium mb-1">
-                      <RiTimerLine className="text-orange-400" />
-                      <span>Auction ends in:</span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-1 text-center">
-                      <div className="bg-black/30 p-1 rounded">
-                        <div className="text-lg font-bold">{timeRemaining.days}</div>
-                        <div className="text-xs text-gray-400">Days</div>
-                      </div>
-                      <div className="bg-black/30 p-1 rounded">
-                        <div className="text-lg font-bold">{timeRemaining.hours}</div>
-                        <div className="text-xs text-gray-400">Hours</div>
-                      </div>
-                      <div className="bg-black/30 p-1 rounded">
-                        <div className="text-lg font-bold">{timeRemaining.minutes}</div>
-                        <div className="text-xs text-gray-400">Mins</div>
-                      </div>
-                      <div className="bg-black/30 p-1 rounded">
-                        <div className="text-lg font-bold">{timeRemaining.seconds}</div>
-                        <div className="text-xs text-gray-400">Secs</div>
-                      </div>
-                    </div>
-                  </div>
-                )} */}
                 </div>
               )}
 
@@ -677,44 +710,15 @@ export default function AddBanner() {
                         ≈ {(usdcAmount * tokenPrice).toFixed(8)} USD
                       </span>
                     )}
-                    {/* {tokenPrice !== null && (
-                      <div className="absolute right-3 top-2 text-xs bg-black/70 px-2 py-1 rounded text-white/80">
-                        {tokenPriceLoading ? (
-                          <span className="flex items-center">
-                            <RiLoader5Fill className="animate-spin mr-1" />
-                            Loading...
-                          </span>
-                        ) : (
-                          <div>
-                            <span className="flex items-center">
-                              1 {currency} ≈ ${tokenPrice.toFixed(8)} USD
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (caInUse) fetchTokenPrice(caInUse);
-                                }}
-                                className="ml-1 text-blue-400 hover:text-blue-300"
-                              >
-                                ↻
-                              </button>
-                            </span>
-                            {usdcAmount > 0 && (
-                              <span className="block text-green-400">
-                                ≈ ${(usdcAmount * tokenPrice).toFixed(2)} USD
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )} */}
+                    
                   </div>
                   {error && (
-                    <p className="text-red-500 text-sm mt-2">{error}</p>
+                    <p className="text-bill-blue text-sm mt-2">{error}</p>
                   )}
 
                   <button
                     type="button"
-                    className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
+                    className="bg-bill-pink text-white px-4 py-2 rounded-lg w-full mt-2 flex items-center justify-center"
                     onClick={() => {
                       if (usdcAmount <= (highestBidder?.bidAmount || 0)) {
                         setError(
@@ -740,7 +744,7 @@ export default function AddBanner() {
               ) : (
                 <button
                   type="button"
-                  className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full flex items-center justify-center"
+                  className="bg-bill-pink text-white px-4 py-2 rounded-lg w-full flex items-center justify-center"
                   onClick={() => setInputVisible(true)}
                   disabled={isLoading}
                 >
@@ -757,6 +761,8 @@ export default function AddBanner() {
             </>
           </div>
         </div>
+        <div className=" text-white relative px-3">
+        {/* SponsorBanner component is now being used in page.tsx directly */}
 
         <div className="mt-6 text-white">
           <div className="flex items-center">
@@ -779,22 +785,54 @@ export default function AddBanner() {
             </h3>
             <div className="w-[30%] flex justify-end">
               {isAuctionActive && (
-                <button
+                <>{
+                  address ? 
+                  <button
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-gradient-to-br w-full h-10 from-emerald-700 via-green-600 to-emerald-700 font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"
+                  className="bg-bill-pink w-full h-10  font-bold text-white py-1 rounded-md flex gap-2 justify-center items-center text-xl"
                   disabled={!isAuctionActive}
                 >
                   <RiAuctionFill className="text-white text-xl" /> Bid
                 </button>
+                  : <CustomConnect/>
+                }
+                
+                </>
+                
               )}
             </div>
           </div>
-
+          
+          {/* Highest Bidder Display */}
+          {isAuctionActive && highestBidder && !isFetchingBidders && (
+            <div className="mt-4 bg-white/10 p-3 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <RiAuctionFill className="text-bill-pink text-xl" />
+                <span className="font-medium">Current Highest Bid:</span>
+              </div>
+              <div className="flex flex-col items-center justify-between bg-black/30 p-3 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Image
+                    alt={highestBidder.username}
+                    src={highestBidder.pfp_url}
+                    width={32}
+                    height={32}
+                    className="rounded-full w-8 h-8"
+                  />
+                  <span className="font-medium">{highestBidder.username}</span>
+                </div>
+                <div className="font-bold text-lg text-bill-pink">
+                  {Math.round(highestBidder.bidAmount).toLocaleString()} {currency}
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Countdown Timer for Mobile View */}
           {isAuctionActive && auctionDeadline && !isFetchingBidders && (
-            <div className="mt-4 bg-black/30 rounded-lg">
+            <div className="mt-4  rounded-lg">
               <div className="flex items-center gap-1 text-sm font-medium mb-2">
-                <RiTimerLine className="text-orange-400" />
+                <RiTimerLine className="text-bill-pink" />
                 <span>Auction ends in:</span>
               </div>
               <div className="grid grid-cols-4 gap-2 text-center">
@@ -813,7 +851,7 @@ export default function AddBanner() {
                   <div className="text-xs text-gray-400">Mins</div>
                 </div>
                 <div className="bg-black/50 p-2 rounded">
-                  <div className="text-xl font-bold">
+                  <div className="text-xl font-bold text-bill-pink">
                     {timeRemaining.seconds}
                   </div>
                   <div className="text-xs text-gray-400">Secs</div>
@@ -833,7 +871,7 @@ export default function AddBanner() {
           ) : bidders.length > 0 ? (
             <table className="w-full text-left border-collapse mt-4">
               <thead>
-                <tr className="border-b border-white/30 text-red-300">
+                <tr className="border-b border-white/30 text-bill-pink">
                   <th className="py-2 ">Profile</th>
                   <th className="py-2 text-right ">Bid Amount</th>
                 </tr>
@@ -867,5 +905,7 @@ export default function AddBanner() {
           )}
         </div>
       </div>
+      </>
+      
     );
 }

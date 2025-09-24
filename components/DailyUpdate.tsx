@@ -1,5 +1,7 @@
 import { useAddFrame, useNotification } from '@coinbase/onchainkit/minikit';
 import React, { useState, useEffect, useRef } from 'react';
+import { IoMdInformationCircleOutline } from 'react-icons/io';
+import Link from 'next/link';
 
 export default function DailyUpdate({ selected }: { selected: string }) {
   const [videos, setVideos] = useState<string>("");
@@ -57,8 +59,10 @@ export default function DailyUpdate({ selected }: { selected: string }) {
     }
   }, [videos]);
 
+  // No need for modal handling anymore
+
   return (
-    <div className="max-w-6xl mx-auto text-white animate-rise ">
+    <div className=" mx-auto text-white animate-rise max-[700px]:w-screen w-[700px]">
 
       {error && (
         <div className="mt-4 px-3 bg-red-800 border border-red-600 rounded-lg">
@@ -67,16 +71,26 @@ export default function DailyUpdate({ selected }: { selected: string }) {
       )}
 
       {!loading && videos.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-8 -mx-4">
+        <div className="mt-8 -mx-4 px-4">
 
             <div
-              className=" px-3 pb-3 shadow-xl mx-auto flex w-screen flex-col items-start justify-center shadow-red-800/20 transition-shadow rounded-lg overflow-hidden bg-gradient-to-b from-transparent to-red-800/10 border-b-[2px]  border-red-500/30"
+              className=" px-3 pb-3 mx-auto flex w-full flex-col items-center justify-center rounded-lg overflow-hidden "
             >
-              <h2 className="text-xl text-white font-poppins font-bold mb-2">Word from Our Sponsor</h2>
+              <div className="flex items-center justify-start w-full mb-2 gap-2">
+                <span className="text-2xl text-white font-poppins font-bold">Message from Sponsor</span>
+                <Link href="/help">
+                  <button 
+                    className="rounded-full hover:bg-red-800/30 transition-colors"
+                    aria-label="Information about sponsorship"
+                  >
+                    <IoMdInformationCircleOutline className="text-white text-2xl" />
+                  </button>
+                </Link>
+              </div>
 
               {/* Enhanced Video Container */}
               {videos && (
-                <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
+                <div className="relative aspect-square rounded-lg overflow-hidden">
                   <video
                     ref={videoRef}
                     src={videos + "?v=" + Date.now()}

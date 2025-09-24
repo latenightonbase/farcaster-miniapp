@@ -3,6 +3,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --bill-blue: #0e5acc;
+  --bill-blue-rgb: 14, 90, 204;
+  --bill-pink: #fc5ab6;
+  --bill-pink-rgb: 252, 90, 182;
 }
 
 @theme inline {
@@ -10,6 +14,12 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+@theme {
+  --color-bill-blue: #0e5acc;
+  --color-bill-light-blue: #73b4ff;
+  --color-bill-pink: #fc5ab6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,6 +33,18 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom gradient for background */
+.bg-gradient-bill {
+  background-image: linear-gradient(to bottom, black, rgba(var(--bill-blue-rgb), 0.5), var(--bill-blue));
+}
+
+/* Desktop sidebar layout class */
+@media (min-width: 1024px) {
+  .desktop-with-sidebar {
+    padding-left: 16rem; /* 64px or 256px, matching the sidebar width */
+  }
 }
 
 @keyframes slow-rise {
@@ -46,4 +68,25 @@ body {
 
 .animate-rise-2 {
   animation: slow-rise 3s ease-out;
+}
+
+/* Customize scrollbar with bill-pink color */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bill-pink);
+  border-radius: 10px;
+}
+
+/* For Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bill-pink) transparent;
 }

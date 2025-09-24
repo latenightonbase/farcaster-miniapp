@@ -113,6 +113,7 @@ const Tipping = () => {
 
       setIsSuccess(true);
 
+
       setTimeout(() => {
         setIsDropdownOpen(false);
         setIsLoading(false);
@@ -133,7 +134,7 @@ const Tipping = () => {
     <div
       className={`fixed bottom-0 left-0 bg-gradient-to-b from-transparent via-black/80 to-black p-4 pt-20 w-full flex justify-between`}
     >
-      <div className="flex items-center gap-2 text-white w-full">
+      <div className="flex items-center mb-2 gap-2 text-white w-full">
         
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
